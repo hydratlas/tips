@@ -51,14 +51,6 @@ EOF
 docker-compose up
 ```
 
-## Cockpitをインストール（管理者）
-```
-sudo apt-get install -y -t mantic-backports --no-install-recommends cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-packagekit cockpit-storaged cockpit-podman &&
-sudo systemctl enable --now cockpit.socket
-
-# http://xxx.local:9090
-```
-
 ## DockerおよびDocker Composeをインストール・実行
 ### DockerおよびDocker Composeをインストール（管理者）
 ```
@@ -66,9 +58,7 @@ sudo apt-get update &&
 sudo apt-get install -y ca-certificates curl gnupg &&
 sudo install -m 0755 -d /etc/apt/keyrings &&
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg &&
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-# Add the repository to Apt sources:
+sudo chmod a+r /etc/apt/keyrings/docker.gpg &&
 echo \
   "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
@@ -112,3 +102,18 @@ wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/co
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
+## Portainer CEをインストール（管理者）
+```
+sudo docker volume create portainer_data &&
+sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
+
+# https://localhost:9443
+```
+
+## Cockpitをインストール（管理者）
+```
+sudo apt-get install -y -t mantic-backports --no-install-recommends cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-packagekit cockpit-storaged cockpit-podman &&
+sudo systemctl enable --now cockpit.socket
+
+# http://xxx.local:9090
+```
