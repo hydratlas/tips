@@ -1,4 +1,4 @@
-# Ubuntu Server 22.04をBtrfs (RAID 1) + Snapper + grub-btrfsでセットアップ
+# Ubuntu Server 23.10をBtrfs (RAID 1) + Snapper + grub-btrfsでセットアップ
 ## ストレージをフォーマット
 ### GNU GRUB画面
 ![](01_grub.png)
