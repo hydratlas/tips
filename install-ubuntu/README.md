@@ -1,21 +1,22 @@
-# ストレージをフォーマット
-## GNU GRUB画面
+# Ubuntu Server 22.04をBtrfs (RAID 1) + Snapper + grub-btrfsでセットアップ
+## ストレージをフォーマット
+### GNU GRUB画面
 ![](01_grub.png)
 Try or Install Ubuntu Serverにフォーカスを当てて、Enterキーを押下する。
 
-## Welcome!画面
+### Welcome!画面
 ![02_welcome.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/122614/536f6e62-e55f-9736-d7c0-2c37774146cd.png)
 Englishにフォーカスを当てて、Enterキーを押下する。
 
-## Keyboard configuration画面
+### Keyboard configuration画面
 ![](03_keyboard_configuration.png)
 Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-## Choose type of install画面
+### Choose type of install画面
 ![](04_choose_type_of_install.png)
 なにもせずに、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
-## コンソール画面
+### コンソール画面
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
 ```
 wget https://raw.githubusercontent.com/hydratlas/tips/main/install-ubuntu/btrfs1.sh
@@ -26,40 +27,40 @@ sudo bash -x btrfs1.sh sdX
 sudo shutdown -r now
 ```
 
-# インストール
-## GNU GRUB画面
+## インストール
+### GNU GRUB画面
 ![](01_grub.png)
 Try or Install Ubuntu Serverにフォーカスを当てて、Enterキーを押下する。
 
-## Welcome!画面
+### Welcome!画面
 ![](02_welcome.png)
 Englishにフォーカスを当てて、Enterキーを押下する。
 
-## Keyboard configuration画面
+### Keyboard configuration画面
 ![](03_keyboard_configuration.png)
 Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-## Choose type of install画面
+### Choose type of install画面
 ![](04_choose_type_of_install.png)
 Ubuntu Serverを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-## Network connections
+### Network connections
 ![](05_network_connections.png)
 自動的にDHCPによってIPアドレスが取得されるため、それを少し待ってからDoneにフォーカスを当ててEnterキーを押下する。
 
-## Configure proxy
+### Configure proxy
 ![](06_configure_proxy.png)
 なにもせずに、Doneにフォーカスを当ててEnterキーを押下する。
 
-## Configure Ubuntu archive mirror
+### Configure Ubuntu archive mirror
 ![](07_configure_ubuntu_archive_mirror.png)
 自動的にミラーが取得されるため、それを少し待ってからDoneにフォーカスを当ててEnterキーを押下する。
 
-## Guided storage configuration
+### Guided storage configuration
 ![](08_guided_storage_configuration.png)
 Custom storage layoutを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-## Storage configuration
+### Storage configuration
 ![](09_storage_configuration.png)
 1台目のストレージにフォーカスを当ててEnterキーを押下すると、サブメニューが表示される。その中からUse As Boot Deviceにフォーカスを当ててEnterキーを押下する。
 
@@ -81,30 +82,30 @@ Custom storage layoutを選択したうえで、Doneにフォーカスを当て�
 ![](15_storage_configuration.png)
 フォーマットによりデータが失われるという警告が表示される。Continueにフォーカスを当ててEnterキーを押下する。
 
-## Profile setup
+### Profile setup
 ![](16_profile_setup.png)
 任意の値を入力してから、Doneにフォーカスを当ててEnterキーを押下する。
 
-## SSH Setup
+### SSH Setup
 ![](17_ssh_setup.png)
 「Install OpenSSH server」にチェックを入れ、「from GitHub」を選択し、ユーザー名を入力してから、Doneにフォーカスを当ててEnterキーを押下する。
 
 ![](18_ssh_setup.png)
 SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを押下する。
 
-## Features Server Snaps
+### Features Server Snaps
 ![](19_features_server_snaps.png)
 必要なものがあればそれらにチェックを入れてから、Doneにフォーカスを当ててEnterキーを押下する。ここでインストールできるのはSnap版のアプリケーションであるが、一般的にDockerはSnap版ではないものをインストールする。
 
-## Installing_system
+### Installing_system
 ![](20_installing_system.png)
 インストールが始まるため、待つ。
 
-## Install complete!
+### Install complete!
 ![](21_install_complete.png)
 インストールが終わったら、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
-## コンソール画面
+### コンソール画面
 以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。終わったら再起動する。
 ```
 wget https://raw.githubusercontent.com/hydratlas/tips/main/install-ubuntu/btrfs2.sh
@@ -114,8 +115,8 @@ sudo bash -x btrfs2.sh sdX sdX
 sudo shutdown -r now
 ```
 
-# SSHから設定
-## スクラブ・バランスタイマーの設定・確認
+## SSHから設定
+### スクラブ・バランスタイマーの設定・確認
 設定。
 ```
 sudo apt-get install -y btrfsmaintenance &&
@@ -131,7 +132,7 @@ sudo systemctl status btrfs-balance.timer
 sudo systemctl status btrfs-scrub.timer
 ```
 
-## Snapperのインストールと設定・確認
+### Snapperのインストールと設定・確認
 インストールと設定。
 ```
 sudo apt-get install -y snapper &&
@@ -155,7 +156,7 @@ sudo btrfs subvolume list /
 sudo snapper -c root list
 ```
 
-## grub-btrfsのインストールと設定
+### grub-btrfsのインストールと設定
 インストールと設定。
 ```
 sudo apt-get install -y gawk inotify-tools git make bzip2 &&
@@ -173,7 +174,7 @@ sudo systemctl enable --now grub-btrfsd.service
 sudo systemctl status grub-btrfsd.service
 ```
 
-## btrfs-compsizeのインストールと使用
+### btrfs-compsizeのインストールと使用
 Btrfsの圧縮機能でどの程度ファイルが圧縮されたのかを表示する。
 
 インストール。
