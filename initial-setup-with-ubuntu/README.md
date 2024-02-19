@@ -58,3 +58,57 @@ sudo systemctl enable --now cockpit.socket
 
 # http://xxx.local:9090
 ```
+
+## DockerおよびDocker Composeをインストール・実行
+### DockerおよびDocker Composeをインストール（管理者）
+```
+sudo apt-get update &&
+sudo apt-get install -y ca-certificates curl gnupg &&
+sudo install -m 0755 -d /etc/apt/keyrings &&
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg &&
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+sudo apt-get update &&
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+- [Install Docker Engine on Ubuntu | Docker Docs](https://docs.docker.com/engine/install/ubuntu/)
+
+## Rootless DockerおよびDocker Composeをインストール・実行
+### uidmapをインストール（管理者）
+```
+sudo apt-get install -y uidmap
+```
+- [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
+
+### Rootless Dockerをインストール（ユーザー）
+```
+dockerd-rootless-setuptool.sh install &&
+cat << EOS >> "$HOME/.bashrc"
+
+# Docker
+if [ -e "$XDG_RUNTIME_DIR/docker.sock" ]; then
+  export PATH=$HOME/bin:\$PATH
+  export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/docker.sock"
+fi
+EOS
+```
+- [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
+
+### Rootless Dockerをアンインストール（ユーザー）
+```
+dockerd-rootless-setuptool.sh uninstall
+```
+
+### Docker Composeをインストール（ユーザー）
+```
+mkdir -p "$HOME/.docker/cli-plugins" &&
+wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
+chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
+```
+
