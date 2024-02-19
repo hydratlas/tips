@@ -44,23 +44,23 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 ![](04_choose_type_of_install.png)
 Ubuntu Serverを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-### Network connections
+### Network connections画面
 ![](05_network_connections.png)
 自動的にDHCPによってIPアドレスが取得されるため、それを少し待ってからDoneにフォーカスを当ててEnterキーを押下する。
 
-### Configure proxy
+### Configure proxy画面
 ![](06_configure_proxy.png)
 なにもせずに、Doneにフォーカスを当ててEnterキーを押下する。
 
-### Configure Ubuntu archive mirror
+### Configure Ubuntu archive mirror画面
 ![](07_configure_ubuntu_archive_mirror.png)
 自動的にミラーが取得されるため、それを少し待ってからDoneにフォーカスを当ててEnterキーを押下する。
 
-### Guided storage configuration
+### Guided storage configuration画面
 ![](08_guided_storage_configuration.png)
 Custom storage layoutを選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
-### Storage configuration
+### Storage configuration画面
 ![](09_storage_configuration.png)
 1台目のストレージにフォーカスを当ててEnterキーを押下すると、サブメニューが表示される。その中からUse As Boot Deviceにフォーカスを当ててEnterキーを押下する。
 
@@ -82,26 +82,26 @@ Custom storage layoutを選択したうえで、Doneにフォーカスを当て�
 ![](15_storage_configuration.png)
 フォーマットによりデータが失われるという警告が表示される。Continueにフォーカスを当ててEnterキーを押下する。
 
-### Profile setup
+### Profile setup画面
 ![](16_profile_setup.png)
 任意の値を入力してから、Doneにフォーカスを当ててEnterキーを押下する。
 
-### SSH Setup
+### SSH Setup画面
 ![](17_ssh_setup.png)
 「Install OpenSSH server」にチェックを入れ、「from GitHub」を選択し、ユーザー名を入力してから、Doneにフォーカスを当ててEnterキーを押下する。
 
 ![](18_ssh_setup.png)
 SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを押下する。
 
-### Features Server Snaps
+### Features Server Snaps画面
 ![](19_features_server_snaps.png)
-必要なものがあればそれらにチェックを入れてから、Doneにフォーカスを当ててEnterキーを押下する。ここでインストールできるのはSnap版のアプリケーションであるが、一般的にDockerはSnap版ではないものをインストールする。
+必要なものがあればそれらにチェックを入れてから、Doneにフォーカスを当ててEnterキーを押下する。なお、ここでインストールできるのはSnap版のアプリケーションであるが、例えば一般的にDockerはSnap版ではないものをインストールする。
 
-### Installing_system
+### Installing system画面
 ![](20_installing_system.png)
 インストールが始まるため、待つ。
 
-### Install complete!
+### Install complete!画面
 ![](21_install_complete.png)
 インストールが終わったら、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
