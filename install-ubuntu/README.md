@@ -115,7 +115,20 @@ sudo bash -x btrfs2.sh sdX sdX
 sudo shutdown -r now
 ```
 
+## インストール後に起動してからの設定
+### 【オプション】mDNSのインストール
+LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。
+```
+sudo apt-get install -y avahi-daemon
+```
+
 ## SSHから設定
+### 【オプション】ノートパソコンのふたをしめてもサスペンドしないようにする
+```
+sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
+sudo systemctl restart systemd-logind.service
+```
+
 ### スクラブ・バランスタイマーの設定・確認
 設定。
 ```
