@@ -39,17 +39,12 @@ sudo btrfs subvolume create @root
 sudo btrfs subvolume create @var_log
 sudo btrfs subvolume create @snapshots
 
-# 作成したサブボリュームを確認
-#sudo btrfs subvolume list .
-
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
 sudo btrfs subvolume set-default @
 
 # 作成したサブボリュームにファイルをコピー
 sudo cp -RT --reflink=always root/ @root/
 sudo cp -RT --reflink=always var/log/ @var_log/
-#sudo rsync -a root/ @root/
-#sudo rsync -a var/log/ @var_log/
 
 # ルートボリュームからファイルを削除
 sudo find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
@@ -61,8 +56,8 @@ sudo find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 # RAID1化
 sudo btrfs device add -f "$ROOTFS2_PART" .
 sudo btrfs balance start -mconvert=raid1 -dconvert=raid1 .
-#sudo btrfs filesystem usage .
-#sudo btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / / # 1台で運用した後に修復する場合
+
+#sudo btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / # 1台で運用した後に修復する場合
 
 # fstabでBtrfsファイルシステムのマウントを次のように編集（「Ctrl + K」で行カット、「Ctrl + U」で行ペースト）
 sudo tee @/etc/fstab << EOF >/dev/null
