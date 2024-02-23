@@ -33,6 +33,8 @@ cat << EOS >> "$HOME/.bashrc" &&
 if [ -e "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
 fi
+
+PATH="$HOME/.local/bin:$PATH"
 EOS
 . "$HOME/.bashrc"
 
