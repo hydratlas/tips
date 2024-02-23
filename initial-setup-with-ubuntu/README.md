@@ -10,7 +10,8 @@ source /etc/default/locale
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者）
 ```
-sudo apt-get install -y podman podman-docker uidmap &&
+sudo apt-get install -y podman &&
+sudo apt-get install -y --no-install-recommends podman-docker &&
 sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
 sudo touch /etc/containers/nodocker
 ```
