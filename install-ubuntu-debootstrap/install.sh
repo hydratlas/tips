@@ -71,10 +71,6 @@ deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-backports main restricted univers
 deb http://security.ubuntu.com/ubuntu/ ${SUITE}-security main restricted universe multiverse
 EOF
 
-arch-chroot "${MOUNT_POINT}" apt-get update
-arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
-arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr grub-efi-amd64-signed
-
 tee "${MOUNT_POINT}/etc/fstab" << EOF > /dev/null
 /dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
@@ -97,9 +93,7 @@ echo "${PUBKEY}" | tee "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" >
 arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
 
-#arch-chroot "${MOUNT_POINT}" grub-install /dev/vda
-#update-grub
-#sudo arch-chroot /mnt update-grub
-#sudo arch-chroot /mnt dpkg-reconfigure -u shim-signed
-
-#dpkg-reconfigure grub-efi-amd64-signed
+arch-chroot "${MOUNT_POINT}" apt-get update
+arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
+arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure -u shim-signed
