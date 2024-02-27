@@ -14,6 +14,9 @@ fi
 BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 MOUNT_POINT="/mnt"
 
+# Install arch-install-scripts
+sudo apt-get install -y debootstrap arch-install-scripts
+
 # Partitioning
 function partitioning () {
   DISK="$1"
@@ -109,12 +112,11 @@ echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab"
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
-# Install arch-install-scripts
-sudo apt-get install -y debootstrap arch-install-scripts
-
 # Create User
 mkdir "${MOUNT_POINT}/home2"
 arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --base-dir "${MOUNT_POINT}/home2" "${USERNAME}"
+
+exit 0
 
 # Configure SSH
 mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
