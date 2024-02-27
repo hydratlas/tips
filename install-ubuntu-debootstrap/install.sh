@@ -1,10 +1,14 @@
+#!/bin/bash -eu
+
 # initialization
-DISK1="/dev/$1"
-DISK2="/dev/$2"
+SUITE="$1"
+HOSTNAME="$2"
+USERNAME="$3"
+PUBKEY="$(cat "$4")"
+DISK1="/dev/$5"
+DISK2="/dev/$6"
 BTRFS_OPTIONS="defaults,ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 MOUNT_POINT="/mnt"
-
-#!/bin/bash -eu
 
 # install tools
 sudo apt-get install -y debootstrap arch-install-scripts
@@ -58,4 +62,22 @@ mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
 mkdir -p "${MOUNT_POINT}/boot/efi2"
 mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
 
-debootstrap jammy "${MOUNT_POINT}"
+debootstrap "${SUITE}" "${MOUNT_POINT}"
+
+tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
+deb http://archive.ubuntu.com/ubuntu/ ${SUITE} main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-updates main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-backports main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu/ ${SUITE}-security main restricted universe multiverse
+EOF
+
+echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
+echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
+
+mkdir "${MOUNT_POINT}/home2"
+arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --base-dir "${MOUNT_POINT}/home2" "${USERNAME}"
+
+mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
+echo "${PUBKEY}" | tee "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" > /dev/null
+arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
+arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
