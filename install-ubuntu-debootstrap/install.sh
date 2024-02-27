@@ -79,8 +79,14 @@ if [ -e "${DISK2}" ]; then
   mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
 fi
 
-# debootstrap
-debootstrap "${SUITE}" "${MOUNT_POINT}"
+# Install
+mmdebstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" http://archive.ubuntu.com/ubuntu
+#debootstrap "${SUITE}" "${MOUNT_POINT}"
+
+# Configurate
+dpkg-reconfigure tzdata
+dpkg-reconfigure locales
+dpkg-reconfigure keyboard-configuration
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
