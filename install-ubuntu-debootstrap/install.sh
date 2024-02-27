@@ -158,6 +158,7 @@ Flags: seen
 Variables:
  CHOICES = 
  RAW_CHOICES = 
+
 "
 if [ -e "${DISK2}" ]; then
   DEBCONF_EFI2="Name: grub-efi/install_devices
@@ -168,6 +169,7 @@ Flags: seen
 Variables:
  CHOICES = 
  RAW_CHOICES = 
+
 "
   DEBCONF_EFI="${DEBCONF_EFI}${DEBCONF_EFI2}"
 fi
