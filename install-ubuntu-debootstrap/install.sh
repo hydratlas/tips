@@ -7,7 +7,7 @@ USERNAME="$3"
 PUBKEY="$(cat "$4")"
 DISK1="/dev/$5"
 DISK2="/dev/$6"
-BTRFS_OPTIONS="defaults,ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
+BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 MOUNT_POINT="/mnt"
 
 # install tools
@@ -52,11 +52,11 @@ btrfs subvolume set-default "@"
 cd /
 umount "${MOUNT_POINT}"
 
-mount "${DISK1}3" -o "subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mount "${DISK1}3" -o "defaults,subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
 mkdir -p "${MOUNT_POINT}/root"
-mount "${DISK1}3" -o "subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
+mount "${DISK1}3" -o "defaults,subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
 mkdir -p "${MOUNT_POINT}/var/log"
-mount "${DISK1}3" -o "subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
+mount "${DISK1}3" -o "defaults,subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
 mkdir -p "${MOUNT_POINT}/boot/efi"
 mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
 mkdir -p "${MOUNT_POINT}/boot/efi2"
@@ -71,6 +71,21 @@ deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-backports main restricted univers
 deb http://security.ubuntu.com/ubuntu/ ${SUITE}-security main restricted universe multiverse
 EOF
 
+arch-chroot "${MOUNT_POINT}" apt-get update
+arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
+arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr grub-efi-amd64-signed
+
+tee "${MOUNT_POINT}/etc/fstab" << EOF > /dev/null
+/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs defaults,${BTRFS_OPTIONS},subvol=@ 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs defaults,${BTRFS_OPTIONS},subvol=@root 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs defaults,${BTRFS_OPTIONS},subvol=@var_log 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs defaults,${BTRFS_OPTIONS},subvol=@snapshots 0 0
+/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+EOF
+
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
@@ -81,3 +96,10 @@ mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
 echo "${PUBKEY}" | tee "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" > /dev/null
 arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
+
+#arch-chroot "${MOUNT_POINT}" grub-install /dev/vda
+#update-grub
+#sudo arch-chroot /mnt update-grub
+#sudo arch-chroot /mnt dpkg-reconfigure -u shim-signed
+
+#dpkg-reconfigure grub-efi-amd64-signed
