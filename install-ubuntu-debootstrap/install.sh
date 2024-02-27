@@ -1,19 +1,20 @@
 #!/bin/bash -eu
 
-# initialization
-SUITE="$1"
-HOSTNAME="$2"
-USERNAME="$3"
-PUBKEY="$(cat "$4")"
-DISK1="/dev/$5"
-DISK2="/dev/$6"
+# Initialization
+SUITE="${1}"
+HOSTNAME="${2}"
+USERNAME="${3}"
+PUBKEY="$(cat "${4}")"
+DISK1="/dev/${5}"
+if [ -n "${6}" ]; then
+  DISK2="/dev/${6}"
+else
+  DISK2=""
+fi
 BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 MOUNT_POINT="/mnt"
 
-# install tools
-sudo apt-get install -y debootstrap arch-install-scripts
-
-# partitioning
+# Partitioning
 function partitioning () {
   DISK="$1"
   wipefs --all "${DISK}"
@@ -25,23 +26,33 @@ function partitioning () {
 }
 
 partitioning "${DISK1}"
-partitioning "${DISK2}"
+if [ -e "${DISK2}" ]; then
+  partitioning "${DISK2}"
+fi
 
-# formatting
+# Formatting
 mkfs.vfat -F 32 "${DISK1}1"
-mkfs.vfat -F 32 "${DISK2}1"
 mkswap "${DISK1}2"
-mkswap "${DISK2}2"
-mkfs.btrfs -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
+if [ -e "${DISK2}" ]; then
+  mkfs.vfat -F 32 "${DISK2}1"
+  mkswap "${DISK2}2"
+fi
+if [ -e "${DISK2}" ]; then
+  mkfs.btrfs -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
+else
+  mkfs.btrfs "${DISK1}3"
+fi
 
-# set UUIDs
-EFI1_UUID="$(lsblk -dno UUID "${DISK1}1")"
-EFI2_UUID="$(lsblk -dno UUID "${DISK2}1")"
-SWAP1_UUID="$(lsblk -dno UUID "${DISK1}2")"
-SWAP2_UUID="$(lsblk -dno UUID "${DISK2}2")"
+# Set UUIDs
 ROOTFS_UUID="$(lsblk -dno UUID "${DISK1}3")"
+EFI1_UUID="$(lsblk -dno UUID "${DISK1}1")"
+SWAP1_UUID="$(lsblk -dno UUID "${DISK1}2")"
+if [ -e "${DISK2}" ]; then
+  EFI2_UUID="$(lsblk -dno UUID "${DISK2}1")"
+  SWAP2_UUID="$(lsblk -dno UUID "${DISK2}2")"
+fi
 
-# create subvolumes
+# Create subvolumes
 mount "${DISK1}3" -o "$BTRFS_OPTIONS" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 btrfs subvolume create "@"
@@ -52,6 +63,7 @@ btrfs subvolume set-default "@"
 cd /
 umount "${MOUNT_POINT}"
 
+# Mount Btrfs
 mount "${DISK1}3" -o "defaults,subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
 mkdir -p "${MOUNT_POINT}/root"
 mount "${DISK1}3" -o "defaults,subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
@@ -59,11 +71,15 @@ mkdir -p "${MOUNT_POINT}/var/log"
 mount "${DISK1}3" -o "defaults,subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
 mkdir -p "${MOUNT_POINT}/boot/efi"
 mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
-mkdir -p "${MOUNT_POINT}/boot/efi2"
-mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
+if [ -e "${DISK2}" ]; then
+  mkdir -p "${MOUNT_POINT}/boot/efi2"
+  mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
+fi
 
+# debootstrap
 debootstrap "${SUITE}" "${MOUNT_POINT}"
 
+# Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
 deb http://archive.ubuntu.com/ubuntu/ ${SUITE} main restricted universe multiverse
 deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-updates main restricted universe multiverse
@@ -71,29 +87,44 @@ deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-backports main restricted univers
 deb http://security.ubuntu.com/ubuntu/ ${SUITE}-security main restricted universe multiverse
 EOF
 
-tee "${MOUNT_POINT}/etc/fstab" << EOF > /dev/null
-/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs defaults,${BTRFS_OPTIONS},subvol=@ 0 0
+# Create fstab
+FSTAB_BASE="/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs defaults,${BTRFS_OPTIONS},subvol=@ 0 0
 /dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs defaults,${BTRFS_OPTIONS},subvol=@root 0 0
 /dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs defaults,${BTRFS_OPTIONS},subvol=@var_log 0 0
 /dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs defaults,${BTRFS_OPTIONS},subvol=@snapshots 0 0
+"
+FSTAB_DISK1="/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+"
+FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
+if [ -e "${DISK2}" ]; then
+  FSTAB_DISK2="/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
-EOF
+"
+  FSTAB="${FSTAB}${FSTAB_DISK2}"
+fi
+echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab"
 
+# Set Hostname
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
+# Install arch-install-scripts
+sudo apt-get install -y debootstrap arch-install-scripts
+
+# Create User
 mkdir "${MOUNT_POINT}/home2"
 arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --base-dir "${MOUNT_POINT}/home2" "${USERNAME}"
 
+# Configure SSH
 mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
 echo "${PUBKEY}" | tee "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" > /dev/null
 arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
 
+# Install Packages
 arch-chroot "${MOUNT_POINT}" apt-get update
 arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
 arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server
+
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure -u shim-signed
