@@ -41,9 +41,9 @@ if [ -e "${DISK2}" ]; then
   mkswap "${DISK2}2"
 fi
 if [ -e "${DISK2}" ]; then
-  mkfs.btrfs -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
+  mkfs.btrfs -f -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
 else
-  mkfs.btrfs "${DISK1}3"
+  mkfs.btrfs -f "${DISK1}3"
 fi
 
 # Set UUIDs
