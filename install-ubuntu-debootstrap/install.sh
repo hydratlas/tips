@@ -85,9 +85,9 @@ mmdebstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUN
 #debootstrap "${SUITE}" "${MOUNT_POINT}"
 
 # Configurate
-dpkg-reconfigure tzdata
-dpkg-reconfigure locales
-dpkg-reconfigure keyboard-configuration
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure tzdata
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure locales
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure keyboard-configuration
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
