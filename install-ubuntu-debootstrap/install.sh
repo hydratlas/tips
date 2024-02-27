@@ -56,7 +56,7 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # Create subvolumes
-mount "${DISK1}3" -o "$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mount "${DISK1}3" -o "defaults,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 btrfs subvolume create "@"
 btrfs subvolume create "@root"
@@ -67,11 +67,11 @@ cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
-mount "${DISK1}3" -o "defaults,subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mount "${DISK1}3" -o "defaults,subvol=@,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 mkdir -p "${MOUNT_POINT}/root"
-mount "${DISK1}3" -o "defaults,subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
+mount "${DISK1}3" -o "defaults,subvol=@root,${BTRFS_OPTIONS}" "${MOUNT_POINT}/root"
 mkdir -p "${MOUNT_POINT}/var/log"
-mount "${DISK1}3" -o "defaults,subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
+mount "${DISK1}3" -o "defaults,subvol=@var_log,${BTRFS_OPTIONS}" "${MOUNT_POINT}/var/log"
 mkdir -p "${MOUNT_POINT}/boot/efi"
 mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
 if [ -e "${DISK2}" ]; then
