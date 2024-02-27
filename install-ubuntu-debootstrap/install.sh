@@ -142,7 +142,7 @@ menuentry '\$TITLE' {
 }
 EOS
 EOF
-sudo chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
+sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 # Install GRUB
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure -u shim-signed
