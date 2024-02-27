@@ -111,7 +111,7 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 wget https://raw.githubusercontent.com/hydratlas/tips/main/install-ubuntu/btrfs2.sh
 chmod a+x btrfs2.sh
 lsblk -f -e 7 # /targetのsdXがなにかを確認し、/targetのsdXを1番目の引数、/targetではないsdXを2番目の引数に指定する
-sudo bash -x btrfs2.sh sdX sdX
+sudo bash -eux btrfs2.sh sdX sdX
 sudo shutdown -r now
 ```
 
