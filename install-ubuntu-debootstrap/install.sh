@@ -20,7 +20,7 @@ sudo apt-get install -y debootstrap arch-install-scripts
 # Partitioning
 function partitioning () {
   DISK="$1"
-  wipefs --all "${DISK}"
+  wipefs --all "${DISK}*"
   sgdisk \
     -Z \
     -n 0::256MiB -t 0:ef00 \
