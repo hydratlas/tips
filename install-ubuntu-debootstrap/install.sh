@@ -26,9 +26,6 @@ function partitioning () {
     -n 0::256MiB -t 0:ef00 \
     -n 0::4GiB   -t 0:8200 \
     -n 0::       -t 0:fd00 "${DISK}"
-  wipefs --all "${DISK}1"
-  wipefs --all "${DISK}2"
-  wipefs --all "${DISK}3"
 }
 
 partitioning "${DISK1}"
