@@ -114,7 +114,7 @@ echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
 # Create User
 mkdir "${MOUNT_POINT}/home2"
-arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --base-dir "${MOUNT_POINT}/home2" "${USERNAME}"
+arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
 
 exit 0
 
