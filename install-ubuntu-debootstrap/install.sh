@@ -15,7 +15,8 @@ BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded
 MOUNT_POINT="/mnt"
 
 # Install arch-install-scripts
-sudo apt-get install -y debootstrap arch-install-scripts
+sudo apt-get install -y mmdebstrap arch-install-scripts
+#sudo apt-get install -y debootstrap arch-install-scripts
 
 # Partitioning
 function partitioning () {
