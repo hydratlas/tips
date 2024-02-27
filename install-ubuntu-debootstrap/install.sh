@@ -150,4 +150,27 @@ EOF
 sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 # Install GRUB
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure -u shim-signed
+DEBCONF_EFI="Name: grub-efi/install_devices
+Template: grub-efi/install_devices
+Value: /dev/disk/by-uuid/${EFI1_UUID}
+Owners: grub-common, grub-efi-amd64, grub-pc
+Flags: seen
+Variables:
+ CHOICES = 
+ RAW_CHOICES = 
+"
+if [ -e "${DISK2}" ]; then
+  DEBCONF_EFI2="Name: grub-efi/install_devices
+Template: grub-efi/install_devices
+Value: /dev/disk/by-uuid/${EFI2_UUID}
+Owners: grub-common, grub-efi-amd64, grub-pc
+Flags: seen
+Variables:
+ CHOICES = 
+ RAW_CHOICES = 
+"
+  DEBCONF_EFI="${DEBCONF_EFI}${DEBCONF_EFI2}"
+fi
+echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
+
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
