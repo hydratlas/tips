@@ -124,7 +124,7 @@ arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_
 
 # Install Packages
 arch-chroot "${MOUNT_POINT}" apt-get update
-arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
+arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
 arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server
 
 # Configure GRUB
