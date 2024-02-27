@@ -178,4 +178,5 @@ Variables:
 echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
 
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi
+arch-chroot "${MOUNT_POINT}" update-grub
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
