@@ -81,7 +81,7 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # Install
-mmdebstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" http://archive.ubuntu.com/ubuntu
+mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" http://archive.ubuntu.com/ubuntu
 #debootstrap "${SUITE}" "${MOUNT_POINT}"
 
 # Configurate
