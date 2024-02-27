@@ -34,30 +34,39 @@ if [ -e "${DISK2}" ]; then
   partitioning "${DISK2}"
 fi
 
-# Formatting
-mkfs.vfat -F 32 "${DISK1}1"
-mkswap "${DISK1}2"
+DISK1_EFI="${DISK1}1"
+DISK1_SWAP="${DISK1}2"
+DISK1_ROOTFS="${DISK1}3"
 if [ -e "${DISK2}" ]; then
-  mkfs.vfat -F 32 "${DISK2}1"
-  mkswap "${DISK2}2"
+  DISK2_EFI="${DISK2}1"
+  DISK2_SWAP="${DISK2}2"
+  DISK2_ROOTFS="${DISK2}3"
+fi
+
+# Formatting
+mkfs.vfat -F 32 "${DISK1_EFI}"
+mkswap "${DISK1_SWAP}"
+if [ -e "${DISK2}" ]; then
+  mkfs.vfat -F 32 "${DISK2_EFI}"
+  mkswap "${DISK2_SWAP}"
 fi
 if [ -e "${DISK2}" ]; then
-  mkfs.btrfs -f -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
+  mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
 else
-  mkfs.btrfs -f "${DISK1}3"
+  mkfs.btrfs -f "${DISK1_ROOTFS}"
 fi
 
 # Set UUIDs
-ROOTFS_UUID="$(lsblk -dno UUID "${DISK1}3")"
-EFI1_UUID="$(lsblk -dno UUID "${DISK1}1")"
-SWAP1_UUID="$(lsblk -dno UUID "${DISK1}2")"
+ROOTFS_UUID="$(lsblk -dno UUID "${DISK1_ROOTFS}")"
+EFI1_UUID="$(lsblk -dno UUID "${DISK1_EFI}")"
+SWAP1_UUID="$(lsblk -dno UUID "${DISK1_SWAP}")"
 if [ -e "${DISK2}" ]; then
-  EFI2_UUID="$(lsblk -dno UUID "${DISK2}1")"
-  SWAP2_UUID="$(lsblk -dno UUID "${DISK2}2")"
+  EFI2_UUID="$(lsblk -dno UUID "${DISK2_EFI}")"
+  SWAP2_UUID="$(lsblk -dno UUID "${DISK2_SWAP}")"
 fi
 
 # Create subvolumes
-mount "${DISK1}3" -o "defaults,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
+mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 btrfs subvolume create "@"
 btrfs subvolume create "@root"
@@ -68,16 +77,16 @@ cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
-mount "${DISK1}3" -o "defaults,${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
+mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
 mkdir -p "${MOUNT_POINT}/root"
-mount "${DISK1}3" -o "defaults,${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
+mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
 mkdir -p "${MOUNT_POINT}/var/log"
-mount "${DISK1}3" -o "defaults,${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
+mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
 mkdir -p "${MOUNT_POINT}/boot/efi"
-mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
+mount "${DISK1_EFI}" "${MOUNT_POINT}/boot/efi"
 if [ -e "${DISK2}" ]; then
   mkdir -p "${MOUNT_POINT}/boot/efi2"
-  mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
+  mount "${DISK2_EFI}" "${MOUNT_POINT}/boot/efi2"
 fi
 
 # Install
@@ -132,7 +141,7 @@ arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_
 # Install Packages
 arch-chroot "${MOUNT_POINT}" apt-get update
 arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server
+arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
 # Configure GRUB
 tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
@@ -150,9 +159,15 @@ EOF
 sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 # Install GRUB
+if [ -e "${DISK2}" ]; then
+  ESPs="${DISK1_EFI}, ${DISK2_EFI}"
+else
+  ESPs="${DISK1_EFI}"
+fi
+
 DEBCONF_EFI="Name: grub-efi/install_devices
 Template: grub-efi/install_devices
-Value: /dev/disk/by-uuid/${EFI1_UUID}
+Value: ${ESPs}
 Owners: grub-common, grub-efi-amd64, grub-pc
 Flags: seen
 Variables:
@@ -160,19 +175,6 @@ Variables:
  RAW_CHOICES = 
 
 "
-if [ -e "${DISK2}" ]; then
-  DEBCONF_EFI2="Name: grub-efi/install_devices
-Template: grub-efi/install_devices
-Value: /dev/disk/by-uuid/${EFI2_UUID}
-Owners: grub-common, grub-efi-amd64, grub-pc
-Flags: seen
-Variables:
- CHOICES = 
- RAW_CHOICES = 
-
-"
-  DEBCONF_EFI="${DEBCONF_EFI}${DEBCONF_EFI2}"
-fi
 echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
 
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi
