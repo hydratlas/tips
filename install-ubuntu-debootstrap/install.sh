@@ -127,4 +127,20 @@ arch-chroot "${MOUNT_POINT}" apt-get update
 arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade
 arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server
 
+# Configure GRUB
+tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
+#!/bin/sh
+. "\$pkgdatadir/grub-mkconfig_lib"
+TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
+cat << EOS
+menuentry '\$TITLE' {
+  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+  initrd /@/boot/initrd.img
+}
+EOS
+EOF
+sudo chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
+
+# Install GRUB
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure -u shim-signed
