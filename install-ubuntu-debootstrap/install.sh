@@ -12,8 +12,8 @@ sudo apt-get install -y debootstrap arch-install-scripts
 # partitioning
 function partitioning () {
   DISK="$1"
-  sudo wipefs --all "${DISK}"
-  sudo sgdisk \
+  wipefs --all "${DISK}"
+  sgdisk \
     -Z \
     -n 0::256MiB -t 0:ef00 \
     -n 0::4GiB   -t 0:8200 \
@@ -24,11 +24,11 @@ partitioning "${DISK1}"
 partitioning "${DISK2}"
 
 # formatting
-sudo mkfs.vfat -F 32 "${DISK1}1"
-sudo mkfs.vfat -F 32 "${DISK2}1"
-sudo mkswap "${DISK1}2"
-sudo mkswap "${DISK2}2"
-sudo mkfs.btrfs -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
+mkfs.vfat -F 32 "${DISK1}1"
+mkfs.vfat -F 32 "${DISK2}1"
+mkswap "${DISK1}2"
+mkswap "${DISK2}2"
+mkfs.btrfs -d raid1 -m raid1 "${DISK1}3" "${DISK2}3"
 
 # set UUIDs
 EFI1_UUID="$(lsblk -dno UUID "${DISK1}1")"
@@ -38,24 +38,24 @@ SWAP2_UUID="$(lsblk -dno UUID "${DISK2}2")"
 ROOTFS_UUID="$(lsblk -dno UUID "${DISK1}3")"
 
 # create subvolumes
-sudo mount "${DISK1}3" -o "$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mount "${DISK1}3" -o "$BTRFS_OPTIONS" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
-sudo btrfs subvolume create "@"
-sudo btrfs subvolume create "@root"
-sudo btrfs subvolume create "@var_log"
-sudo btrfs subvolume create "@snapshots"
-sudo btrfs subvolume set-default "@"
+btrfs subvolume create "@"
+btrfs subvolume create "@root"
+btrfs subvolume create "@var_log"
+btrfs subvolume create "@snapshots"
+btrfs subvolume set-default "@"
 cd /
-sudo umount "${MOUNT_POINT}"
+umount "${MOUNT_POINT}"
 
-sudo mount "${DISK1}3" -o "subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
-sudo mkdir -p "${MOUNT_POINT}/root"
-sudo mount "${DISK1}3" -o "subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
-sudo mkdir -p "${MOUNT_POINT}/var/log"
-sudo mount "${DISK1}3" -o "subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
-sudo mkdir -p "${MOUNT_POINT}/boot/efi"
-sudo mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
-sudo mkdir -p "${MOUNT_POINT}/boot/efi2"
-sudo mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
+mount "${DISK1}3" -o "subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mkdir -p "${MOUNT_POINT}/root"
+mount "${DISK1}3" -o "subvol=@root,$BTRFS_OPTIONS" "${MOUNT_POINT}/root"
+mkdir -p "${MOUNT_POINT}/var/log"
+mount "${DISK1}3" -o "subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
+mkdir -p "${MOUNT_POINT}/boot/efi"
+mount "${DISK1}1" "${MOUNT_POINT}/boot/efi"
+mkdir -p "${MOUNT_POINT}/boot/efi2"
+mount "${DISK2}1" "${MOUNT_POINT}/boot/efi2"
 
-sudo debootstrap jammy "${MOUNT_POINT}"
+debootstrap jammy "${MOUNT_POINT}"
