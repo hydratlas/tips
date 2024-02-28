@@ -129,7 +129,7 @@ arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bas
 
 # Configure SSH
 mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
-echo "${PUBKEY}" | tee "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" > /dev/null
+wget -O "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" "${PUBKEYURL}"
 arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
 
