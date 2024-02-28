@@ -17,10 +17,6 @@ fi
 # Check
 wget --spider "${PUBKEYURL}"
 
-# Install arch-install-scripts
-sudo apt-get install -y mmdebstrap arch-install-scripts
-#sudo apt-get install -y debootstrap arch-install-scripts
-
 # Partitioning
 function partitioning () {
   wipefs --all "${1}"
@@ -92,11 +88,16 @@ if [ -e "${DISK2}" ]; then
   mount "${DISK2_EFI}" "${MOUNT_POINT}/boot/efi2"
 fi
 
-# Install
+# Install arch-install-scripts
+sudo apt-get install -y mmdebstrap
 mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
-#debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+
+#sudo apt-get install -y debootstrap
+#debootstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 # Configurate
+sudo apt-get install -y arch-install-scripts
+
 ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
