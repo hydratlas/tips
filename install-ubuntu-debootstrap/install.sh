@@ -152,21 +152,6 @@ arch-chroot "${MOUNT_POINT}" apt-get update
 arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
 arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
-# Configure GRUB
-tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
-#!/bin/sh
-. "\$pkgdatadir/grub-mkconfig_lib"
-TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
-cat << EOS
-menuentry '\$TITLE' {
-  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-  initrd /@/boot/initrd.img
-}
-EOS
-EOF
-sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
-
 # Install GRUB
 if [ -e "${DISK2}" ]; then
   ESPs="${DISK1_EFI}, ${DISK2_EFI}"
@@ -187,5 +172,21 @@ Variables:
 echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
 
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi
+
+tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
+#!/bin/sh
+. "\$pkgdatadir/grub-mkconfig_lib"
+TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
+cat << EOS
+menuentry '\$TITLE' {
+  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+  initrd /@/boot/initrd.img
+}
+EOS
+EOF
+sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+
 arch-chroot "${MOUNT_POINT}" update-grub
+
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
