@@ -71,17 +71,18 @@ mmdebstrap --skip=check/empty --components="main restricted universe multiverse"
 #debootstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 # Configurate
-sudo apt-get install -y arch-install-scripts
+sudo apt-get install -y schroot
+#sudo apt-get install -y arch-install-scripts
 
 ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+schroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 locale-gen "C.UTF-8"
 echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
+schroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
+schroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
@@ -115,18 +116,18 @@ echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
 # Create User
 mkdir -p "${MOUNT_POINT}/home2/${USERNAME}"
-arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
+schroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
 
 # Configure SSH
 mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
 wget -O "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" "${PUBKEYURL}"
-arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
-arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
+schroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
+schroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
 
 # Install Packages
-arch-chroot "${MOUNT_POINT}" apt-get update
-arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
+schroot "${MOUNT_POINT}" apt-get update
+schroot "${MOUNT_POINT}" apt-get dist-upgrade -y
+schroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
 # Install GRUB
 if [ -e "${DISK2}" ]; then
@@ -147,7 +148,7 @@ Variables:
 "
 echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
 
-arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
+schroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
 
 tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
 #!/bin/sh
@@ -163,6 +164,6 @@ EOS
 EOF
 sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
-arch-chroot "${MOUNT_POINT}" update-grub
+schroot "${MOUNT_POINT}" update-grub
 
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
+schroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
