@@ -1,18 +1,10 @@
 #!/bin/bash -eu
 
-source ./install.conf
+source ./install-config.sh
+source ./install-common.sh
 HOSTNAME="${1}"
 PUBKEYURL="${2}"
-if [ -n "${3}" ]; then
-  DISK1="/dev/${3}"
-else
-  DISK1=""
-fi
-if [ -n "${4}" ]; then
-  DISK2="/dev/${4}"
-else
-  DISK2=""
-fi
+diskname-to-disk "${3}" "${4}"
 
 # Check
 wget --spider "${PUBKEYURL}"
@@ -32,14 +24,7 @@ if [ -e "${DISK2}" ]; then
   partitioning "${DISK2}" "${EFI_END}" "${SWAP_END}"
 fi
 
-DISK1_EFI="${DISK1}1"
-DISK1_SWAP="${DISK1}2"
-DISK1_ROOTFS="${DISK1}3"
-if [ -e "${DISK2}" ]; then
-  DISK2_EFI="${DISK2}1"
-  DISK2_SWAP="${DISK2}2"
-  DISK2_ROOTFS="${DISK2}3"
-fi
+disk-to-partition "${DISK1}" "${DISK2}"
 
 # Formatting
 mkfs.vfat -F 32 "${DISK1_EFI}"
@@ -76,17 +61,7 @@ cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
-mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
-mkdir -p "${MOUNT_POINT}/root"
-mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
-mkdir -p "${MOUNT_POINT}/var/log"
-mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
-mkdir -p "${MOUNT_POINT}/boot/efi"
-mount "${DISK1_EFI}" "${MOUNT_POINT}/boot/efi"
-if [ -e "${DISK2}" ]; then
-  mkdir -p "${MOUNT_POINT}/boot/efi2"
-  mount "${DISK2_EFI}" "${MOUNT_POINT}/boot/efi2"
-fi
+mount-installfs
 
 # Install arch-install-scripts
 sudo apt-get install -y mmdebstrap
