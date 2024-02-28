@@ -14,6 +14,9 @@ else
   DISK2=""
 fi
 
+# Check
+wget --spider "${PUBKEYURL}"
+
 # Install arch-install-scripts
 sudo apt-get install -y mmdebstrap arch-install-scripts
 #sudo apt-get install -y debootstrap arch-install-scripts
