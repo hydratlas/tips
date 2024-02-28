@@ -18,18 +18,17 @@ sudo apt-get install -y mmdebstrap arch-install-scripts
 
 # Partitioning
 function partitioning () {
-  DISK="${1}"
-  wipefs --all "${DISK}"
+  wipefs --all "${1}"
   sgdisk \
     -Z \
-    -n 0::256MiB -t 0:ef00 \
-    -n 0::4GiB   -t 0:8200 \
-    -n 0::       -t 0:fd00 "${DISK}"
+    -n "0::${2}" -t 0:ef00 \
+    -n "0::${3}" -t 0:8200 \
+    -n "0::"     -t 0:fd00 "${1}"
 }
 
-partitioning "${DISK1}"
+partitioning "${DISK1}" "${EFI_END}" "${SWAP_END}"
 if [ -e "${DISK2}" ]; then
-  partitioning "${DISK2}"
+  partitioning "${DISK2}" "${EFI_END}" "${SWAP_END}"
 fi
 
 DISK1_EFI="${DISK1}1"
