@@ -1,13 +1,15 @@
 #!/bin/bash -eu
 
 source ./install.conf
-if [ -n "${1}" ]; then
-  DISK1="/dev/${1}"
+HOSTNAME="${1}"
+PUBKEYURL="${2}"
+if [ -n "${3}" ]; then
+  DISK1="/dev/${3}"
 else
   DISK1=""
 fi
-if [ -n "${2}" ]; then
-  DISK2="/dev/${2}"
+if [ -n "${4}" ]; then
+  DISK2="/dev/${4}"
 else
   DISK2=""
 fi
