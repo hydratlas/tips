@@ -1,6 +1,16 @@
 #!/bin/bash -eu
 
 source ./install.conf
+if [ -n "${1}" ]; then
+  DISK1="/dev/${1}"
+else
+  DISK1=""
+fi
+if [ -n "${2}" ]; then
+  DISK2="/dev/${2}"
+else
+  DISK2=""
+fi
 
 # Install arch-install-scripts
 sudo apt-get install -y mmdebstrap arch-install-scripts
@@ -8,7 +18,7 @@ sudo apt-get install -y mmdebstrap arch-install-scripts
 
 # Partitioning
 function partitioning () {
-  DISK="$1"
+  DISK="${1}"
   wipefs --all "${DISK}"
   sgdisk \
     -Z \
