@@ -109,7 +109,7 @@ tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
 deb ${MIRROR} ${SUITE} main restricted universe multiverse
 deb ${MIRROR} ${SUITE}-updates main restricted universe multiverse
 deb ${MIRROR} ${SUITE}-backports main restricted universe multiverse
-deb ${MIRROR} ${SUITE}-security main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
 EOF
 
 # Create fstab
