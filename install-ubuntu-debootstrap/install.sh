@@ -94,9 +94,15 @@ mmdebstrap --skip=check/empty --components="main restricted universe multiverse"
 #debootstrap "${SUITE}" "${MOUNT_POINT}"
 
 # Configurate
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure tzdata
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure locales
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure keyboard-configuration
+ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+
+locale-gen "C.UTF-8"
+echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
+
+perl -p -i -e 's/^XKBMODEL=.+$/XKBMODEL="pc105"/g;s/^XKBLAYOUT=.+$/XKBLAYOUT="jp"/g' "${MOUNT_POINT}/etc/default/keyboard"
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
@@ -122,7 +128,7 @@ if [ -e "${DISK2}" ]; then
 "
   FSTAB="${FSTAB}${FSTAB_DISK2}"
 fi
-echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab"
+echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
 
 # Set Hostname
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
