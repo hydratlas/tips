@@ -2,12 +2,13 @@
 
 # Initialization
 SUITE="${1}"
-HOSTNAME="${2}"
-USERNAME="${3}"
-PUBKEY="$(cat "${4}")"
-DISK1="/dev/${5}"
-if [ -n "${6}" ]; then
-  DISK2="/dev/${6}"
+TZ="${2}"
+HOSTNAME="${3}"
+USERNAME="${4}"
+PUBKEY="$(cat "${5}")"
+DISK1="/dev/${6}"
+if [ -n "${7}" ]; then
+  DISK2="/dev/${7}"
 else
   DISK2=""
 fi
