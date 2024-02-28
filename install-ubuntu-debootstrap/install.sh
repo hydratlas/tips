@@ -3,12 +3,14 @@
 # Initialization
 SUITE="${1}"
 TZ="${2}"
-HOSTNAME="${3}"
-USERNAME="${4}"
-PUBKEY="$(cat "${5}")"
-DISK1="/dev/${6}"
-if [ -n "${7}" ]; then
-  DISK2="/dev/${7}"
+XKBMODEL="${3}"
+XKBLAYOUT="${4}"
+HOSTNAME="${5}"
+USERNAME="${6}"
+PUBKEY="$(cat "${7}")"
+DISK1="/dev/${8}"
+if [ -n "${9}" ]; then
+  DISK2="/dev/${9}"
 else
   DISK2=""
 fi
@@ -102,7 +104,7 @@ locale-gen "C.UTF-8"
 echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
-perl -p -i -e 's/^XKBMODEL=.+$/XKBMODEL="pc105"/g;s/^XKBLAYOUT=.+$/XKBLAYOUT="jp"/g' "${MOUNT_POINT}/etc/default/keyboard"
+perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 # Create sources.list
