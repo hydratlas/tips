@@ -1,21 +1,6 @@
 #!/bin/bash -eu
 
-# Initialization
-SUITE="${1}"
-TZ="${2}"
-XKBMODEL="${3}"
-XKBLAYOUT="${4}"
-HOSTNAME="${5}"
-USERNAME="${6}"
-PUBKEY="$(cat "${7}")"
-DISK1="/dev/${8}"
-if [ -n "${9}" ]; then
-  DISK2="/dev/${9}"
-else
-  DISK2=""
-fi
-BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
-MOUNT_POINT="/mnt"
+source ./install.conf
 
 # Install arch-install-scripts
 sudo apt-get install -y mmdebstrap arch-install-scripts
@@ -69,7 +54,8 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # Create subvolumes
-mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
+mkdir -p "${MOUNT_POINT}"
+mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 btrfs subvolume create "@"
 btrfs subvolume create "@root"
@@ -80,11 +66,11 @@ cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
-mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
+mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
 mkdir -p "${MOUNT_POINT}/root"
-mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
+mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
 mkdir -p "${MOUNT_POINT}/var/log"
-mount "${DISK1_ROOTFS}" -o "defaults,${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
+mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
 mkdir -p "${MOUNT_POINT}/boot/efi"
 mount "${DISK1_EFI}" "${MOUNT_POINT}/boot/efi"
 if [ -e "${DISK2}" ]; then
@@ -93,8 +79,8 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # Install
-mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" http://archive.ubuntu.com/ubuntu
-#debootstrap "${SUITE}" "${MOUNT_POINT}"
+mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+#debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 # Configurate
 ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
@@ -109,17 +95,17 @@ arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
-deb http://archive.ubuntu.com/ubuntu/ ${SUITE} main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-updates main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu/ ${SUITE}-backports main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu/ ${SUITE}-security main restricted universe multiverse
+deb ${MIRROR} ${SUITE} main restricted universe multiverse
+deb ${MIRROR} ${SUITE}-updates main restricted universe multiverse
+deb ${MIRROR} ${SUITE}-backports main restricted universe multiverse
+deb ${MIRROR} ${SUITE}-security main restricted universe multiverse
 EOF
 
 # Create fstab
-FSTAB_BASE="/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs defaults,${BTRFS_OPTIONS},subvol=@ 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs defaults,${BTRFS_OPTIONS},subvol=@root 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs defaults,${BTRFS_OPTIONS},subvol=@var_log 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs defaults,${BTRFS_OPTIONS},subvol=@snapshots 0 0
+FSTAB_BASE="/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
+/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
 "
 FSTAB_DISK1="/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
