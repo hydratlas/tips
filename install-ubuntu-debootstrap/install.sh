@@ -68,7 +68,7 @@ mount-installfs
 #mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 sudo apt-get install -y debootstrap
-debootstrap --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 # Configurate
 sudo apt-get install -y arch-install-scripts
