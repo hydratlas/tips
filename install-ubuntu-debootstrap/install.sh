@@ -163,14 +163,14 @@ function post-processing () {
 	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
 	# Create User
-	mkdir -p "${MOUNT_POINT}/home2/${USERNAME}"
-	arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
+	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}"
+	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USER_NAME}" "${USER_NAME}"
 
 	# Configure SSH
-	mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
-	wget -O "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" "${PUBKEYURL}"
-	arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
-	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
+	mkdir "${MOUNT_POINT}/home2/${USER_NAME}/.ssh"
+	wget -O "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" "${PUBKEYURL}"
+	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "/home2/${USER_NAME}/.ssh"
+	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USER_NAME}/.ssh/authorized_keys"
 
 	# Install Packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
