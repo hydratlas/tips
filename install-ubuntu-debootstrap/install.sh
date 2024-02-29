@@ -36,12 +36,12 @@ function pre-processing () {
 	# Formatting
 	mkfs.vfat -F 32 "${DISK1_EFI}"
 	mkswap "${DISK1_SWAP}"
-	if [ -e "${DISK2_EFI}" ]; then
+	if [ -e "${DISK2_PATH}" ]; then
 		mkfs.vfat -F 32 "${DISK2_EFI}"
 		mkswap "${DISK2_SWAP}"
 	fi
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-		if [ -e "${DISK2_ROOTFS}" ]; then
+		if [ -e "${DISK2_PATH}" ]; then
 			mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
 		else
 			mkfs.btrfs -f "${DISK1_ROOTFS}"
@@ -55,7 +55,7 @@ function pre-processing () {
 	# Set UUIDs
 	EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
 	SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
-	if [ -e "${DISK2_EFI}" ]; then
+	if [ -e "${DISK2_PATH}" ]; then
 		EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
 		SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
 	fi
@@ -113,7 +113,7 @@ function post-processing () {
 	/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
 	EOS`
 	FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
-	if [ -e "${EFI2_UUID}" ]; then
+	if [ -e "${DISK2_PATH}" ]; then
 		FSTAB_DISK2=`cat <<- EOS
 		/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 		/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
@@ -180,7 +180,7 @@ function post-processing () {
 	# Install GRUB
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
 
-	if [ -e "${DISK2}" ]; then
+	if [ -e "${DISK2_PATH}" ]; then
 		ESPs="${DISK1_EFI}, ${DISK2_EFI}"
 	else
 		ESPs="${DISK1_EFI}"
