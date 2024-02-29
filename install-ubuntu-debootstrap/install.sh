@@ -26,16 +26,6 @@ function get-uuid () {
 	echo "${UUID}"
 }
 
-source ./install-config.sh
-source ./install-common.sh
-HOSTNAME="${1}"
-PUBKEYURL="${2}"
-diskname-to-diskpath "${3}" "${4}"
-
-pre-processing
-processing
-post-processing
-
 function pre-processing () {
 	# Check
 	wget --spider "${PUBKEYURL}"
@@ -182,3 +172,13 @@ function post-processing () {
 
 	arch-chroot "${MOUNT_POINT}" update-grub
 }
+
+source ./install-config.sh
+source ./install-common.sh
+HOSTNAME="${1}"
+PUBKEYURL="${2}"
+diskname-to-diskpath "${3}" "${4}"
+
+pre-processing
+processing
+post-processing
