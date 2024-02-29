@@ -46,9 +46,9 @@ function pre-processing () {
 		else
 			mkfs.btrfs -f "${DISK1_ROOTFS}"
 		fi
-	else [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
+	else if [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 		mkfs.ext4 "${DISK1_ROOTFS}"
-	else [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+	else if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 		mkfs.xfs "${DISK1_ROOTFS}"
 	fi
 
