@@ -83,7 +83,7 @@ function processing () {
 	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	apt-get install -y debootstrap
-	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	debootstrap --exclude=netplan.io "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
@@ -183,7 +183,12 @@ function post-processing () {
 	# Install Packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
 	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-	arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
+	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends \
+		linux-{,image-,headers-}generic linux-firmware initramfs-tools \
+		shim-signed plymouth-theme-ubuntu-text unattended-upgrades openssh-server \
+		dmidecode efibootmgr fwupd gdisk htop lshw lsof pciutils usbutils pci.ids usb.ids \
+		nano curl git perl moreutils psmisc rsync time uuid-runtime \
+		bash-completion landscape-common command-not-found
 
 	# Install GRUB
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
