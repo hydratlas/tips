@@ -20,7 +20,7 @@ sudo bash -eux install.sh ubuntu-machine https://github.com/<username>.keys sdX 
 ```
 cd ~/ &&
 rm -drf tips &&
-sudo umount -r "$MOUNT_POINT"
+sudo umount -r /mnt
 ```
 
 ### マウント
@@ -30,7 +30,7 @@ lsblk -f -e 7
 sudo bash -eux install-mount.sh sdX sdX
 
 sudo apt install -y arch-install-scripts &&
-sudo arch-chroot "$MOUNT_POINT"
+sudo arch-chroot /mnt
 ```
 
 ## 再起動
