@@ -1,14 +1,14 @@
 #!/bin/bash -eu
 function diskname-to-diskpath () {
 	if [ -n "${1}" ]; then
-		DISK1="/dev/${1}"
+		DISK1_PATH="/dev/${1}"
 	else
-		DISK1=""
+		DISK1_PATH=""
 	fi
 	if [ -n "${2}" ]; then
-		DISK2="/dev/${2}"
+		DISK2_PATH="/dev/${2}"
 	else
-		DISK2=""
+		DISK2_PATH=""
 	fi
 }
 
@@ -36,7 +36,7 @@ function mount-installfs () {
 	fi
 
 	mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
-	if [ -e "${DISK2}" ]; then
+	if [ -e "${DISK2_EFI}" ]; then
 		mount "${DISK2_EFI}" --mkdir "${MOUNT_POINT}/boot/efi2"
 	fi
 }
