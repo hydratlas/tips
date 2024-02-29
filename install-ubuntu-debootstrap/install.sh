@@ -39,13 +39,21 @@ else
 fi
 
 # Set UUIDs
-EFI1_UUID="$(lsblk -dno UUID "${DISK1_EFI}")"
-SWAP1_UUID="$(lsblk -dno UUID "${DISK1_SWAP}")"
+function get-uuid () {
+  local UUID="$(lsblk -dno UUID "${1}")"
+  if [ -z "${UUID}" ]; then
+    echo "Failed to get UUID of ${1}" 1>&2
+    exit 1
+  fi
+  echo "${UUID}"
+}
+EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
+SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
 if [ -e "${DISK2}" ]; then
-  EFI2_UUID="$(lsblk -dno UUID "${DISK2_EFI}")"
-  SWAP2_UUID="$(lsblk -dno UUID "${DISK2_SWAP}")"
+  EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
+  SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
 fi
-ROOTFS_UUID="$(lsblk -dno UUID "${DISK1_ROOTFS}")"
+ROOTFS_UUID="$(get-uuid "${DISK1_ROOTFS}")"
 
 # Create subvolumes
 mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
@@ -54,29 +62,36 @@ btrfs subvolume create "${MOUNT_POINT}/@root"
 btrfs subvolume create "${MOUNT_POINT}/@var_log"
 btrfs subvolume create "${MOUNT_POINT}/@snapshots"
 btrfs subvolume set-default "${MOUNT_POINT}/@"
+btrfs subvolume list "${MOUNT_POINT}" # confirmation
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
 mount-installfs
 
-# Install
+# Install distribution
 #sudo apt-get install -y mmdebstrap
 #mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
 sudo apt-get install -y debootstrap
 debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
-# Configurate
+# Install arch-install-scripts
 sudo apt-get install -y arch-install-scripts
 
-ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
-
+# Configure locale
 locale-gen "C.UTF-8"
 echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
+# Configure time zone
+ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
+cat "${MOUNT_POINT}/etc/localtime" # confirmation
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+
+# Configure keyboard
 perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
+cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 # Create sources.list
