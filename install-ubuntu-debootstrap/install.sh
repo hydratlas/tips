@@ -174,7 +174,7 @@ function post-processing () {
 	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USER_NAME}" "${USER_NAME}"
 
 	# Configure SSH
-	mkdir "${MOUNT_POINT}/home2/${USER_NAME}/.ssh"
+	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}/.ssh"
 	wget -O "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" "${PUBKEYURL}"
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "/home2/${USER_NAME}/.ssh"
 	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USER_NAME}/.ssh/authorized_keys"
