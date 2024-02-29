@@ -9,12 +9,12 @@ function disk-partitioning () {
 }
 
 function partitioning () {
-	disk-partitioning "${DISK1}" "${EFI_END}" "${SWAP_END}"
-	if [ -e "${DISK2}" ]; then
-		disk-partitioning "${DISK2}" "${EFI_END}" "${SWAP_END}"
+	disk-partitioning "${DISK1_PATH}" "${EFI_END}" "${SWAP_END}"
+	if [ -e "${DISK2_PATH}" ]; then
+		disk-partitioning "${DISK2_PATH}" "${EFI_END}" "${SWAP_END}"
 	fi
 
-	disk-to-partition "${DISK1}" "${DISK2}"
+	disk-to-partition "${DISK1_PATH}" "${DISK2_PATH}"
 }
 
 function get-uuid () {
@@ -36,12 +36,12 @@ function pre-processing () {
 	# Formatting
 	mkfs.vfat -F 32 "${DISK1_EFI}"
 	mkswap "${DISK1_SWAP}"
-	if [ -e "${DISK2}" ]; then
+	if [ -e "${DISK2_EFI}" ]; then
 		mkfs.vfat -F 32 "${DISK2_EFI}"
 		mkswap "${DISK2_SWAP}"
 	fi
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-		if [ -e "${DISK2}" ]; then
+		if [ -e "${DISK2_ROOTFS}" ]; then
 			mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
 		else
 			mkfs.btrfs -f "${DISK1_ROOTFS}"
@@ -53,7 +53,7 @@ function pre-processing () {
 	# Set UUIDs
 	EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
 	SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
-	if [ -e "${DISK2}" ]; then
+	if [ -e "${DISK2_EFI}" ]; then
 		EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
 		SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
 	fi
@@ -107,7 +107,7 @@ function post-processing () {
 	/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
 	EOS`
 	FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
-	if [ -e "${DISK2}" ]; then
+	if [ -e "${EFI2_UUID}" ]; then
 		FSTAB_DISK2=`cat <<- EOS
 		/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 		/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
@@ -204,11 +204,21 @@ function post-processing () {
 	export LANG="${LANG_BAK}"
 }
 
+if [ -n "${3}" ]; then
+	DISK1="${3}"
+else
+	DISK1=""
+fi
+if [ -n "${4}" ]; then
+	DISK2="${4}"
+else
+	DISK2=""
+fi
 source ./install-config.sh
 source ./install-common.sh
 HOSTNAME="${1}"
 PUBKEYURL="${2}"
-diskname-to-diskpath "${3}" "${4}"
+diskname-to-diskpath "${DISK1}" "${DISK2}"
 
 pre-processing
 processing
