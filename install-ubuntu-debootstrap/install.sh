@@ -188,7 +188,8 @@ function post-processing () {
 		shim-signed plymouth-theme-ubuntu-text unattended-upgrades needrestart openssh-server \
 		dmidecode efibootmgr fwupd gdisk htop lshw lsof pciutils usbutils pci.ids usb.ids \
 		bzip2 curl git perl make moreutils nano psmisc rsync time uuid-runtime \
-		bash-completion command-not-found landscape-common
+		bash-completion command-not-found landscape-common \
+		e2fsprogs-l10n
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
