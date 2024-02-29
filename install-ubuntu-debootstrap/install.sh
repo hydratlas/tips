@@ -97,8 +97,8 @@ function post-processing () {
  	cat "${MOUNT_POINT}/etc/timezone" # confirmation
  	arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/localtime"
 	arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
-	arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "tzdata tzdata/Areas select ${TIMEZONE_AREA}" &&
-	arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" &&
+	echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
+	echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 	# Configure keyboard
@@ -161,7 +161,7 @@ function post-processing () {
 		ESPs="${DISK1_EFI}"
 	fi
 
-	arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "grub-efi grub-efi/install_devices multiselect ${ESPs}"
+	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 	#arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
