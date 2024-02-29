@@ -77,17 +77,20 @@ function processing () {
 }
 
 function post-processing () {
+	local LANG_BAK="${LANG}"
+	export LANG="${INSTALLATION_LANG}"
+
 	# Install arch-install-scripts
 	sudo apt-get install -y arch-install-scripts
 
 	# Configure locale
-	arch-chroot "${MOUNT_POINT}" locale-gen "C.UTF-8"
-	echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+	arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
+	echo "LANG=\"${INSTALLATION_LANG}\"" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 	# Configure time zone
-	ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
+	ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TIMEZONE}" "${MOUNT_POINT}/etc/localtime"
 	cat "${MOUNT_POINT}/etc/localtime" # confirmation
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
@@ -171,6 +174,8 @@ function post-processing () {
 	sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 	arch-chroot "${MOUNT_POINT}" update-grub
+
+	export LANG="${LANG_BAK}"
 }
 
 source ./install-config.sh
