@@ -33,9 +33,13 @@ function mount-installfs () {
 		mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" --mkdir "${MOUNT_POINT}/.snapshots"
 	else [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 		mount "${DISK1_ROOTFS}" -o "${EXT4_OPTIONS}" --mkdir "${MOUNT_POINT}"
+	else [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		mount "${DISK1_ROOTFS}" -o "${XFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
 	fi
 
-	mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
+	if [ -e "${DISK1_EFI}" ]; then
+		mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
+	fi
 	if [ -e "${DISK2_EFI}" ]; then
 		mount "${DISK2_EFI}" --mkdir "${MOUNT_POINT}/boot/efi2"
 	fi
