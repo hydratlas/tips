@@ -210,16 +210,8 @@ function post-processing () {
 	export LANG="${LANG_BAK}"
 }
 
-if [ -n "${3}" ]; then
-	DISK1="${3}"
-else
-	DISK1=""
-fi
-if [ -n "${4}" ]; then
-	DISK2="${4}"
-else
-	DISK2=""
-fi
+DISK1="${3:-}"
+DISK2="${4:-}"
 source ./install-config.sh
 source ./install-common.sh
 HOSTNAME="${1}"
