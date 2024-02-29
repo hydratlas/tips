@@ -5,7 +5,7 @@ function disk-partitioning () {
 		-Z \
 		-n "0::${2}" -t 0:ef00 \
 		-n "0::${3}" -t 0:8200 \
-		-n "0::"     -t 0:fd00 "${1}"
+		-n "0::"     -t 0:8304 "${1}"
 }
 
 function partitioning () {
@@ -39,9 +39,15 @@ function pre-processing () {
 	if [ -e "${DISK2}" ]; then
 		mkfs.vfat -F 32 "${DISK2_EFI}"
 		mkswap "${DISK2_SWAP}"
-		mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
+	fi
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		if [ -e "${DISK2}" ]; then
+			mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
+		else
+			mkfs.btrfs -f "${DISK1_ROOTFS}"
+		fi
 	else
-		mkfs.btrfs -f "${DISK1_ROOTFS}"
+		mkfs.ext4 "${DISK1_ROOTFS}"
 	fi
 
 	# Set UUIDs
@@ -53,17 +59,19 @@ function pre-processing () {
 	fi
 	ROOTFS_UUID="$(get-uuid "${DISK1_ROOTFS}")"
 
-	# Create subvolumes
-	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
-	btrfs subvolume create "${MOUNT_POINT}/@"
-	btrfs subvolume create "${MOUNT_POINT}/@root"
-	btrfs subvolume create "${MOUNT_POINT}/@var_log"
-	btrfs subvolume create "${MOUNT_POINT}/@snapshots"
-	btrfs subvolume set-default "${MOUNT_POINT}/@"
-	btrfs subvolume list "${MOUNT_POINT}" # confirmation
-	umount "${MOUNT_POINT}"
-
-	# Mount Btrfs
+	# Create Btrfs subvolumes
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
+		btrfs subvolume create "${MOUNT_POINT}/@"
+		btrfs subvolume create "${MOUNT_POINT}/@root"
+		btrfs subvolume create "${MOUNT_POINT}/@var_log"
+		btrfs subvolume create "${MOUNT_POINT}/@snapshots"
+		btrfs subvolume set-default "${MOUNT_POINT}/@"
+		btrfs subvolume list "${MOUNT_POINT}" # confirmation
+		umount "${MOUNT_POINT}"
+	fi
+ 
+	# Mount installation filesystem
 	mount-installfs
 }
 
@@ -75,10 +83,40 @@ function processing () {
 	apt-get install -y debootstrap
 	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
-	btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
+	fi
 }
 
 function post-processing () {
+	# Create fstab
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		FSTAB_BASE=`cat <<- EOS
+		/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0
+		/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0
+		/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
+		/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
+		EOS`
+	else
+		FSTAB_BASE=`cat <<- EOS
+		/dev/disk/by-uuid/${ROOTFS_UUID} / ext4 ${EXT4_OPTIONS} 0 0
+		EOS`
+	fi
+	FSTAB_DISK1=`cat <<- EOS
+	/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+	/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+	EOS`
+	FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
+	if [ -e "${DISK2}" ]; then
+		FSTAB_DISK2=`cat <<- EOS
+		/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+		/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+		EOS`
+		FSTAB="${FSTAB}${FSTAB_DISK2}"
+	fi
+	echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
+
+	# Temporarily set language
 	local LANG_BAK="${LANG}"
 	export LANG="${INSTALLATION_LANG}"
 
@@ -114,27 +152,6 @@ function post-processing () {
 	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
 	EOS
 
-	# Create fstab
-	FSTAB_BASE=`cat <<- EOS
-	/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0
-	/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0
-	/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
-	/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
-	EOS`
-	FSTAB_DISK1=`cat <<- EOS
-	/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-	/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
-	EOS`
-	FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
-	if [ -e "${DISK2}" ]; then
-		FSTAB_DISK2=`cat <<- EOS
-		/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-		/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
-		EOS`
-		FSTAB="${FSTAB}${FSTAB_DISK2}"
-	fi
-	echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
-
 	# Set Hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
@@ -166,19 +183,21 @@ function post-processing () {
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 
-	tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
-	#!/bin/sh
-	. "\$pkgdatadir/grub-mkconfig_lib"
-	TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
-	cat << EOS
-	menuentry '\$TITLE' {
-	  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-	  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-	  initrd /@/boot/initrd.img
-	}
-	EOS
-	EOF
-	chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
+		#!/bin/sh
+		. "\$pkgdatadir/grub-mkconfig_lib"
+		TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
+		cat << EOS
+		menuentry '\$TITLE' {
+		  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+		  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+		  initrd /@/boot/initrd.img
+		}
+		EOS
+		EOF
+		chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+	fi
 
 	arch-chroot "${MOUNT_POINT}" update-grub
 
