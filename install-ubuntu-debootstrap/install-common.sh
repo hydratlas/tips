@@ -31,9 +31,9 @@ function mount-installfs () {
 		mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" --mkdir "${MOUNT_POINT}/root"
 		mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" --mkdir "${MOUNT_POINT}/var/log"
 		mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" --mkdir "${MOUNT_POINT}/.snapshots"
-	else if [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
+	elif [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 		mount "${DISK1_ROOTFS}" -o "${EXT4_OPTIONS}" --mkdir "${MOUNT_POINT}"
-	else if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+	elif [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 		mount "${DISK1_ROOTFS}" -o "${XFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
 	fi
 
