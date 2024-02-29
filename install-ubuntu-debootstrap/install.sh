@@ -48,15 +48,12 @@ fi
 ROOTFS_UUID="$(lsblk -dno UUID "${DISK1_ROOTFS}")"
 
 # Create subvolumes
-mkdir -p "${MOUNT_POINT}"
-mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
-cd "${MOUNT_POINT}"
+mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
 btrfs subvolume create "${MOUNT_POINT}/@"
 btrfs subvolume create "${MOUNT_POINT}/@root"
 btrfs subvolume create "${MOUNT_POINT}/@var_log"
 btrfs subvolume create "${MOUNT_POINT}/@snapshots"
 btrfs subvolume set-default "${MOUNT_POINT}/@"
-cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
