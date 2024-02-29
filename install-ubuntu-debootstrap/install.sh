@@ -162,6 +162,17 @@ function post-processing () {
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
+	# Network setup
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd
+
+	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
+	[Match]
+	Name=enp1s0
+
+	[Network]
+	DHCP=yes
+	EOS
+
 	# Create User
 	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}"
 	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USER_NAME}" "${USER_NAME}"
