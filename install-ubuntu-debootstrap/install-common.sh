@@ -24,15 +24,13 @@ function disk-to-partition () {
 }
 
 function mount-installfs () {
-  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
-  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
-  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
-  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" "${MOUNT_POINT}/.snapshots"
+  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" --mkdir "${MOUNT_POINT}"
+  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" --mkdir "${MOUNT_POINT}/root"
+  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" --mkdir "${MOUNT_POINT}/var/log"
+  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" --mkdir "${MOUNT_POINT}/.snapshots"
 
-  mkdir -p "${MOUNT_POINT}/boot/efi"
-  mount "${DISK1_EFI}" "${MOUNT_POINT}/boot/efi"
+  mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
   if [ -e "${DISK2}" ]; then
-    mkdir -p "${MOUNT_POINT}/boot/efi2"
-    mount "${DISK2_EFI}" "${MOUNT_POINT}/boot/efi2"
+    mount "${DISK2_EFI}" --mkdir "${MOUNT_POINT}/boot/efi2"
   fi
 }
