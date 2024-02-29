@@ -155,16 +155,16 @@ function post-processing () {
 	arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
 	# Install GRUB
+	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
+
 	if [ -e "${DISK2}" ]; then
 		ESPs="${DISK1_EFI}, ${DISK2_EFI}"
 	else
 		ESPs="${DISK1_EFI}"
 	fi
-
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
-	#arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
 
 	tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
 	#!/bin/sh
