@@ -47,9 +47,9 @@ function pre-processing () {
 			mkfs.btrfs -f "${DISK1_ROOTFS}"
 		fi
 	elif [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
-		mkfs.ext4 "${DISK1_ROOTFS}"
+		mkfs.ext4 -F "${DISK1_ROOTFS}"
 	elif [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-		mkfs.xfs "${DISK1_ROOTFS}"
+		mkfs.xfs -F "${DISK1_ROOTFS}"
 	fi
 
 	# Set UUIDs
