@@ -112,6 +112,7 @@ function post-processing () {
 		FSTAB_ARRAY+=("/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0")
 	fi
 	printf "%s\n" "${FSTAB_ARRAY[@]}" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
+	cat "${MOUNT_POINT}/etc/fstab" # confirmation
 
 	# Temporarily set language
 	local LANG_BAK="${LANG}"
@@ -148,10 +149,13 @@ function post-processing () {
 	deb ${PERMANENT_MIRROR} ${SUITE}-backports main restricted universe multiverse
 	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
 	EOS
+	cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
 
 	# Set Hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
+	cat "${MOUNT_POINT}/etc/hostname" # confirmation
 	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
+	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Network setup
 	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd
@@ -163,6 +167,7 @@ function post-processing () {
 	[Network]
 	DHCP=yes
 	EOS
+	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 
 	# Create User
 	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}"
@@ -173,6 +178,7 @@ function post-processing () {
 	wget -O "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" "${PUBKEYURL}"
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "/home2/${USER_NAME}/.ssh"
 	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USER_NAME}/.ssh/authorized_keys"
+	cat "/home2/${USER_NAME}/.ssh/authorized_keys" # confirmation
 
 	# Install Packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
@@ -205,6 +211,8 @@ function post-processing () {
 		EOS
 		EOF
 		chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+
+		cat "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" # confirmation
 	fi
 
 	arch-chroot "${MOUNT_POINT}" update-grub
