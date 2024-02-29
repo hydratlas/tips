@@ -185,10 +185,17 @@ function post-processing () {
 	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
 	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends \
 		linux-{,image-,headers-}generic linux-firmware initramfs-tools \
-		shim-signed plymouth-theme-ubuntu-text unattended-upgrades openssh-server \
+		shim-signed plymouth-theme-ubuntu-text unattended-upgrades needrestart openssh-server \
 		dmidecode efibootmgr fwupd gdisk htop lshw lsof pciutils usbutils pci.ids usb.ids \
-		nano curl git perl moreutils psmisc rsync time uuid-runtime \
-		bash-completion landscape-common command-not-found
+		bzip2 curl git perl make moreutils nano psmisc rsync time uuid-runtime \
+		bash-completion command-not-found landscape-common
+
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
+	fi
+	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
+	fi
 
 	# Install GRUB
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
