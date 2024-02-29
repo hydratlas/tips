@@ -189,7 +189,7 @@ function post-processing () {
 	arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
 	# Install GRUB
-	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
+	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
 	if [ -e "${DISK2_PATH}" ]; then
 		ESPs="${DISK1_EFI}, ${DISK2_EFI}"
