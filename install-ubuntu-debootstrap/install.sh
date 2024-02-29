@@ -1,5 +1,4 @@
 #!/bin/bash -eu
-
 source ./install-config.sh
 source ./install-common.sh
 HOSTNAME="${1}"
@@ -52,18 +51,18 @@ fi
 mkdir -p "${MOUNT_POINT}"
 mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
-btrfs subvolume create "@"
-btrfs subvolume create "@root"
-btrfs subvolume create "@var_log"
-btrfs subvolume create "@snapshots"
-btrfs subvolume set-default "@"
+btrfs subvolume create "${MOUNT_POINT}/@"
+btrfs subvolume create "${MOUNT_POINT}/@root"
+btrfs subvolume create "${MOUNT_POINT}/@var_log"
+btrfs subvolume create "${MOUNT_POINT}/@snapshots"
+btrfs subvolume set-default "${MOUNT_POINT}/@"
 cd /
 umount "${MOUNT_POINT}"
 
 # Mount Btrfs
 mount-installfs
 
-# Install arch-install-scripts
+# Install
 #sudo apt-get install -y mmdebstrap
 #mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
@@ -145,9 +144,12 @@ Variables:
  RAW_CHOICES = 
 
 "
-echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
+#echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
 
-arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
+arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "grub-efi grub-efi/install_devices multiselect ${ESPs}"
+
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
+#arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
 
 tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
 #!/bin/sh
@@ -164,5 +166,3 @@ EOF
 sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 arch-chroot "${MOUNT_POINT}" update-grub
-
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
