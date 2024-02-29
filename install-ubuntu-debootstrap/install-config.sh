@@ -1,6 +1,7 @@
 #!/bin/sh
 SUITE="mantic"
-MIRROR="http://jp.archive.ubuntu.com/ubuntu/"
+INSTALLATION_MIRROR="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
+PERMANENT_MIRROR="http://jp.archive.ubuntu.com/ubuntu/"
 TZ="Asia/Tokyo"
 XKBMODEL="pc105"
 XKBLAYOUT="jp"
