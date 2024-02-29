@@ -81,7 +81,7 @@ function post-processing () {
 	sudo apt-get install -y arch-install-scripts
 
 	# Configure locale
-	locale-gen "C.UTF-8"
+	arch-chroot "${MOUNT_POINT}" locale-gen "C.UTF-8"
 	echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
