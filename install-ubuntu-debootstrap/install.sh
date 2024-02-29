@@ -178,7 +178,7 @@ function post-processing () {
 	wget -O "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" "${PUBKEYURL}"
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "/home2/${USER_NAME}/.ssh"
 	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USER_NAME}/.ssh/authorized_keys"
-	cat "/home2/${USER_NAME}/.ssh/authorized_keys" # confirmation
+	cat "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" # confirmation
 
 	# Install Packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
