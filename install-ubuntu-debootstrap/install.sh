@@ -92,8 +92,8 @@ function post-processing () {
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 	# Configure time zone
-	ln -sf "${MOUNT_POINT}/etc/localtime" "${MOUNT_POINT}/usr/share/zoneinfo/${TIMEZONE}"
-	readlink "${MOUNT_POINT}/etc/localtime" # confirmation
+	arch-chroot "${MOUNT_POINT}" ln -sf "/etc/localtime" "/usr/share/zoneinfo/${TIMEZONE}"
+	arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 	# Configure keyboard
