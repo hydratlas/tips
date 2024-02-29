@@ -69,11 +69,13 @@ function pre-processing () {
 
 function processing () {
 	# Install distribution
-	#sudo apt-get install -y mmdebstrap
+	#apt-get install -y mmdebstrap
 	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
-	sudo apt-get install -y debootstrap
+	apt-get install -y debootstrap
 	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+
+	btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
 }
 
 function post-processing () {
@@ -81,7 +83,7 @@ function post-processing () {
 	export LANG="${INSTALLATION_LANG}"
 
 	# Install arch-install-scripts
-	sudo apt-get install -y arch-install-scripts
+	apt-get install -y arch-install-scripts
 
 	# Configure locale
 	arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
@@ -171,7 +173,7 @@ function post-processing () {
 	}
 	EOS
 	EOF
-	sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+	chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
 	arch-chroot "${MOUNT_POINT}" update-grub
 
