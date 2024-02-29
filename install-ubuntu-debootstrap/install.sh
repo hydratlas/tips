@@ -162,7 +162,7 @@ function post-processing () {
 
 	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
 	[Match]
-	Name=enp1s0
+	Name=en*
 
 	[Network]
 	DHCP=yes
