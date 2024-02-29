@@ -170,8 +170,7 @@ function post-processing () {
 	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 
 	# Create User
-	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}"
-	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USER_NAME}" "${USER_NAME}"
+	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "/home2/${USER_NAME}" "${USER_NAME}"
 
 	# Configure SSH
 	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}/.ssh"
