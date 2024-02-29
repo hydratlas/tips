@@ -1,180 +1,221 @@
 #!/bin/bash -eu
+function diskname-to-diskpath () {
+	if [ -n "${1}" ]; then
+		DISK1="/dev/${1}"
+	else
+		DISK1=""
+	fi
+	if [ -n "${2}" ]; then
+		DISK2="/dev/${2}"
+	else
+		DISK2=""
+	fi
+}
+
+function disk-partitioning () {
+	wipefs --all "${1}"
+	sgdisk \
+		-Z \
+		-n "0::${2}" -t 0:ef00 \
+		-n "0::${3}" -t 0:8200 \
+		-n "0::"     -t 0:fd00 "${1}"
+}
+
+function disk-to-partition () {
+	if [ -e "${1}" ]; then
+		DISK1_EFI="${1}1"
+		DISK1_SWAP="${1}2"
+		DISK1_ROOTFS="${1}3"
+	fi
+	if [ -e "${2}" ]; then
+		DISK2_EFI="${2}1"
+		DISK2_SWAP="${2}2"
+		DISK2_ROOTFS="${2}3"
+	fi
+}
+
+function partitioning () {
+	disk-partitioning "${DISK1}" "${EFI_END}" "${SWAP_END}"
+	if [ -e "${DISK2}" ]; then
+		disk-partitioning "${DISK2}" "${EFI_END}" "${SWAP_END}"
+	fi
+
+	disk-to-partition "${DISK1}" "${DISK2}"
+}
+
+function get-uuid () {
+	local UUID="$(lsblk -dno UUID "${1}")"
+	if [ -z "${UUID}" ]; then
+		echo "Failed to get UUID of ${1}" 1>&2
+		exit 1
+	fi
+	echo "${UUID}"
+}
+
+function mount-installfs () {
+	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" --mkdir "${MOUNT_POINT}"
+	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" --mkdir "${MOUNT_POINT}/root"
+	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" --mkdir "${MOUNT_POINT}/var/log"
+	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" --mkdir "${MOUNT_POINT}/.snapshots"
+
+	mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
+	if [ -e "${DISK2}" ]; then
+		mount "${DISK2_EFI}" --mkdir "${MOUNT_POINT}/boot/efi2"
+	fi
+}
+
 source ./install-config.sh
-source ./install-common.sh
 HOSTNAME="${1}"
 PUBKEYURL="${2}"
-diskname-to-disk "${3}" "${4}"
+diskname-to-diskpath "${3}" "${4}"
 
-# Check
-wget --spider "${PUBKEYURL}"
+pre-processing
+processing
+post-processing
 
-# Partitioning
-function partitioning () {
-  wipefs --all "${1}"
-  sgdisk \
-    -Z \
-    -n "0::${2}" -t 0:ef00 \
-    -n "0::${3}" -t 0:8200 \
-    -n "0::"     -t 0:fd00 "${1}"
+function pre-processing () {
+	# Check
+	wget --spider "${PUBKEYURL}"
+
+	# Partitioning
+	partitioning
+
+	# Formatting
+	mkfs.vfat -F 32 "${DISK1_EFI}"
+	mkswap "${DISK1_SWAP}"
+	if [ -e "${DISK2}" ]; then
+		mkfs.vfat -F 32 "${DISK2_EFI}"
+		mkswap "${DISK2_SWAP}"
+		mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
+	else
+		mkfs.btrfs -f "${DISK1_ROOTFS}"
+	fi
+
+	# Set UUIDs
+	EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
+	SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
+	if [ -e "${DISK2}" ]; then
+		EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
+		SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
+	fi
+	ROOTFS_UUID="$(get-uuid "${DISK1_ROOTFS}")"
+
+	# Create subvolumes
+	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
+	btrfs subvolume create "${MOUNT_POINT}/@"
+	btrfs subvolume create "${MOUNT_POINT}/@root"
+	btrfs subvolume create "${MOUNT_POINT}/@var_log"
+	btrfs subvolume create "${MOUNT_POINT}/@snapshots"
+	btrfs subvolume set-default "${MOUNT_POINT}/@"
+	btrfs subvolume list "${MOUNT_POINT}" # confirmation
+	umount "${MOUNT_POINT}"
+
+	# Mount Btrfs
+	mount-installfs
 }
 
-partitioning "${DISK1}" "${EFI_END}" "${SWAP_END}"
-if [ -e "${DISK2}" ]; then
-  partitioning "${DISK2}" "${EFI_END}" "${SWAP_END}"
-fi
+function processing () {
+	# Install distribution
+	#sudo apt-get install -y mmdebstrap
+	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 
-disk-to-partition "${DISK1}" "${DISK2}"
-
-# Formatting
-mkfs.vfat -F 32 "${DISK1_EFI}"
-mkswap "${DISK1_SWAP}"
-if [ -e "${DISK2}" ]; then
-  mkfs.vfat -F 32 "${DISK2_EFI}"
-  mkswap "${DISK2_SWAP}"
-fi
-if [ -e "${DISK2}" ]; then
-  mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
-else
-  mkfs.btrfs -f "${DISK1_ROOTFS}"
-fi
-
-# Set UUIDs
-function get-uuid () {
-  local UUID="$(lsblk -dno UUID "${1}")"
-  if [ -z "${UUID}" ]; then
-    echo "Failed to get UUID of ${1}" 1>&2
-    exit 1
-  fi
-  echo "${UUID}"
+	sudo apt-get install -y debootstrap
+	debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
 }
-EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
-SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
-if [ -e "${DISK2}" ]; then
-  EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
-  SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
-fi
-ROOTFS_UUID="$(get-uuid "${DISK1_ROOTFS}")"
 
-# Create subvolumes
-mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
-btrfs subvolume create "${MOUNT_POINT}/@"
-btrfs subvolume create "${MOUNT_POINT}/@root"
-btrfs subvolume create "${MOUNT_POINT}/@var_log"
-btrfs subvolume create "${MOUNT_POINT}/@snapshots"
-btrfs subvolume set-default "${MOUNT_POINT}/@"
-btrfs subvolume list "${MOUNT_POINT}" # confirmation
-umount "${MOUNT_POINT}"
+function post-processing () {
+	# Install arch-install-scripts
+	sudo apt-get install -y arch-install-scripts
 
-# Mount Btrfs
-mount-installfs
+	# Configure locale
+	locale-gen "C.UTF-8"
+	echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
-# Install distribution
-#sudo apt-get install -y mmdebstrap
-#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+	# Configure time zone
+	ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
+	cat "${MOUNT_POINT}/etc/localtime" # confirmation
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
-sudo apt-get install -y debootstrap
-debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+	# Configure keyboard
+	perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
+	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
-# Install arch-install-scripts
-sudo apt-get install -y arch-install-scripts
+	# Create sources.list
+	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
+	deb ${MIRROR} ${SUITE} main restricted universe multiverse
+	deb ${MIRROR} ${SUITE}-updates main restricted universe multiverse
+	deb ${MIRROR} ${SUITE}-backports main restricted universe multiverse
+	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
+	EOS
 
-# Configure locale
-locale-gen "C.UTF-8"
-echo 'LANG="C.UTF-8"' | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
-cat "${MOUNT_POINT}/etc/default/locale" # confirmation
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
+	# Create fstab
+	FSTAB_BASE=`cat <<- EOS
+	/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0
+	/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0
+	/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
+	/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
+	EOS`
+	FSTAB_DISK1=`cat <<- EOS
+	/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+	/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+	EOS`
+	FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
+	if [ -e "${DISK2}" ]; then
+		FSTAB_DISK2=`cat <<- EOS
+		/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
+		/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
+		EOS`
+		FSTAB="${FSTAB}${FSTAB_DISK2}"
+	fi
+	echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
 
-# Configure time zone
-ln -sf "${MOUNT_POINT}/usr/share/zoneinfo/${TZ}" "${MOUNT_POINT}/etc/localtime"
-cat "${MOUNT_POINT}/etc/localtime" # confirmation
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+	# Set Hostname
+	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
+	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 
-# Configure keyboard
-perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
-cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
+	# Create User
+	mkdir -p "${MOUNT_POINT}/home2/${USERNAME}"
+	arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
 
-# Create sources.list
-tee "${MOUNT_POINT}/etc/apt/sources.list" << EOF > /dev/null
-deb ${MIRROR} ${SUITE} main restricted universe multiverse
-deb ${MIRROR} ${SUITE}-updates main restricted universe multiverse
-deb ${MIRROR} ${SUITE}-backports main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
-EOF
+	# Configure SSH
+	mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
+	wget -O "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" "${PUBKEYURL}"
+	arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
+	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
 
-# Create fstab
-FSTAB_BASE="/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
-/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
-"
-FSTAB_DISK1="/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
-"
-FSTAB="${FSTAB_BASE}${FSTAB_DISK1}"
-if [ -e "${DISK2}" ]; then
-  FSTAB_DISK2="/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0
-"
-  FSTAB="${FSTAB}${FSTAB_DISK2}"
-fi
-echo "$FSTAB" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
+	# Install Packages
+	arch-chroot "${MOUNT_POINT}" apt-get update
+	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
+	arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
 
-# Set Hostname
-echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
-echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
+	# Install GRUB
+	if [ -e "${DISK2}" ]; then
+		ESPs="${DISK1_EFI}, ${DISK2_EFI}"
+	else
+		ESPs="${DISK1_EFI}"
+	fi
 
-# Create User
-mkdir -p "${MOUNT_POINT}/home2/${USERNAME}"
-arch-chroot "${MOUNT_POINT}" useradd --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${MOUNT_POINT}/home2/${USERNAME}" "${USERNAME}"
+	arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "grub-efi grub-efi/install_devices multiselect ${ESPs}"
 
-# Configure SSH
-mkdir "${MOUNT_POINT}/home2/${USERNAME}/.ssh"
-wget -O "${MOUNT_POINT}/home2/${USERNAME}/.ssh/authorized_keys" "${PUBKEYURL}"
-arch-chroot "${MOUNT_POINT}" chown -R "${USERNAME}:${USERNAME}" "/home2/${USERNAME}/.ssh"
-arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USERNAME}/.ssh/authorized_keys"
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
+	#arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
 
-# Install Packages
-arch-chroot "${MOUNT_POINT}" apt-get update
-arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-arch-chroot "${MOUNT_POINT}" apt-get install -y linux-{,image-,headers-}generic linux-firmware initramfs-tools efibootmgr shim-signed openssh-server nano
+	tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
+	#!/bin/sh
+	. "\$pkgdatadir/grub-mkconfig_lib"
+	TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
+	cat << EOS
+	menuentry '\$TITLE' {
+	  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+	  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+	  initrd /@/boot/initrd.img
+	}
+	EOS
+	EOF
+	sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
 
-# Install GRUB
-if [ -e "${DISK2}" ]; then
-  ESPs="${DISK1_EFI}, ${DISK2_EFI}"
-else
-  ESPs="${DISK1_EFI}"
-fi
-
-DEBCONF_EFI="Name: grub-efi/install_devices
-Template: grub-efi/install_devices
-Value: ${ESPs}
-Owners: grub-common, grub-efi-amd64, grub-pc
-Flags: seen
-Variables:
- CHOICES = 
- RAW_CHOICES = 
-
-"
-#echo "$DEBCONF_EFI" | tee -a "${MOUNT_POINT}/var/cache/debconf/config.dat"
-
-arch-chroot "${MOUNT_POINT}" debconf-set-selections <<< "grub-efi grub-efi/install_devices multiselect ${ESPs}"
-
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
-#arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck
-
-tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" << EOF > /dev/null
-#!/bin/sh
-. "\$pkgdatadir/grub-mkconfig_lib"
-TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
-cat << EOS
-menuentry '\$TITLE' {
-  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-  initrd /@/boot/initrd.img
+	arch-chroot "${MOUNT_POINT}" update-grub
 }
-EOS
-EOF
-sudo chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
-
-arch-chroot "${MOUNT_POINT}" update-grub
