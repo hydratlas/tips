@@ -83,7 +83,7 @@ function processing () {
 	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	apt-get install -y debootstrap
-	debootstrap --exclude=netplan.io "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
