@@ -46,8 +46,10 @@ function pre-processing () {
 		else
 			mkfs.btrfs -f "${DISK1_ROOTFS}"
 		fi
-	else
+	else [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 		mkfs.ext4 "${DISK1_ROOTFS}"
+	else [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		mkfs.xfs "${DISK1_ROOTFS}"
 	fi
 
 	# Set UUIDs
@@ -97,9 +99,13 @@ function post-processing () {
 		/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0
 		/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0
 		EOS`
-	else
+	else [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 		FSTAB_BASE=`cat <<- EOS
 		/dev/disk/by-uuid/${ROOTFS_UUID} / ext4 ${EXT4_OPTIONS} 0 0
+		EOS`
+	else [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		FSTAB_BASE=`cat <<- EOS
+		/dev/disk/by-uuid/${ROOTFS_UUID} / xfs ${XFS_OPTIONS} 0 0
 		EOS`
 	fi
 	FSTAB_DISK1=`cat <<- EOS
