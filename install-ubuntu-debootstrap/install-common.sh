@@ -25,10 +25,10 @@ function disk-to-partition () {
 
 function mount-installfs () {
   mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" "${MOUNT_POINT}"
-  mkdir -p "${MOUNT_POINT}/root"
   mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" "${MOUNT_POINT}/root"
-  mkdir -p "${MOUNT_POINT}/var/log"
   mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" "${MOUNT_POINT}/var/log"
+  mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" "${MOUNT_POINT}/.snapshots"
+
   mkdir -p "${MOUNT_POINT}/boot/efi"
   mount "${DISK1_EFI}" "${MOUNT_POINT}/boot/efi"
   if [ -e "${DISK2}" ]; then
