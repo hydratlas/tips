@@ -37,10 +37,10 @@ function mount-installfs () {
 		mount "${DISK1_ROOTFS}" -o "${XFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
 	fi
 
-	if [ -e "${DISK1_EFI}" ]; then
+	if [ -e "${DISK1_PATH}" ]; then
 		mount "${DISK1_EFI}" --mkdir "${MOUNT_POINT}/boot/efi"
 	fi
-	if [ -e "${DISK2_EFI}" ]; then
+	if [ -e "${DISK2_PATH}" ]; then
 		mount "${DISK2_EFI}" --mkdir "${MOUNT_POINT}/boot/efi2"
 	fi
 }
