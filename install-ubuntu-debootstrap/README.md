@@ -4,7 +4,8 @@
 cd ~/ &&
 git clone --depth=1 https://github.com/hydratlas/tips &&
 cd tips/install-ubuntu-debootstrap &&
-chmod a+x install*.sh
+chmod a+x install*.sh &&
+mv install-config.sample.sh install-config.sh
 
 lsblk -f -e 7
 ```
