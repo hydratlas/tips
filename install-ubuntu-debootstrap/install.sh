@@ -39,13 +39,13 @@ else
 fi
 
 # Set UUIDs
-ROOTFS_UUID="$(lsblk -dno UUID "${DISK1_ROOTFS}")"
 EFI1_UUID="$(lsblk -dno UUID "${DISK1_EFI}")"
 SWAP1_UUID="$(lsblk -dno UUID "${DISK1_SWAP}")"
 if [ -e "${DISK2}" ]; then
   EFI2_UUID="$(lsblk -dno UUID "${DISK2_EFI}")"
   SWAP2_UUID="$(lsblk -dno UUID "${DISK2_SWAP}")"
 fi
+ROOTFS_UUID="$(lsblk -dno UUID "${DISK1_ROOTFS}")"
 
 # Create subvolumes
 mkdir -p "${MOUNT_POINT}"
