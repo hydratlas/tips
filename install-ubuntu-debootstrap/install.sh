@@ -70,10 +70,10 @@ function pre-processing () {
 function processing () {
 	# Install distribution
 	#sudo apt-get install -y mmdebstrap
-	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	sudo apt-get install -y debootstrap
-	debootstrap "${SUITE}" "${MOUNT_POINT}" "${MIRROR}"
+	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 }
 
 function post-processing () {
@@ -98,9 +98,9 @@ function post-processing () {
 
 	# Create sources.list
 	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
-	deb ${MIRROR} ${SUITE} main restricted universe multiverse
-	deb ${MIRROR} ${SUITE}-updates main restricted universe multiverse
-	deb ${MIRROR} ${SUITE}-backports main restricted universe multiverse
+	deb ${PERMANENT_MIRROR} ${SUITE} main restricted universe multiverse
+	deb ${PERMANENT_MIRROR} ${SUITE}-updates main restricted universe multiverse
+	deb ${PERMANENT_MIRROR} ${SUITE}-backports main restricted universe multiverse
 	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
 	EOS
 
