@@ -132,7 +132,7 @@ DHCP=yes
 EOS
 cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 
-# Create User
+# Create user
 arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 
 # Install SSH server
@@ -143,11 +143,13 @@ PermitRootLogin no
 EOS
 cat "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" # confirmation
 
+# Configure user
 mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
+echo "export LANG=${USER_LANG}" | tee -a "${USER_HOME_DIR}/.bashrc" > /dev/null
 
 # Install GRUB
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
