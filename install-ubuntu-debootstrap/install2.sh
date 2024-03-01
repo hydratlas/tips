@@ -37,7 +37,7 @@ cat "${MOUNT_POINT}/etc/fstab" # confirmation
 apt-get install -y arch-install-scripts
 
 # Temporarily set language
-local LANG_BAK="${LANG}"
+LANG_BAK="${LANG}"
 export LANG="${INSTALLATION_LANG}"
 
 # Configure locale
@@ -47,10 +47,9 @@ cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 # Configure time zone
-local TIMEZONE="${TIMEZONE_AREA}/${TIMEZONE_ZONE}"
-echo "${TIMEZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
+echo "${TIMEZONE_AREA}/${TIMEZONE_ZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
 cat "${MOUNT_POINT}/etc/timezone" # confirmation
-arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/localtime"
+arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE_AREA}/${TIMEZONE_ZONE}" "/etc/localtime"
 arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
 echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
 echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
