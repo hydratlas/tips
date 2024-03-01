@@ -16,6 +16,7 @@ readonly TIMEZONE_AREA="Asia"
 readonly TIMEZONE_ZONE="Tokyo"
 readonly XKBMODEL="pc105"
 readonly XKBLAYOUT="jp"
+readonly MDNS=true
 readonly PACKAGES_TO_INSTALL=( \
   initramfs-tools linux-firmware linux-generic shim-signed \
   libpam-systemd systemd-resolved systemd-timesyncd \
