@@ -7,6 +7,7 @@ readonly TIMEZONE_AREA="Asia"
 readonly TIMEZONE_ZONE="Tokyo"
 readonly XKBMODEL="pc105"
 readonly XKBLAYOUT="jp"
+readonly PACKAGE_LIST=(unattended-upgrades needrestart dmidecode efibootmgr fwupd gdisk htop lshw lsof pciutils usbutils pci.ids usb.ids bzip2 curl git perl make moreutils nano psmisc rsync time uuid-runtime bash-completion command-not-found landscape-common e2fsprogs-l10n)
 readonly USER_NAME="ubuntu"
 readonly USER_PASSWORD='$6$LMqzniAEoBSSS4gu$mMmV91M3oXrIpYCxIM2AlgvjxUWH2OPmLptPkttULMYMRCaJsfYxSiIySVM1q/K/mJVrAXnNNQEK9PTciP2Oe.'
 readonly USER_HOME_DIR="/home2/ubuntu"
