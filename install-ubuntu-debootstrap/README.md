@@ -40,10 +40,10 @@ sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}
 ```
 sudo umount -R /mnt
 
-sudo mount -o subvolid=5 /dev/sdX3 /mnt
-sudo btrfs subvolume delete /mnt/@
-sudo btrfs subvolume snapshot /mnt/@snapshots/after-installation /mnt/@
-sudo btrfs subvolume set-default /mnt/@
+sudo mount -o subvolid=5 /dev/sdX3 /mnt &&
+sudo btrfs subvolume delete /mnt/@ &&
+sudo btrfs subvolume snapshot /mnt/@snapshots/after-installation /mnt/@ &&
+sudo btrfs subvolume set-default /mnt/@ &&
 sudo umount /mnt
 
 sudo bash -eux install-mount.sh sdX sdX
