@@ -1,7 +1,7 @@
 #!/bin/sh
 readonly SUITE="mantic"
-readonly INSTALLATION_MIRROR="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
-readonly PERMANENT_MIRROR="http://jp.archive.ubuntu.com/ubuntu/"
+readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
+readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
 readonly INSTALLATION_LANG="C.UTF-8"
 readonly TIMEZONE_AREA="Asia"
 readonly TIMEZONE_ZONE="Tokyo"
