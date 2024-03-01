@@ -100,18 +100,18 @@ function install-packages () {
 		fi
 	done
 	
-	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
 }
 
 arch-chroot "${MOUNT_POINT}" apt-get update
-arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
+DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
 install-packages
 
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
 fi
 if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
 fi
 
 # Set Hostname
@@ -136,7 +136,7 @@ cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 
 # Install SSH server
-arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends openssh-server
+DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends openssh-server
 
 mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
