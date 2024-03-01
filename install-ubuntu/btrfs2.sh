@@ -101,4 +101,4 @@ sudo mount "$EFI2_PART" /mnt/boot/efi2
 # GRUB・ESPを更新
 sudo apt-get install -y arch-install-scripts
 sudo arch-chroot /mnt update-grub
-sudo arch-chroot /mnt dpkg-reconfigure -u shim-signed
+sudo arch-chroot /mnt dpkg-reconfigure --frontend noninteractive shim-signed
