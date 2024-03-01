@@ -222,7 +222,7 @@ function post-processing () {
 
 	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
-	cat "${MOUNT_POINT}${USER_HOME_DIR}/${USER_NAME}/.ssh/authorized_keys" # confirmation
+	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
 
