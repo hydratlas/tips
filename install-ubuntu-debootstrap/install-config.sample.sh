@@ -29,3 +29,4 @@ readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
 readonly USER_NAME="ubuntu"
 readonly USER_PASSWORD='$6$LMqzniAEoBSSS4gu$mMmV91M3oXrIpYCxIM2AlgvjxUWH2OPmLptPkttULMYMRCaJsfYxSiIySVM1q/K/mJVrAXnNNQEK9PTciP2Oe.'
 readonly USER_HOME_DIR="/home2/ubuntu"
+readonly USER_LANG="ja_JP.UTF-8"
