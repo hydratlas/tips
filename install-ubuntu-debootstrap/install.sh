@@ -90,6 +90,32 @@ function processing () {
 	fi
 }
 
+function install-packages () {
+	local CANDIDATE_INSTALL_PACKAGES=()
+	CANDIDATE_INSTALL_PACKAGES+=(${PACKAGES_TO_INSTALL[@]})
+	local PACKAGE
+	for PACKAGE in "${DEPENDENT_PACKAGES_TO_INSTALL[@]}"; do
+		CANDIDATE_INSTALL_PACKAGES+=( $(apt-cache depends --important ubuntu-minimal | awk '/:/{print$2}') )
+	done
+
+	local INSTALL_PACKAGES=()
+	for PACKAGE in "${CANDIDATE_INSTALL_PACKAGES[@]}"; do
+		local INSTALL=true
+		local NOT_INSTALL
+		for NOT_INSTALL in "${PACKAGES_NOT_INSTALL[@]}"; do
+			if [[ "$PACKAGE" == "$NOT_INSTALL" ]]; then
+				INSTALL=false
+				break
+			fi
+		done
+		if $INSTALL; then
+			INSTALL_PACKAGES+=("$PACKAGE")
+		fi
+	done
+	
+	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
+}
+
 function post-processing () {
 	# Create fstab
 	FSTAB_ARRAY=()
@@ -114,12 +140,33 @@ function post-processing () {
 	printf "%s\n" "${FSTAB_ARRAY[@]}" | tee "${MOUNT_POINT}/etc/fstab" > /dev/null
 	cat "${MOUNT_POINT}/etc/fstab" # confirmation
 
+	# Install arch-install-scripts
+	apt-get install -y arch-install-scripts
+
 	# Temporarily set language
 	local LANG_BAK="${LANG}"
 	export LANG="${INSTALLATION_LANG}"
 
-	# Install arch-install-scripts
-	apt-get install -y arch-install-scripts
+	# Create sources.list
+	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
+	deb ${PERMANENT_MIRROR} ${SUITE} main restricted universe multiverse
+	deb ${PERMANENT_MIRROR} ${SUITE}-updates main restricted universe multiverse
+	deb ${PERMANENT_MIRROR} ${SUITE}-backports main restricted universe multiverse
+	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
+
+	# Install packages
+	arch-chroot "${MOUNT_POINT}" apt-get update
+	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
+ 	install-packages
+
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
+	fi
+	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
+	fi
 
 	# Configure locale
 	arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
@@ -141,15 +188,6 @@ function post-processing () {
 	perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
 	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
-
-	# Create sources.list
-	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
-	deb ${PERMANENT_MIRROR} ${SUITE} main restricted universe multiverse
-	deb ${PERMANENT_MIRROR} ${SUITE}-updates main restricted universe multiverse
-	deb ${PERMANENT_MIRROR} ${SUITE}-backports main restricted universe multiverse
-	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
-	EOS
-	cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
 
 	# Set Hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
@@ -180,21 +218,6 @@ function post-processing () {
 	cat "${MOUNT_POINT}${USER_HOME_DIR}/${USER_NAME}/.ssh/authorized_keys" # confirmation
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
-
-	# Install Packages
-	arch-chroot "${MOUNT_POINT}" apt-get update
-	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends \
-		linux-{,image-,headers-}generic linux-firmware initramfs-tools shim-signed
-
-	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${PACKAGE_LIST[@]}"
-
-	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
-	fi
-	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
-	fi
 
 	# Install GRUB
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
