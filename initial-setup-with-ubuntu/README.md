@@ -4,13 +4,15 @@
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
 sudo localectl set-locale LANG=C.UTF-8 &&
+sudo dpkg-reconfigure --frontend noninteractive locales &&
 echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
 source ~/.bashrc
 ```
 
 ## タイムゾーンをAsia/Tokyo化（管理者）
 ```
-sudo timedatectl set-timezone Asia/Tokyo
+sudo timedatectl set-timezone Asia/Tokyo &&
+sudo dpkg-reconfigure --frontend noninteractive tzdata
 ```
 
 ## PodmanおよびDocker Composeをインストール・実行
