@@ -80,10 +80,10 @@ function pre-processing () {
 function processing () {
 	# Install distribution
 	#apt-get install -y mmdebstrap
-	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 
 	apt-get install -y debootstrap
-	debootstrap --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	debootstrap --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
@@ -149,12 +149,19 @@ function post-processing () {
 
 	# Create sources.list
 	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
-	deb ${PERMANENT_MIRROR} ${SUITE} main restricted universe multiverse
-	deb ${PERMANENT_MIRROR} ${SUITE}-updates main restricted universe multiverse
-	deb ${PERMANENT_MIRROR} ${SUITE}-backports main restricted universe multiverse
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE} main restricted universe multiverse
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-updates main restricted universe multiverse
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-backports main restricted universe multiverse
 	deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
 	EOS
 	cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
+
+	tee "${MOUNT_POINT}/etc/apt/mirrors.txt" <<- EOS > /dev/null
+	${MIRROR1}	priority:1
+	${MIRROR2}	priority:2
+	${MIRROR3}
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/mirrors.txt" # confirmation
 
 	# Install packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
