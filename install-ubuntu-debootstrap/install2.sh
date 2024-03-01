@@ -100,19 +100,19 @@ function install-packages () {
 		fi
 	done
 	
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT} ${1:-}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]}"
 }
 
 arch-chroot "${MOUNT_POINT}" apt-get update
 DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
-install-packages
-
+ADD_PACKAGES=""
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
+	ADD_PACKAGES="${ADD_PACKAGES} btrfs-progs"
 fi
 if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
+	ADD_PACKAGES="${ADD_PACKAGES} xfsprogs"
 fi
+install-packages "${ADD_PACKAGES}"
 
 # Set Hostname
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
