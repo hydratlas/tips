@@ -20,7 +20,7 @@ readonly MDNS=true
 readonly PACKAGES_TO_INSTALL=( \
   initramfs-tools linux-firmware linux-generic shim-signed \
   libpam-systemd systemd-resolved systemd-timesyncd \
-  e2fsprogs-l10n needrestart unattended-upgrades \
+  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
   dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
   bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
   bash-completion command-not-found landscape-common \
