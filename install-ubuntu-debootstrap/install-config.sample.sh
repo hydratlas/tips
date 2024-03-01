@@ -9,6 +9,7 @@ readonly XKBMODEL="pc105"
 readonly XKBLAYOUT="jp"
 readonly USER_NAME="ubuntu"
 readonly USER_PASSWORD='$6$LMqzniAEoBSSS4gu$mMmV91M3oXrIpYCxIM2AlgvjxUWH2OPmLptPkttULMYMRCaJsfYxSiIySVM1q/K/mJVrAXnNNQEK9PTciP2Oe.'
+readonly USER_HOME_DIR="/home2/ubuntu"
 readonly ROOT_FILESYSTEM="btrfs"
 readonly BTRFS_OPTIONS="defaults,ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 readonly EXT4_OPTIONS="defaults,noatime"
