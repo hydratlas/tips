@@ -64,7 +64,7 @@ mount-installfs
 # Install distribution
 COMPONENTS="main restricted universe multiverse"
 VARIANT="minbase"
-INCLUDE_PKGS="console-setup,locales,tzdata,keyboard-configuration"
+INCLUDE_PKGS="apt,console-setup,locales,tzdata,keyboard-configuration"
 if [ "mmdebstrap" = "${INSTALLER}" ]; then
   apt-get install -y mmdebstrap
   mmdebstrap --skip=check/empty --components="${COMPONENTS}" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
