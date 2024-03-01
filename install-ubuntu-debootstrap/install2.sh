@@ -45,17 +45,21 @@ arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
 if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
 	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
 fi
-echo "LANG=\"${INSTALLATION_LANG}\"" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
-cat "${MOUNT_POINT}/etc/default/locale" # confirmation
+arch-chroot "${MOUNT_POINT}" localectl set-locale "LANG=${INSTALLATION_LANG}"
+arch-chroot "${MOUNT_POINT}" localectl status # confirmation
+#echo "LANG=${INSTALLATION_LANG}" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+#cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 # Configure time zone
-echo "${TIMEZONE_AREA}/${TIMEZONE_ZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
-cat "${MOUNT_POINT}/etc/timezone" # confirmation
-arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE_AREA}/${TIMEZONE_ZONE}" "/etc/localtime"
-arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
-echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
-echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
+arch-chroot "${MOUNT_POINT}" timedatectl set-timezone "${TIMEZONE_AREA}/${TIMEZONE_ZONE}"
+arch-chroot "${MOUNT_POINT}" timedatectl status # confirmation
+#echo "${TIMEZONE_AREA}/${TIMEZONE_ZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
+#cat "${MOUNT_POINT}/etc/timezone" # confirmation
+#arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE_AREA}/${TIMEZONE_ZONE}" "/etc/localtime"
+#arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
+#echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
+#echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 # Configure keyboard
