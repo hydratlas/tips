@@ -147,6 +147,27 @@ function post-processing () {
 	local LANG_BAK="${LANG}"
 	export LANG="${INSTALLATION_LANG}"
 
+	# Configure locale
+	arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
+	echo "LANG=\"${INSTALLATION_LANG}\"" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
+
+	# Configure time zone
+	local TIMEZONE="${TIMEZONE_AREA}/${TIMEZONE_ZONE}"
+	echo "${TIMEZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
+ 	cat "${MOUNT_POINT}/etc/timezone" # confirmation
+ 	arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/localtime"
+	arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
+	echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
+	echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+
+	# Configure keyboard
+	perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
+	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
+
 	# Create sources.list
 	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
 	deb mirror+file:/etc/apt/mirrors.txt ${SUITE} main restricted universe multiverse
@@ -174,27 +195,6 @@ function post-processing () {
 	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends xfsprogs
 	fi
-
-	# Configure locale
-	arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
-	echo "LANG=\"${INSTALLATION_LANG}\"" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
-	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
-
-	# Configure time zone
-	local TIMEZONE="${TIMEZONE_AREA}/${TIMEZONE_ZONE}"
-	echo "${TIMEZONE}" | tee "${MOUNT_POINT}/etc/timezone" > /dev/null
- 	cat "${MOUNT_POINT}/etc/timezone" # confirmation
- 	arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/localtime"
-	arch-chroot "${MOUNT_POINT}" readlink "/etc/localtime" # confirmation
-	echo "tzdata tzdata/Areas select ${TIMEZONE_AREA}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
-	echo "tzdata tzdata/Zones/${TIMEZONE_AREA} select ${TIMEZONE_ZONE}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections &&
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
-
-	# Configure keyboard
-	perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
-	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 	# Set Hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
