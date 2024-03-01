@@ -1,5 +1,5 @@
 # Ubuntuの初期設定
-## ユーザー個別では日本語化（管理者）
+## ロケールをシステム全体ではC.UTF-8、ユーザー個別ではja_JP.UTF-8化（管理者）
 ```
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
@@ -8,7 +8,7 @@ echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
 source ~/.bashrc
 ```
 
-## 日本時間化（管理者）
+## タイムゾーンをAsia/Tokyo化（管理者）
 ```
 sudo timedatectl set-timezone Asia/Tokyo
 ```
