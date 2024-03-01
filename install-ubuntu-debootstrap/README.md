@@ -29,7 +29,12 @@ lsblk -f -e 7
 sudo bash -eux install.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
 ```
 
-### トラブルシューティング時のマウント
+## インストールされたパッケージの確認
+```
+sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
+```
+
+## トラブルシューティング時のマウント
 ```
 sudo bash -eux install-mount.sh sdX sdX
 
