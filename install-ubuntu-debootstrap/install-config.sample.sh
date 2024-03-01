@@ -2,6 +2,7 @@
 readonly SUITE="mantic"
 readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
 readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
+readonly MIRROR3="http://archive.ubuntu.com/ubuntu/"
 readonly INSTALLATION_LANG="C.UTF-8"
 readonly TIMEZONE_AREA="Asia"
 readonly TIMEZONE_ZONE="Tokyo"
