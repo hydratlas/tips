@@ -152,7 +152,7 @@ wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
-echo "export LANG=${USER_LANG}" | tee -a "${USER_HOME_DIR}/.bashrc" > /dev/null
+echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 
 # Install GRUB
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
