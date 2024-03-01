@@ -12,7 +12,7 @@ function diskname-to-diskpath () {
   fi
 }
 
-function disk-to-partition () {
+function diskpath-to-partitionpath () {
   if [ -e "${1}" ]; then
     DISK1_EFI="${1}1"
     DISK1_SWAP="${1}2"
@@ -31,6 +31,25 @@ function disk-to-partition () {
     DISK2_SWAP=""
     DISK2_ROOTFS=""
   fi
+}
+
+function get-fs-UUID () {
+  local UUID="$(lsblk -dno UUID "${1}")"
+  if [ -z "${UUID}" ]; then
+    echo "Failed to get UUID of ${1}" 1>&2
+    exit 1
+  fi
+  echo "${UUID}"
+}
+
+function get-filesystem-UUIDs () {
+  EFI1_UUID="$(get-fs-UUID "${DISK1_EFI}")"
+  SWAP1_UUID="$(get-fs-UUID "${DISK1_SWAP}")"
+  if [ -e "${DISK2_PATH}" ]; then
+    EFI2_UUID="$(get-fs-UUID "${DISK2_EFI}")"
+    SWAP2_UUID="$(get-fs-UUID "${DISK2_SWAP}")"
+  fi
+  ROOTFS_UUID="$(get-fs-UUID "${DISK1_ROOTFS}")"
 }
 
 function mount-installfs () {
