@@ -44,22 +44,7 @@ elif [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 fi
 
 # Set UUIDs
-function get-uuid () {
-  local UUID="$(lsblk -dno UUID "${1}")"
-  if [ -z "${UUID}" ]; then
-    echo "Failed to get UUID of ${1}" 1>&2
-    exit 1
-  fi
-  echo "${UUID}"
-}
-
-EFI1_UUID="$(get-uuid "${DISK1_EFI}")"
-SWAP1_UUID="$(get-uuid "${DISK1_SWAP}")"
-if [ -e "${DISK2_PATH}" ]; then
-  EFI2_UUID="$(get-uuid "${DISK2_EFI}")"
-  SWAP2_UUID="$(get-uuid "${DISK2_SWAP}")"
-fi
-ROOTFS_UUID="$(get-uuid "${DISK1_ROOTFS}")"
+get-filesystem-UUIDs
 
 # Create Btrfs subvolumes
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
