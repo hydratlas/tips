@@ -124,6 +124,11 @@ echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 # Network setup
+MDNS_STR="no"
+if ${MDNS}; then
+	MDNS_STR="yes"
+fi
+
 arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd
 
 tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
@@ -132,8 +137,11 @@ Name=en*
 
 [Network]
 DHCP=yes
+MulticastDNS=${MDNS_STR}
 EOS
 cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
+
+perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=\"${MDNS_STR}\"/g;" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 
 # Create user
 arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
