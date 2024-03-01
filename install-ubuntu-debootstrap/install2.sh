@@ -141,7 +141,7 @@ MulticastDNS=${MDNS_STR}
 EOS
 cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 
-perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=\"${MDNS_STR}\"/g;" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 
 # Create user
 arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
