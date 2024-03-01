@@ -5,6 +5,8 @@ HOSTNAME="${1}"
 PUBKEYURL="${2}"
 diskname-to-diskpath "${3:-}" "${4:-}"
 
+diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
+
 # Set UUIDs
 get-filesystem-UUIDs
 
