@@ -22,7 +22,7 @@ if [ -e "${DISK2_PATH}" ]; then
   disk-partitioning "${DISK2_PATH}" "${EFI_END}" "${SWAP_END}"
 fi
 
-disk-to-partition "${DISK1_PATH}" "${DISK2_PATH}"
+diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
 
 # Formatting
 mkfs.vfat -F 32 "${DISK1_EFI}"
