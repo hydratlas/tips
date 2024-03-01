@@ -103,7 +103,7 @@ function install-packages () {
 		fi
 	done
 	
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${INSTALL_PACKAGES[@]} ${1:-}"
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "$(IFS=" "; echo "${INSTALL_PACKAGES[*]}") ${1:-}"
 }
 
 arch-chroot "${MOUNT_POINT}" apt-get update
