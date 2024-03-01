@@ -28,8 +28,8 @@ lsblk -f -e 7
 ### インストール
 「lsblk」によって、インストール先のsdXを確認し、次のコマンドの1個目および2個目の引数に指定する。
 ```
-sudo bash -eux install1.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
-sudo bash -eux install2.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
+sudo bash -eux install1.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install2.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
 ```
 
 ### インストールされたパッケージの確認
@@ -46,7 +46,7 @@ cat /mnt/var/cache/debconf/config.dat
 ```
 sudo umount -R /mnt
 
-sudo mount -o subvolid=5 /dev/sdX3 /mnt &&
+sudo mount -o subvolid=5 /dev/<sdX0> /mnt &&
 sudo btrfs subvolume set-default /mnt &&
 sudo btrfs subvolume delete /mnt/@ &&
 sudo btrfs subvolume snapshot /mnt/@snapshots/after-installation /mnt/@ &&
@@ -77,5 +77,5 @@ sudo shutdown -r now
 ### 再起動後に再度マウント
 ```
 cd tips/install-ubuntu-debootstrap &&
-sudo bash -eux install-mount.sh sdX sdX
+sudo bash -eux install-mount.sh <sdX> <sdX>
 ```
