@@ -80,10 +80,10 @@ function pre-processing () {
 function processing () {
 	# Install distribution
 	#apt-get install -y mmdebstrap
-	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	apt-get install -y debootstrap
-	debootstrap "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
+	debootstrap --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${INSTALLATION_MIRROR}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
@@ -170,25 +170,24 @@ function post-processing () {
 	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
 
 	# Create User
-	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "/home2/${USER_NAME}" "${USER_NAME}"
+	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 
-	# Configure SSH
-	mkdir -p "${MOUNT_POINT}/home2/${USER_NAME}/.ssh"
-	wget -O "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" "${PUBKEYURL}"
-	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "/home2/${USER_NAME}/.ssh"
-	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "/home2/${USER_NAME}/.ssh/authorized_keys"
-	cat "${MOUNT_POINT}/home2/${USER_NAME}/.ssh/authorized_keys" # confirmation
+	# Install SSH server
+	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends openssh-server
+
+	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
+	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
+	cat "${MOUNT_POINT}${USER_HOME_DIR}/${USER_NAME}/.ssh/authorized_keys" # confirmation
+	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
+	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
 
 	# Install Packages
 	arch-chroot "${MOUNT_POINT}" apt-get update
 	arch-chroot "${MOUNT_POINT}" apt-get dist-upgrade -y
 	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends \
-		linux-{,image-,headers-}generic linux-firmware initramfs-tools \
-		shim-signed plymouth-theme-ubuntu-text unattended-upgrades needrestart openssh-server \
-		dmidecode efibootmgr fwupd gdisk htop lshw lsof pciutils usbutils pci.ids usb.ids \
-		bzip2 curl git perl make moreutils nano psmisc rsync time uuid-runtime \
-		bash-completion command-not-found landscape-common \
-		e2fsprogs-l10n
+		linux-{,image-,headers-}generic linux-firmware initramfs-tools shim-signed
+
+	arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends "${PACKAGE_LIST[@]}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends btrfs-progs
