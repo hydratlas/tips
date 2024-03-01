@@ -166,7 +166,7 @@ echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MO
 
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 
-echo "GRUB_RECORDFAIL_TIMEOUT=0" | tee "${MOUNT_POINT}/etc/default/grub" > /dev/null
+echo "GRUB_RECORDFAIL_TIMEOUT=0" | tee -a "${MOUNT_POINT}/etc/default/grub" > /dev/null
 
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
