@@ -3,7 +3,7 @@
 ```
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
-echo "LANG=C.UTF-8" | sudo tee "/etc/default/locale" > /dev/null &&
+sudo localectl set-locale LANG=LANG=C.UTF-8 &&
 echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
 source ~/.bashrc
 ```
