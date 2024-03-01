@@ -80,13 +80,13 @@ function pre-processing () {
 function processing () {
 	# Install distribution
 	#apt-get install -y mmdebstrap
-	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+	#mmdebstrap --skip=check/empty --components="main restricted universe multiverse" --variant=minbase --include="locales,tzdata,keyboard-configuration" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 
 	apt-get install -y debootstrap
-	debootstrap --variant=minbase --include="usrmerge" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+	debootstrap --variant=minbase --include="locales,tzdata,keyboard-configuration" "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
+		btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"locales,tzdata,keyboard-configurationlocales,tzdata,keyboard-configuration
 	fi
 }
 
