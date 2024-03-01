@@ -7,13 +7,16 @@ readonly TIMEZONE_AREA="Asia"
 readonly TIMEZONE_ZONE="Tokyo"
 readonly XKBMODEL="pc105"
 readonly XKBLAYOUT="jp"
-readonly PACKAGE_LIST=( \
+readonly PACKAGES_TO_INSTALL=( \
+  linux-image-generic linux-headers-generic linux-firmware initramfs-tools shim-signed \
   unattended-upgrades needrestart e2fsprogs-l10n \
   dmidecode efibootmgr fwupd gdisk htop lshw lsof \
   pciutils usbutils pci.ids usb.ids \
   bzip2 curl git perl make moreutils nano psmisc rsync time uuid-runtime \
   bash-completion command-not-found landscape-common \
   )
+readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
+readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
 readonly USER_NAME="ubuntu"
 readonly USER_PASSWORD='$6$LMqzniAEoBSSS4gu$mMmV91M3oXrIpYCxIM2AlgvjxUWH2OPmLptPkttULMYMRCaJsfYxSiIySVM1q/K/mJVrAXnNNQEK9PTciP2Oe.'
 readonly USER_HOME_DIR="/home2/ubuntu"
