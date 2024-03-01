@@ -28,7 +28,8 @@ lsblk -f -e 7
 ### インストール
 「lsblk」によって、インストール先のsdXを確認し、次のコマンドの1個目および2個目の引数に指定する。
 ```
-sudo bash -eux install.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
+sudo bash -eux install1.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
+sudo bash -eux install2.sh ubuntu-machine https://github.com/<username>.keys sdX sdX
 ```
 
 ### インストールされたパッケージの確認
