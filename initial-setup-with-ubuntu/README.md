@@ -1,10 +1,16 @@
 # Ubuntuの初期設定
-## 日本時間化・日本語化（管理者）
+## ユーザー個別では日本語化（管理者）
 ```
-sudo timedatectl set-timezone Asia/Tokyo &&
-sudo apt-get install -y language-pack-ja &&
-sudo localectl set-locale LANG=ja_JP.UTF-8 LANGUAGE="ja_JP:ja" &&
-source /etc/default/locale
+sudo locale-gen "C.UTF-8" &&
+sudo locale-gen "ja_JP.UTF-8" &&
+echo "LANG=C.UTF-8" | sudo tee "/etc/default/locale" > /dev/null &&
+echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
+source ~/.bashrc
+```
+
+## 日本時間化（管理者）
+```
+sudo timedatectl set-timezone Asia/Tokyo
 ```
 
 ## PodmanおよびDocker Composeをインストール・実行
