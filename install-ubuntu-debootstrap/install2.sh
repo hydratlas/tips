@@ -42,7 +42,9 @@ export LANG="${INSTALLATION_LANG}"
 
 # Configure locale
 arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
-arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
+if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
+	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
+fi
 echo "LANG=\"${INSTALLATION_LANG}\"" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
