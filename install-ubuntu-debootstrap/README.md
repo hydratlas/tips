@@ -36,7 +36,7 @@ sudo bash -eux install.sh ubuntu-machine https://github.com/<username>.keys sdX 
 sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
 ```
 
-### debootstrap実行直後に戻す
+### debootstrap実行直後に戻す（Btrfsの場合のみ）
 ```
 sudo umount -R /mnt
 
