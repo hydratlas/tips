@@ -5,6 +5,9 @@ HOSTNAME="${1}"
 PUBKEYURL="${2}"
 diskname-to-diskpath "${3:-}" "${4:-}"
 
+# Set UUIDs
+get-filesystem-UUIDs
+
 # Create fstab
 FSTAB_ARRAY=()
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
