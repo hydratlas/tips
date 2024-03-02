@@ -63,6 +63,11 @@ cd ~/ &&
 rm -drf tips
 ```
 
+### debootstrap実行直後のスナップショットを削除（Btrfsの場合のみ）
+```
+sudo btrfs subvolume delete /mnt/.snapshots/after-installation
+```
+
 ### アンマウント
 再起動するなら飛ばしてよい。
 ```
