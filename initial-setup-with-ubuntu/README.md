@@ -13,6 +13,8 @@ source ~/.bashrc
 ```
 sudo timedatectl set-timezone Asia/Tokyo &&
 sudo dpkg-reconfigure --frontend noninteractive tzdata
+
+timedatectl status # confirmation
 ```
 
 ### 説明
