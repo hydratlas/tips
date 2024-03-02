@@ -41,19 +41,19 @@ LANG_BAK="${LANG}"
 export LANG="${INSTALLATION_LANG}"
 
 # Configure locale
-arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
-if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
-	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
-fi
-arch-chroot "${MOUNT_POINT}" localectl set-locale "LANG=${INSTALLATION_LANG}"
-arch-chroot "${MOUNT_POINT}" localectl status # confirmation
+#arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
+#if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
+#	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
+#fi
+#arch-chroot "${MOUNT_POINT}" localectl set-locale "LANG=${INSTALLATION_LANG}"
+#arch-chroot "${MOUNT_POINT}" localectl status # confirmation
 #echo "LANG=${INSTALLATION_LANG}" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 #cat "${MOUNT_POINT}/etc/default/locale" # confirmation
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
+#arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 # Configure time zone
-arch-chroot "${MOUNT_POINT}" timedatectl set-timezone "${TIMEZONE}"
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
+#arch-chroot "${MOUNT_POINT}" timedatectl set-timezone "${TIMEZONE}"
+#arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 # Configure keyboard
 perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g;s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
@@ -159,7 +159,6 @@ wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
-echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 
 # Install GRUB
 arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
