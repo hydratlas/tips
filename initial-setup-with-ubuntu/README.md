@@ -1,16 +1,27 @@
 # Ubuntuの初期設定
-## ロケールをシステム全体ではC.UTF-8、ユーザー個別ではja_JP.UTF-8化（管理者）
+## ロケールをシステム全体ではC.UTF-8にした上で、ユーザー個別ではja_JP.UTF-8に設定可能にする（管理者）
 ```
 sudo apt-get install -y language-pack-ja &&
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
 sudo localectl set-locale LANG=C.UTF-8 &&
 sudo dpkg-reconfigure --frontend noninteractive locales &&
+```
+
+### 補足
+「localectl set-locale」に代えて、/etc/default/localeに書き込んでもよい（おそらくlocalectlはこの処理のラッパーとなっている）。
+```
+echo "LANG=C.UTF-8" | sudo tee "/etc/default/locale" > /dev/null
+cat "/etc/default/locale" # confirmation
+```
+
+## ロケールをログインしているユーザー個別でja_JP.UTF-8に設定する（ユーザー）
+```
 echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
 source ~/.bashrc
 ```
 
-## タイムゾーンをAsia/Tokyo化（管理者）
+## タイムゾーンをAsia/Tokyoにする（管理者）
 ```
 sudo timedatectl set-timezone Asia/Tokyo &&
 sudo dpkg-reconfigure --frontend noninteractive tzdata
@@ -18,7 +29,7 @@ sudo dpkg-reconfigure --frontend noninteractive tzdata
 timedatectl status # confirmation
 ```
 
-### 説明
+### 補足
 設定の場所は3つある。
 ```
 echo "Asia/Tokyo" | sudo tee "/etc/timezone" > /dev/null
