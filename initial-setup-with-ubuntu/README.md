@@ -5,7 +5,7 @@ sudo apt-get install -y language-pack-ja &&
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
 sudo localectl set-locale LANG=C.UTF-8 &&
-sudo dpkg-reconfigure --frontend noninteractive locales &&
+sudo dpkg-reconfigure --frontend noninteractive locales
 ```
 
 ### 補足
