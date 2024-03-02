@@ -15,6 +15,8 @@ readonly INSTALLATION_LANG="C.UTF-8"
 readonly TIMEZONE="Asia/Tokyo"
 readonly XKBMODEL="pc105"
 readonly XKBLAYOUT="jp"
+readonly XKBVARIANT="OADG109A"
+readonly SETUP_SYSTEMD_NETWORKD=true
 readonly MDNS=true
 readonly PACKAGES_TO_INSTALL=( \
   initramfs-tools linux-firmware linux-generic shim-signed \
