@@ -25,6 +25,7 @@ readonly PACKAGES_TO_INSTALL=( \
   dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
   bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
   bash-completion command-not-found landscape-common \
+  language-pack-ja \
   )
 readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
 readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
