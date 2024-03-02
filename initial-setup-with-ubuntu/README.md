@@ -1,6 +1,7 @@
 # Ubuntuの初期設定
 ## ロケールをシステム全体ではC.UTF-8、ユーザー個別ではja_JP.UTF-8化（管理者）
 ```
+sudo apt-get install -y language-pack-ja &&
 sudo locale-gen "C.UTF-8" &&
 sudo locale-gen "ja_JP.UTF-8" &&
 sudo localectl set-locale LANG=C.UTF-8 &&
