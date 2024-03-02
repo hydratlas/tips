@@ -29,7 +29,7 @@ readlink "/etc/localtime" # confirmation
 echo "tzdata tzdata/Areas select Asia" | sudo debconf-set-selections &&
 echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 ```
-このうち、「dpkg-reconfigure tzdata」で参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。
+このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者）
