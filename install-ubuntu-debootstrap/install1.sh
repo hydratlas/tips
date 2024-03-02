@@ -71,7 +71,9 @@ if [ "mmdebstrap" = "${INSTALLER}" ]; then
     "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 else
   apt-get install -y debootstrap
-  debootstrap --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+  mkdir -p "${CACHE_DIR}"
+  debootstrap --components="${COMPONENTS}" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+    --cache-dir="${CACHE_DIR}" \
     "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 fi
 
