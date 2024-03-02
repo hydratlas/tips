@@ -62,7 +62,7 @@ fi
 mount-installfs
 
 # Install distribution
-COMPONENTS="main restricted universe multiverse"
+COMPONENTS="main,restricted,universe,multiverse"
 VARIANT="minbase"
 INCLUDE_PKGS="apt,console-setup,locales,tzdata,keyboard-configuration"
 if [ "mmdebstrap" = "${INSTALLER}" ]; then
