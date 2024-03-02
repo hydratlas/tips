@@ -45,12 +45,13 @@ arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
 if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
 	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
 fi
-arch-chroot "${MOUNT_POINT}" localectl set-locale "LANG=${INSTALLATION_LANG}"
-arch-chroot "${MOUNT_POINT}" localectl status # confirmation
+echo "LANG=${INSTALLATION_LANG}" | sudo tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 # Configure time zone
-arch-chroot "${MOUNT_POINT}" timedatectl set-timezone "${TIMEZONE}"
+arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/localtime"
+readlink "/etc/localtime" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 # Configure keyboard
