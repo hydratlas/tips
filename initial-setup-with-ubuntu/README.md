@@ -15,6 +15,20 @@ sudo timedatectl set-timezone Asia/Tokyo &&
 sudo dpkg-reconfigure --frontend noninteractive tzdata
 ```
 
+### 説明
+設定の場所は3つある。
+```
+echo "Asia/Tokyo" | sudo tee "/etc/timezone" > /dev/null
+cat "/etc/timezone" # confirmation
+
+sudo ln -sf "/usr/share/zoneinfo/Asia/Tokyo" "/etc/localtime"
+readlink "/etc/localtime" # confirmation
+
+echo "tzdata tzdata/Areas select Asia" | sudo debconf-set-selections &&
+echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
+```
+このうち、「dpkg-reconfigure tzdata」で参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。
+
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者）
 ```
