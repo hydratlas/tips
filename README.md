@@ -1,0 +1,10 @@
+- [initial-setup-with-ubuntu](initial-setup-with-ubuntu/README.md)
+  - Ubuntuをインストールした後の初期セットアップ手順書
+- [install-ubuntu-debootstrap](install-ubuntu-debootstrap/README.md)
+  - Ubuntuをdebootstrapでカスタムインストールするスクリプト
+    - 最小限のパッケージだけインストール可能
+    - Btrfs RAID 1対応（オプションでExt4またはXFS）
+    - キーボード、ロケールおよびタイムゾーン設定実施
+    - ネットワークはsystemd-networkd（mDNS対応）
+- [install-ubuntu](install-ubuntu/README.md)
+  - Ubuntuをデフォルトのインストーラーでインストールしつつ、Btrfs RAID 1を構成するスクリプト
