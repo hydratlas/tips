@@ -49,6 +49,23 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
+## aptの取得先にミラーを設定する
+```
+sudo tee "/etc/apt/sources.list" << EOS > /dev/null &&
+deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename) main restricted universe multiverse
+deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-updates main restricted universe multiverse
+deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-backports main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu $(lsb_release --short --codename)-security main restricted universe multiverse
+EOS
+cat "/etc/apt/sources.list" && # confirmation
+sudo tee "/etc/apt/mirrors.txt" && << EOS > /dev/null
+http://ftp.udx.icscoe.jp/Linux/ubuntu/	priority:1
+http://jp.archive.ubuntu.com/ubuntu/	priority:2
+http://archive.ubuntu.com/ubuntu/
+EOS
+cat "/etc/apt/mirrors.txt" # confirmation
+```
+
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者）
 ```
