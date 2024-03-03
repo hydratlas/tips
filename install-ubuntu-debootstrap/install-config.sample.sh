@@ -21,6 +21,8 @@ readonly XKBVARIANT="OADG109A"
 readonly GRUB_CMDLINE_LINUX_DEFAULT=""
 #readonly GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 readonly SETUP_SYSTEMD_NETWORKD=true
+readonly WOL="magic"
+#readonly WOL="off"
 readonly MDNS=true
 readonly PACKAGES_TO_INSTALL=( \
   initramfs-tools linux-firmware linux-generic shim-signed \
