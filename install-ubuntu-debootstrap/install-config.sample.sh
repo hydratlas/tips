@@ -1,5 +1,37 @@
 #!/bin/sh
+# Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
 readonly SUITE="mantic"
+readonly PACKAGES_TO_INSTALL=( \
+  initramfs-tools linux-firmware linux-generic shim-signed \
+  libpam-systemd systemd-resolved systemd-timesyncd \
+  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+  dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
+  bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
+  bash-completion command-not-found landscape-common \
+  language-pack-ja \
+  )
+readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
+readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
+readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
+readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
+readonly MIRROR3="http://archive.ubuntu.com/ubuntu/"
+
+# Suite and Packages (Debian 12 Bookworm)
+#readonly SUITE="bookworm"
+#readonly PACKAGES_TO_INSTALL=( \
+#  initramfs-tools linux-firmware linux-generic shim-signed \
+#  libpam-systemd systemd-resolved systemd-timesyncd \
+#  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+#  dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
+#  bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
+#  bash-completion command-not-found landscape-common \
+#  language-pack-ja \
+#  )
+#readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
+#readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
+#readonly MIRROR1="http://ftp.jp.debian.org/debian/"
+#readonly MIRROR2="http://debian-mirror.sakura.ne.jp/debian/"
+#readonly MIRROR3="http://cdn.debian.or.jp/debian/"
 
 # Storage
 readonly ROOT_FILESYSTEM="btrfs"
@@ -14,9 +46,6 @@ readonly SWAP_END="4GiB"
 readonly INSTALLER="mmdebstrap"
 #readonly INSTALLER="debootstrap"
 readonly CACHE_DIR="/tmp/debootstrap"
-readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
-readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
-readonly MIRROR3="http://archive.ubuntu.com/ubuntu/"
 
 # Basic Settings
 readonly INSTALLATION_LANG="C.UTF-8"
@@ -28,19 +57,6 @@ readonly XKBVARIANT="OADG109A"
 # GRUB
 readonly GRUB_CMDLINE_LINUX_DEFAULT=""
 #readonly GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
-
-# Packages
-readonly PACKAGES_TO_INSTALL=( \
-  initramfs-tools linux-firmware linux-generic shim-signed \
-  libpam-systemd systemd-resolved systemd-timesyncd \
-  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
-  dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
-  bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
-  bash-completion command-not-found landscape-common \
-  language-pack-ja \
-  )
-readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
-readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
 
 # User
 readonly USER_NAME="ubuntu"
