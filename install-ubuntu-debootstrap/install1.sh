@@ -79,5 +79,5 @@ fi
 
 # Get snapshot
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
-  btrfs subvolume snapshot "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
+  btrfs subvolume snapshot -r "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
 fi
