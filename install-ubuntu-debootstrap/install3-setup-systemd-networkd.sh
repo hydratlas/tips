@@ -40,6 +40,7 @@ function setup-systemd-networkd () {
 	ExecStart=
 	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
 	EOS
+	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
 }
 
 setup-systemd-networkd
