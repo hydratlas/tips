@@ -85,7 +85,7 @@ cd tips/install-ubuntu-debootstrap &&
 sudo bash -eux install-mount.sh <sdX> <sdX>
 ```
 
-## その他
+## その他、起動後の追加設定（オプション）
 SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。
 ```
 sudo apt-get install -y --no-install-recommends update-notifier-common
