@@ -22,8 +22,24 @@ readonly PACKAGES_NOT_INSTALL=( \
 # vim-tiny: Vim in compact version
 
 readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
-readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
-readonly MIRROR3="http://archive.ubuntu.com/ubuntu/"
+readonly MIRROR2="https://linux.yz.yamagata-u.ac.jp/ubuntu/"
+readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
+
+# Suite and Packages (Debian 12 Bookworm)
+#readonly SUITE="bookworm"
+#readonly PACKAGES_TO_INSTALL=( \
+#  linux-image-amd64 firmware-linux \
+#  initramfs-tools linux-firmware linux-generic shim-signed \
+#  libpam-systemd systemd-timesyncd \
+#  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+#  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
+#  bash-completion command-not-found
+#  )
+#readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
+#readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
+#readonly MIRROR1="http://ftp.jp.debian.org/debian/"
+#readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
+#readonly MIRROR3="http://cdn.debian.or.jp/debian/"
 
 # Storage
 readonly ROOT_FILESYSTEM="btrfs"
