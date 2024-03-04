@@ -32,8 +32,8 @@ function setup-grub-on-debian () {
 
 	adding-entries-to-grub
 
-	echo "grub-efi-amd64 grub2/enable_os_prober select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
+	echo "grub-efi-amd64 grub2/enable_os_prober boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 }
 function adding-entries-to-grub () {
