@@ -29,6 +29,8 @@ function setup-grub-on-debian () {
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
+	echo "grub-efi-amd64 grub2/enable_os_prober select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 }
 function adding-entries-to-grub () {
