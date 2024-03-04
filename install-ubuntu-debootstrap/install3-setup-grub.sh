@@ -11,6 +11,7 @@ diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
 get-filesystem-UUIDs
 
 function setup-grub () {
+	arch-chroot "${MOUNT_POINT}" apt-get update
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
