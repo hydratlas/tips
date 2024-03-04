@@ -15,9 +15,9 @@ function setup-grub () {
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
 	if [ -e "${DISK2_PATH}" ]; then
-		ESPs="${DISK1_EFI}, ${DISK2_EFI}"
+		local -r ESPs="${DISK1_EFI}, ${DISK2_EFI}"
 	else
-		ESPs="${DISK1_EFI}"
+		local -r ESPs="${DISK1_EFI}"
 	fi
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 
