@@ -8,6 +8,7 @@ function setup-systemd-networkd () {
 		local -r MDNS_STR="no"
 	fi
 
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends systemd-resolved
 	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd
 
 	# Configure basic settings
