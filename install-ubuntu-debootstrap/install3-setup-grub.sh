@@ -1,3 +1,4 @@
+#!/bin/bash -eu
 source ./install-config.sh
 
 function setup-grub () {
