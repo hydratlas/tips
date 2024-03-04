@@ -26,7 +26,7 @@ function setup-grub-on-ubuntu () {
 }
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64 grub-efi-amd64-signed shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
 	echo "grub-efi-amd64 grub2/enable_os_prober select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
