@@ -62,17 +62,15 @@ fi
 mount-installfs
 
 # Install distribution
-COMPONENTS="main,restricted,universe,multiverse"
-VARIANT="minbase"
 INCLUDE_PKGS="apt,console-setup,locales,tzdata,keyboard-configuration"
 if [ "mmdebstrap" = "${INSTALLER}" ]; then
   apt-get install -y mmdebstrap
-  mmdebstrap --skip=check/empty --components="${COMPONENTS}" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+  mmdebstrap --skip=check/empty --components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
     "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 else
   apt-get install -y debootstrap
   mkdir -p "${CACHE_DIR}"
-  debootstrap --components="${COMPONENTS}" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+  debootstrap --components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
     --cache-dir="${CACHE_DIR}" \
     "${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 fi
