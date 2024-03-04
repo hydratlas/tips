@@ -61,10 +61,10 @@ arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard
 
 # Create sources.list
 tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE} main restricted universe multiverse
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-updates main restricted universe multiverse
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-backports main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu ${SUITE}-security main restricted universe multiverse
+deb mirror+file:/etc/apt/mirrors.txt ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")
+deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-updates $(IFS=" "; echo "${COMPONENTS[*]}")
+deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-backports $(IFS=" "; echo "${COMPONENTS[*]}")
+deb ${MIRROR_SECURITY} ${SUITE}-security $(IFS=" "; echo "${COMPONENTS[*]}")
 EOS
 cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
 
