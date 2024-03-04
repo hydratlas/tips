@@ -1,5 +1,6 @@
 #!/bin/sh
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
+readonly DISTRIBUTION="ubuntu"
 readonly SUITE="mantic"
 readonly COMPONENTS=(main restricted universe multiverse)
 readonly VARIANT="minbase"
@@ -29,6 +30,7 @@ readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
 readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 
 # Suite and Packages (Debian 12 Bookworm)
+#readonly DISTRIBUTION="debian"
 #readonly SUITE="bookworm"
 #readonly COMPONENTS=(main contrib non-free non-free-firmware)
 #readonly VARIANT=""
