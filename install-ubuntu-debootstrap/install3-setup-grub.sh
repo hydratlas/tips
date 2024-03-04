@@ -47,4 +47,9 @@ function setup-grub () {
 	arch-chroot "${MOUNT_POINT}" update-grub
 }
 
+LANG_BAK="${LANG}"
+export LANG="${INSTALLATION_LANG}"
+
 setup-grub
+
+export LANG="${LANG_BAK}"
