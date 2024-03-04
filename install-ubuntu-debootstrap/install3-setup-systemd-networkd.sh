@@ -44,4 +44,9 @@ function setup-systemd-networkd () {
 	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
 }
 
+LANG_BAK="${LANG}"
+export LANG="${INSTALLATION_LANG}"
+
 setup-systemd-networkd
+
+export LANG="${LANG_BAK}"
