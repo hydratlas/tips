@@ -32,9 +32,21 @@ sudo bash -eux install1.sh <hostname> https://github.com/<username>.keys <sdX> <
 sudo bash -eux install2.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
 ```
 
+## トラブルシューティング
 ### インストールされたパッケージの確認
 ```
 sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
+```
+
+### パッケージの検索
+```
+apt-cache search --names-only linux-image
+```
+
+### パッケージの依存関係の確認
+```
+apt-cache depends apt
+apt-cache rdepends apt
 ```
 
 ### debconfの確認
