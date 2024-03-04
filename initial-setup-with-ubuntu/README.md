@@ -60,8 +60,8 @@ EOS
 cat "/etc/apt/sources.list" && # confirmation
 sudo tee "/etc/apt/mirrors.txt" && << EOS > /dev/null
 http://ftp.udx.icscoe.jp/Linux/ubuntu/	priority:1
-http://jp.archive.ubuntu.com/ubuntu/	priority:2
-http://archive.ubuntu.com/ubuntu/
+https://linux.yz.yamagata-u.ac.jp/ubuntu/	priority:2
+http://jp.archive.ubuntu.com/ubuntu/
 EOS
 cat "/etc/apt/mirrors.txt" # confirmation
 ```
