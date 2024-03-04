@@ -5,7 +5,7 @@ readonly SUITE="mantic"
 readonly COMPONENTS=(main restricted universe multiverse)
 readonly VARIANT="minbase"
 readonly PACKAGES_TO_INSTALL=( \
-  linux-generic intel-microcode amd64-microcode \
+  linux-generic linux-firmware intel-microcode amd64-microcode \
   initramfs-tools libpam-systemd systemd-timesyncd \
   e2fsprogs-l10n logrotate needrestart unattended-upgrades \
   dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
@@ -40,7 +40,7 @@ readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 #  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
 #  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
 #  bash-completion command-not-found \
-#  task-japanese
+#  task-japanese \
 #  )
 #readonly DEPENDENT_PACKAGES_TO_INSTALL=()
 #readonly PACKAGES_NOT_INSTALL=()
