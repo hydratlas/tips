@@ -1,5 +1,14 @@
 #!/bin/bash -eu
 source ./install-config.sh
+source ./install-common.sh
+HOSTNAME="${1}"
+PUBKEYURL="${2}"
+diskname-to-diskpath "${3:-}" "${4:-}"
+
+diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
+
+# Set UUIDs
+get-filesystem-UUIDs
 
 function setup-grub () {
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends shim-signed
