@@ -1,6 +1,7 @@
 #!/bin/sh
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
 readonly SUITE="mantic"
+readonly COMPONENTS=(main restricted universe multiverse)
 readonly PACKAGES_TO_INSTALL=( \
   linux-generic intel-microcode amd64-microcode \
   shim-signed libpam-systemd systemd-timesyncd \
@@ -24,9 +25,11 @@ readonly PACKAGES_NOT_INSTALL=( \
 readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
 readonly MIRROR2="https://linux.yz.yamagata-u.ac.jp/ubuntu/"
 readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
+readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 
 # Suite and Packages (Debian 12 Bookworm)
 #readonly SUITE="bookworm"
+#readonly COMPONENTS=(main contrib non-free non-free-firmware)
 #readonly PACKAGES_TO_INSTALL=( \
 #  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
 #  shim-signed libpam-systemd systemd-timesyncd \
@@ -40,6 +43,7 @@ readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
 #readonly MIRROR1="http://ftp.jp.debian.org/debian/"
 #readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
 #readonly MIRROR3="http://cdn.debian.or.jp/debian/"
+#readonly MIRROR_SECURITY="http://security.debian.org/debian-security"
 
 # Storage
 readonly ROOT_FILESYSTEM="btrfs"
