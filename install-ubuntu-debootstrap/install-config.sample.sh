@@ -2,6 +2,7 @@
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
 readonly SUITE="mantic"
 readonly COMPONENTS=(main restricted universe multiverse)
+readonly VARIANT="minbase"
 readonly PACKAGES_TO_INSTALL=( \
   linux-generic intel-microcode amd64-microcode \
   shim-signed libpam-systemd systemd-timesyncd \
@@ -30,6 +31,7 @@ readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 # Suite and Packages (Debian 12 Bookworm)
 #readonly SUITE="bookworm"
 #readonly COMPONENTS=(main contrib non-free non-free-firmware)
+#readonly VARIANT=""
 #readonly PACKAGES_TO_INSTALL=( \
 #  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
 #  shim-signed libpam-systemd systemd-timesyncd \
