@@ -23,11 +23,14 @@ function setup-grub-on-ubuntu () {
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
+	adding-entries-to-grub
 }
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64 grub-efi-amd64-signed shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
+
+	adding-entries-to-grub
 
 	echo "grub-efi-amd64 grub2/enable_os_prober select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 	echo "grub-efi-amd64 grub2/force_efi_extra_removable select true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
@@ -66,6 +69,5 @@ if [ "ubuntu" = "${DISTRIBUTION}" ]; then
 elif [ "debian" = "${DISTRIBUTION}" ]; then
 	setup-grub-on-debian
 fi
-adding-entries-to-grub
 
 export LANG="${LANG_BAK}"
