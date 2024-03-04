@@ -6,7 +6,7 @@ readonly COMPONENTS=(main restricted universe multiverse)
 readonly VARIANT="minbase"
 readonly PACKAGES_TO_INSTALL=( \
   linux-generic intel-microcode amd64-microcode \
-  libpam-systemd systemd-timesyncd \
+  initramfs-tools libpam-systemd systemd-timesyncd \
   e2fsprogs-l10n logrotate needrestart unattended-upgrades \
   dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
   bash-completion command-not-found landscape-common \
@@ -36,7 +36,7 @@ readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 #readonly VARIANT=""
 #readonly PACKAGES_TO_INSTALL=( \
 #  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
-#  libpam-systemd systemd-timesyncd \
+#  initramfs-tools libpam-systemd systemd-timesyncd \
 #  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
 #  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
 #  bash-completion command-not-found \
