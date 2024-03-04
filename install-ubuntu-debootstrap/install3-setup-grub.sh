@@ -22,8 +22,9 @@ function setup-grub-on-ubuntu () {
 	fi
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 	adding-entries-to-grub
+
+	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 }
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
@@ -32,8 +33,6 @@ function setup-grub-on-debian () {
 
 	adding-entries-to-grub
 
-	echo "grub-efi-amd64 grub2/enable_os_prober boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 }
 function adding-entries-to-grub () {
