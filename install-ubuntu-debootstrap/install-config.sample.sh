@@ -1,53 +1,53 @@
 #!/bin/sh
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
-readonly DISTRIBUTION="ubuntu"
-readonly SUITE="mantic"
-readonly COMPONENTS=(main restricted universe multiverse)
-readonly VARIANT="minbase"
-readonly PACKAGES_TO_INSTALL=( \
-  linux-generic linux-firmware intel-microcode amd64-microcode \
-  initramfs-tools libpam-systemd systemd-timesyncd \
-  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
-  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
-  bash-completion command-not-found landscape-common \
-  language-pack-ja \
-  )
-readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
+#readonly DISTRIBUTION="ubuntu"
+#readonly SUITE="mantic"
+#readonly COMPONENTS=(main restricted universe multiverse)
+#readonly VARIANT="minbase"
+#readonly PACKAGES_TO_INSTALL=( \
+#  linux-generic linux-firmware intel-microcode amd64-microcode \
+#  initramfs-tools libpam-systemd systemd-timesyncd \
+#  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+#  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
+#  bash-completion command-not-found landscape-common \
+#  language-pack-ja \
+#  )
+#readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
 
-readonly PACKAGES_NOT_INSTALL=( \
-  netplan.io ubuntu-advantage-tools \
-  dhcpcd-base kbd netbase netcat-openbsd vim-tiny \
-  )
+#readonly PACKAGES_NOT_INSTALL=( \
+#  netplan.io ubuntu-advantage-tools \
+#  dhcpcd-base kbd netbase netcat-openbsd vim-tiny \
+#  )
 # dhcpcd-base: DHCP client daemon
 # kbd: Linux keyboard tools
 # netbase: Network configuration tools
 # netcat-openbsd: Network tools
 # vim-tiny: Vim in compact version
 
-readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
-readonly MIRROR2="https://linux.yz.yamagata-u.ac.jp/ubuntu/"
-readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
-readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
+#readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
+#readonly MIRROR2="https://linux.yz.yamagata-u.ac.jp/ubuntu/"
+#readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
+#readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 
 # Suite and Packages (Debian 12 Bookworm)
-#readonly DISTRIBUTION="debian"
-#readonly SUITE="bookworm"
-#readonly COMPONENTS=(main contrib non-free non-free-firmware)
-#readonly VARIANT="standard"
-#readonly PACKAGES_TO_INSTALL=( \
-#  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
-#  initramfs-tools libpam-systemd systemd-timesyncd \
-#  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
-#  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
-#  bash-completion command-not-found \
-#  task-japanese \
-#  )
-#readonly DEPENDENT_PACKAGES_TO_INSTALL=()
-#readonly PACKAGES_NOT_INSTALL=()
-#readonly MIRROR1="http://ftp.jp.debian.org/debian/"
-#readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
-#readonly MIRROR3="http://cdn.debian.or.jp/debian/"
-#readonly MIRROR_SECURITY="http://security.debian.org/debian-security"
+readonly DISTRIBUTION="debian"
+readonly SUITE="bookworm"
+readonly COMPONENTS=(main contrib non-free non-free-firmware)
+readonly VARIANT="standard"
+readonly PACKAGES_TO_INSTALL=( \
+  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
+  initramfs-tools libpam-systemd systemd-timesyncd \
+  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
+  bash-completion command-not-found \
+  task-japanese \
+  )
+readonly DEPENDENT_PACKAGES_TO_INSTALL=()
+readonly PACKAGES_NOT_INSTALL=()
+readonly MIRROR1="http://ftp.jp.debian.org/debian/"
+readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
+readonly MIRROR3="http://cdn.debian.or.jp/debian/"
+readonly MIRROR_SECURITY="http://security.debian.org/debian-security"
 
 # Preinstall packages
 readonly PREINSTALL_PACKAGES=(apt console-setup locales tzdata keyboard-configuration)
