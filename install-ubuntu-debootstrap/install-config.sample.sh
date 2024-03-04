@@ -2,16 +2,25 @@
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
 readonly SUITE="mantic"
 readonly PACKAGES_TO_INSTALL=( \
-  initramfs-tools linux-firmware linux-generic shim-signed \
-  libpam-systemd systemd-resolved systemd-timesyncd \
+  initramfs-tools linux-generic shim-signed \
+  libpam-systemd systemd-timesyncd \
   e2fsprogs-l10n logrotate needrestart unattended-upgrades \
-  dmidecode efibootmgr fwupd gdisk htop lshw lsof pci.ids pciutils usb.ids usbutils \
-  bzip2 curl git make moreutils nano perl psmisc rsync time uuid-runtime wget zstd \
+  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
   bash-completion command-not-found landscape-common \
   language-pack-ja \
   )
 readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
-readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
+
+readonly PACKAGES_NOT_INSTALL=( \
+  netplan.io ubuntu-advantage-tools \
+  dhcpcd-base kbd netbase netcat-openbsd vim-tiny \
+  )
+# dhcpcd-base: DHCP client daemon
+# kbd: Linux keyboard tools
+# netbase: Network configuration tools
+# netcat-openbsd: Network tools
+# vim-tiny: Vim in compact version
+
 readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu/"
 readonly MIRROR2="http://jp.archive.ubuntu.com/ubuntu/"
 readonly MIRROR3="http://archive.ubuntu.com/ubuntu/"
