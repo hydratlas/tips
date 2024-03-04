@@ -30,6 +30,9 @@ lsblk -f -e 7
 ```
 sudo bash -eux install1.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
 sudo bash -eux install2.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-grub.sh             <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-ssh-server.sh       <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-systemd-networkd.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
 ```
 
 ## トラブルシューティング
