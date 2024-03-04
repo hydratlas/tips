@@ -33,7 +33,7 @@ readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 #readonly DISTRIBUTION="debian"
 #readonly SUITE="bookworm"
 #readonly COMPONENTS=(main contrib non-free non-free-firmware)
-#readonly VARIANT=""
+#readonly VARIANT="standard"
 #readonly PACKAGES_TO_INSTALL=( \
 #  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
 #  initramfs-tools libpam-systemd systemd-timesyncd \
