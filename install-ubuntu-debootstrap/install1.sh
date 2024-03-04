@@ -70,17 +70,16 @@ function install-distribution () {
 		local -r KEYRING="/usr/share/keyrings/debian-archive-keyring.gpg"
 	fi
 
-	local -r INCLUDE_PKGS="apt,console-setup,locales,tzdata,keyboard-configuration"
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends mmdebstrap
 		mmdebstrap --skip=check/empty --keyring="${KEYRING}" \
-			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PREINSTALL_PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${DISTRIBUTION}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
 		debootstrap --cache-dir="${CACHE_DIR}" --keyring="${KEYRING}" \
-			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="${INCLUDE_PKGS}" \
+			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PREINSTALL_PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	fi
 }
