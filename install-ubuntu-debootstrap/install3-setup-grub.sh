@@ -26,7 +26,7 @@ function setup-grub-on-ubuntu () {
 }
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
-	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64-signed
+	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
