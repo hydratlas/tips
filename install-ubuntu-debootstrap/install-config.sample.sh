@@ -37,7 +37,7 @@ readonly VARIANT="standard"
 readonly PACKAGES_TO_INSTALL=( \
   linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
   initramfs-tools libpam-systemd systemd-timesyncd \
-  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
+  e2fsprogs-l10n logrotate needrestart sudo unattended-upgrades \
   dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
   bash-completion command-not-found \
   task-japanese \
