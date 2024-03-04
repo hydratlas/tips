@@ -2,8 +2,8 @@
 # Suite and Packages (Ubuntu 23.10 Mantic Minotaur)
 readonly SUITE="mantic"
 readonly PACKAGES_TO_INSTALL=( \
-  initramfs-tools linux-generic shim-signed \
-  libpam-systemd systemd-timesyncd \
+  linux-generic intel-microcode amd64-microcode \
+  shim-signed libpam-systemd systemd-timesyncd \
   e2fsprogs-l10n logrotate needrestart unattended-upgrades \
   dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
   bash-completion command-not-found landscape-common \
@@ -28,15 +28,15 @@ readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu/"
 # Suite and Packages (Debian 12 Bookworm)
 #readonly SUITE="bookworm"
 #readonly PACKAGES_TO_INSTALL=( \
-#  linux-image-amd64 firmware-linux \
-#  initramfs-tools linux-firmware linux-generic shim-signed \
-#  libpam-systemd systemd-timesyncd \
+#  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
+#  shim-signed libpam-systemd systemd-timesyncd \
 #  e2fsprogs-l10n logrotate needrestart unattended-upgrades \
 #  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
-#  bash-completion command-not-found
+#  bash-completion command-not-found \
+#  task-japanese
 #  )
-#readonly DEPENDENT_PACKAGES_TO_INSTALL=(ubuntu-minimal)
-#readonly PACKAGES_NOT_INSTALL=(eject netplan.io ubuntu-advantage-tools vim-tiny)
+#readonly DEPENDENT_PACKAGES_TO_INSTALL=()
+#readonly PACKAGES_NOT_INSTALL=()
 #readonly MIRROR1="http://ftp.jp.debian.org/debian/"
 #readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
 #readonly MIRROR3="http://cdn.debian.or.jp/debian/"
