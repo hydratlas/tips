@@ -86,7 +86,17 @@ sudo bash -eux install-mount.sh <sdX> <sdX>
 ```
 
 ## その他、起動後の追加設定（オプション）
+### パッケージのアップデート通知
 SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。
 ```
 sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
+
+### 各種ツールのインストール
+```
+sudo apt-get install -y --no-install-recommends bzip2 curl gdisk git htop lshw lsof make moreutils nano perl psmisc rsync time uuid-runtime wget zstd
+```
+- lshw: lshw
+- lsof: lsof
+- psmisc: killall
+- uuid-runtime: uuidgen
