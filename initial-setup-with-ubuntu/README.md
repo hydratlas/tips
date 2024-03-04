@@ -167,14 +167,18 @@ chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ## Portainer CEをインストール（管理者）
 ```
 sudo docker volume create portainer_data &&
-sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
+sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
 
 # https://localhost:9443
 ```
 
 ## Cockpitをインストール（管理者）
 ```
-sudo apt-get install -y -t mantic-backports --no-install-recommends cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-packagekit cockpit-storaged cockpit-podman &&
+sudo apt-get install -y -t mantic-backports --no-install-recommends \
+  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit \
+  cockpit-podman &&
 sudo systemctl enable --now cockpit.socket
 
 # http://xxx.local:9090
