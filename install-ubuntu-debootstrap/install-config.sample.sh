@@ -49,6 +49,9 @@ readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 #readonly MIRROR3="http://cdn.debian.or.jp/debian/"
 #readonly MIRROR_SECURITY="http://security.debian.org/debian-security"
 
+# Preinstall packages
+readonly PREINSTALL_PACKAGES=(apt console-setup locales tzdata keyboard-configuration)
+ 
 # Storage
 readonly ROOT_FILESYSTEM="btrfs"
 readonly BTRFS_OPTIONS="defaults,ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
