@@ -10,4 +10,9 @@ function setup-ssh-server () {
 	cat "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" # confirmation
 }
 
+LANG_BAK="${LANG}"
+export LANG="${INSTALLATION_LANG}"
+
 setup-ssh-server
+
+export LANG="${LANG_BAK}"
