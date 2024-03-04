@@ -94,9 +94,16 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 
 ### 各種ツールのインストール
 ```
-sudo apt-get install -y --no-install-recommends bzip2 curl gdisk git htop lshw lsof make moreutils nano perl psmisc rsync time uuid-runtime wget zstd
+sudo apt-get install -y --no-install-recommends \
+  bzip2 curl gdisk git make nano perl rsync wget \
+  htop lshw lsof mc moreutils psmisc time uuid-runtime zstd
 ```
+- htop: htop
 - lshw: lshw
 - lsof: lsof
+- mc: Midnight Commander (file manager)
+- moreutils: Unix tools
 - psmisc: killall
+- time: time
 - uuid-runtime: uuidgen
+- zstd: zstd
