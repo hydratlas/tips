@@ -81,7 +81,7 @@ function install-packages () {
 	CANDIDATE_INSTALL_PACKAGES+=(${PACKAGES_TO_INSTALL[@]})
 	local PACKAGE
 	for PACKAGE in "${DEPENDENT_PACKAGES_TO_INSTALL[@]}"; do
-		CANDIDATE_INSTALL_PACKAGES+=( $(apt-cache depends --important ubuntu-minimal | awk '/:/{print$2}') )
+		CANDIDATE_INSTALL_PACKAGES+=( $(apt-cache depends --important ${PACKAGE} | awk '/:/{print$2}') )
 	done
 
 	local INSTALL_PACKAGES=()
