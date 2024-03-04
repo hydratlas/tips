@@ -15,15 +15,14 @@ function setup-grub-on-ubuntu () {
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --recheck --no-nvram
 
+	adding-entries-to-grub
+
 	if [ -e "${DISK2_PATH}" ]; then
 		local -r ESPs="${DISK1_EFI}, ${DISK2_EFI}"
 	else
 		local -r ESPs="${DISK1_EFI}"
 	fi
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
-
-	adding-entries-to-grub
-
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 }
 function setup-grub-on-debian () {
