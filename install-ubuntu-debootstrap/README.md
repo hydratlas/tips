@@ -87,7 +87,7 @@ sudo bash -eux install-mount.sh <sdX> <sdX>
 
 ## その他、起動後の追加設定（オプション）
 ### パッケージのアップデート通知
-SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。
+SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proの広告という側面もある。
 ```
 sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
