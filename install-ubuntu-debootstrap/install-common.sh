@@ -93,13 +93,13 @@ function create-source-list-for-deb822-style () {
 	tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}.sources" <<- EOS > /dev/null
 	Types: deb
 	URIs: mirror+file:/etc/apt/${DISTRIBUTION}-mirrors.txt
-	Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
+	Suites: ${SUITE} ${SUITE}-updates ${SUITE}-backports
 	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
 	Signed-By: ${ARCHIVE_KEYRING}
 	
 	Types: deb
 	URIs: ${MIRROR_SECURITY}
-	Suites: $(lsb_release --short --codename)-security
+	Suites: ${SUITE}-security
 	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
 	Signed-By: ${ARCHIVE_KEYRING}
 	EOS
