@@ -3,7 +3,7 @@
 ### ダウンロード
 ```
 cd ~/ &&
-git clone --depth=1 https://github.com/hydratlas/tips &&
+git clone --depth=1 git@github.com:hydratlas/tips.git &&
 cd tips/install-ubuntu-debootstrap &&
 chmod a+x install*.sh &&
 mv install-config.sample.sh install-config.sh
