@@ -1,4 +1,11 @@
 # 初期設定
+## SSHから設定
+### 【オプション】ノートパソコンのふたをしめてもサスペンドしないようにする
+```
+sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
+sudo systemctl restart systemd-logind.service
+```
+
 ## キーボード配列を日本語109にする（管理者）
 ```
 sudo perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"pc105\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"jp\"/g;s/^XKBVARIANT=.+\$/XKBVARIANT=\"OADG109A\"/g" "/etc/default/keyboard" &&

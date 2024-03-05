@@ -19,7 +19,7 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 ### コンソール画面
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
 ```
-wget https://raw.githubusercontent.com/hydratlas/tips/main/install-ubuntu/btrfs1.sh
+wget https://raw.githubusercontent.com/hydratlas/tips/main/debian-and-ubuntu-tips/install-ubuntu-with-btrfs/btrfs1.sh
 chmod a+x btrfs1.sh
 lsblk -f -e 7 # インストール先のsdXがなにかを確認し、1回目および2回目の引数に指定する
 sudo bash -x btrfs1.sh sdX
@@ -108,7 +108,7 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 ### コンソール画面
 以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。終わったら再起動する。
 ```
-wget https://raw.githubusercontent.com/hydratlas/tips/main/install-ubuntu/btrfs2.sh
+wget https://raw.githubusercontent.com/hydratlas/tips/main/debian-and-ubuntu-tips/install-ubuntu-with-btrfs/btrfs2.sh
 chmod a+x btrfs2.sh
 lsblk -f -e 7 # /targetのsdXがなにかを確認し、/targetのsdXを1番目の引数、/targetではないsdXを2番目の引数に指定する
 sudo bash -eux btrfs2.sh sdX sdX
@@ -120,13 +120,6 @@ sudo shutdown -r now
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。
 ```
 sudo apt-get install -y avahi-daemon
-```
-
-## SSHから設定
-### 【オプション】ノートパソコンのふたをしめてもサスペンドしないようにする
-```
-sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
-sudo systemctl restart systemd-logind.service
 ```
 
 ### スクラブ・バランスタイマーの設定・確認

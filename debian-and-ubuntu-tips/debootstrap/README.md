@@ -1,10 +1,10 @@
-# install-ubuntu-debootstrap
+# debootstrap
 ## ツールのセットアップ
 ### ダウンロード
 ```
 cd ~/ &&
 git clone --depth=1 git@github.com:hydratlas/tips.git &&
-cd tips/install-ubuntu-debootstrap
+cd tips/debian-and-ubuntu-tips/debootstrap
 ```
 
 ### ハッシュ化されたパスワードの生成
@@ -94,7 +94,7 @@ sudo shutdown -r now
 
 ### 再起動後に再度マウント
 ```
-cd tips/install-ubuntu-debootstrap &&
+cd tips/tips/debian-and-ubuntu-tips/debootstrap &&
 sudo bash -eux install-mount.sh <sdX> <sdX>
 ```
 
