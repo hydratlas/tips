@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 DISK1="${1:-}"
 DISK2="${2:-}"
-
+DISTRIBUTION=""
 source ./install-config.sh
 source ./install-common.sh
 diskname-to-diskpath "${DISK1}" "${DISK2}"
