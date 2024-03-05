@@ -62,23 +62,17 @@ fi
 mount-installfs
 
 function install-distribution () {
-	if [ "ubuntu" = "${DISTRIBUTION}" ]; then
-		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ubuntu-keyring
-		local -r KEYRING="/usr/share/keyrings/ubuntu-archive-keyring.gpg"
-	elif [ "debian" = "${DISTRIBUTION}" ]; then
-		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debian-archive-keyring
-		local -r KEYRING="/usr/share/keyrings/debian-archive-keyring.gpg"
-	fi
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${ARCHIVE_KEYRING_PACKAGE}
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends mmdebstrap
-		mmdebstrap --skip=check/empty --keyring="${KEYRING}" \
+		mmdebstrap --skip=check/empty --keyring="${ARCHIVE_KEYRING}" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PREINSTALL_PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${DISTRIBUTION}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
-		debootstrap --cache-dir="${CACHE_DIR}" --keyring="${KEYRING}" \
+		debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PREINSTALL_PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	fi
