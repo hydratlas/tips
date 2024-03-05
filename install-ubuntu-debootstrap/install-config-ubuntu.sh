@@ -17,7 +17,7 @@ readonly PACKAGES_NOT_INSTALL=( \
   netplan.io ubuntu-advantage-tools \
   dhcpcd-base kbd netbase netcat-openbsd vim-tiny \
   )
-  dhcpcd-base: DHCP client daemon
+  # dhcpcd-base: DHCP client daemon
   # kbd: Linux keyboard tools
   # netbase: Network configuration tools
   # netcat-openbsd: Network tools
