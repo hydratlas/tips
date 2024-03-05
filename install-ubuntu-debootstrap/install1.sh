@@ -1,9 +1,10 @@
 #!/bin/bash -eu
+DISTRIBUTION="${1}"
+HOSTNAME="${2}"
+PUBKEYURL="${3}"
 source ./install-config.sh
 source ./install-common.sh
-HOSTNAME="${1}"
-PUBKEYURL="${2}"
-diskname-to-diskpath "${3:-}" "${4:-}"
+diskname-to-diskpath "${4:-}" "${5:-}"
 
 # Check
 wget --spider "${PUBKEYURL}"

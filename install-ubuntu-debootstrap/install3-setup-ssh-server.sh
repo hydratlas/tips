@@ -1,5 +1,10 @@
 #!/bin/bash -eu
+DISTRIBUTION="${1}"
+HOSTNAME="${2}"
+PUBKEYURL="${3}"
 source ./install-config.sh
+source ./install-common.sh
+diskname-to-diskpath "${4:-}" "${5:-}"
 
 function setup-ssh-server () {
 	arch-chroot "${MOUNT_POINT}" apt-get update

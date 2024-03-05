@@ -4,8 +4,7 @@
 ```
 cd ~/ &&
 git clone --depth=1 git@github.com:hydratlas/tips.git &&
-cd tips/install-ubuntu-debootstrap &&
-mv install-config.sample.sh install-config.sh
+cd tips/install-ubuntu-debootstrap
 ```
 
 ### ハッシュ化されたパスワードの生成
@@ -27,11 +26,11 @@ lsblk -f -e 7
 ### インストール
 「lsblk」によって、インストール先のsdXを確認し、次のコマンドの1個目および2個目の引数に指定する。
 ```
-sudo bash -eux install1.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install2.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-grub.sh             <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-ssh-server.sh       <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-systemd-networkd.sh <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install1.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install2.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-grub.sh             <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-ssh-server.sh       <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install3-setup-systemd-networkd.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
 ```
 
 ## トラブルシューティング
