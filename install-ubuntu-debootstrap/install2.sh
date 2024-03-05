@@ -59,21 +59,45 @@ perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKB
 cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
-# Create sources.list
-tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-updates $(IFS=" "; echo "${COMPONENTS[*]}")
-deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-backports $(IFS=" "; echo "${COMPONENTS[*]}")
-deb ${MIRROR_SECURITY} ${SUITE}-security $(IFS=" "; echo "${COMPONENTS[*]}")
-EOS
-cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
+function create-source-list-for-one-line-style () {
+	tee "${MOUNT_POINT}/etc/apt/sources.list" <<- EOS > /dev/null
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-updates $(IFS=" "; echo "${COMPONENTS[*]}")
+	deb mirror+file:/etc/apt/mirrors.txt ${SUITE}-backports $(IFS=" "; echo "${COMPONENTS[*]}")
+	deb ${MIRROR_SECURITY} ${SUITE}-security $(IFS=" "; echo "${COMPONENTS[*]}")
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/sources.list" # confirmation
 
-tee "${MOUNT_POINT}/etc/apt/mirrors.txt" <<- EOS > /dev/null
-${MIRROR1}	priority:1
-${MIRROR2}	priority:2
-${MIRROR3}
-EOS
-cat "${MOUNT_POINT}/etc/apt/mirrors.txt" # confirmation
+	tee "${MOUNT_POINT}/etc/apt/mirrors.txt" <<- EOS > /dev/null
+	${MIRROR1}	priority:1
+	${MIRROR2}	priority:2
+	${MIRROR3}
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/mirrors.txt" # confirmation
+}
+function create-source-list-for-deb822-style () {
+	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}.sources" << EOS > /dev/null &&
+	Types: deb
+	URIs: mirror+file:/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt
+	Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
+	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
+	Signed-By: ${ARCHIVE_KEYRING}
+
+	Types: deb
+	URIs: ${MIRROR_SECURITY}
+	Suites: $(lsb_release --short --codename)-security
+	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
+	Signed-By: ${ARCHIVE_KEYRING}
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/sources.list.d/ubuntu.sources" && # confirmation
+	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" && << EOS > /dev/null
+	${MIRROR1}	priority:1
+	${MIRROR2}	priority:2
+	${MIRROR3}
+	EOS
+	cat "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" # confirmation
+}
+create-source-list-for-deb822-style
 
 # Install packages
 function install-packages () {
