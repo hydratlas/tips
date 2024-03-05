@@ -148,6 +148,7 @@ arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group 
 mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
+ssh-keygen -t ed25519 -N '' -f "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/id_ed25519"
 arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
 arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
 echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
