@@ -103,7 +103,7 @@ function create-source-list-for-deb822-style () {
 	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
 	Signed-By: ${ARCHIVE_KEYRING}
 	EOS
-	cat "${MOUNT_POINT}/etc/apt/sources.list.d/ubuntu.sources" && # confirmation
+	cat "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}.sources" # confirmation
 
 	tee "${MOUNT_POINT}/etc/apt/${DISTRIBUTION}-mirrors.txt" <<- EOS > /dev/null
 	${MIRROR1}	priority:1
