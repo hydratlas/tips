@@ -120,3 +120,33 @@ sudo apt-get install -y --no-install-recommends \
 - time: time
 - uuid-runtime: uuidgen
 - zstd: zstd
+
+### 2つ目のEFIシステムパーティションにブートローダーをインストール（Debian）
+```
+EFI_PATH="/boot/efi2" &&
+DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
+UUID="$(findmnt --target / --output UUID --noheadings)" &&
+sudo apt-get install -y --no-install-recommends wget unzip &&
+wget -O "refind.zip" https://sourceforge.net/projects/refind/files/latest/download &&
+unzip "refind.zip" -d refind &&
+cd refind/refind-bin-*/refind &&
+sudo mkdir -p "${EFI_PATH}/EFI/BOOT/drivers_x64" &&
+sudo cp refind_x64.efi "${EFI_PATH}/EFI/BOOT/BOOTX64.EFI" &&
+sudo cp drivers_x64/btrfs_x64.efi "${EFI_PATH}/EFI/BOOT/drivers_x64/btrfs_x64.efi" &&
+sudo tee "${EFI_PATH}/EFI/BOOT/refind.conf" <<- EOS > /dev/null &&
+timeout 2
+use_nvram false
+textonly
+scanfor internal,external,optical,manual
+menuentry "${DISTRIBUTOR}" {
+  volume   "${DISTRIBUTOR}"
+  loader   /@/boot/vmlinuz-linux
+  initrd   /@/boot/initrd.img
+  options "root=UUID=${UUID} ro"
+  submenuentry "rootflags=degraded" {
+    options "root=UUID=${UUID} ro rootflags=subvol=@,degraded"
+  }
+}
+EOS
+cat "${EFI_PATH}/EFI/BOOT/refind.conf" # confirmation
+```
