@@ -15,10 +15,9 @@ readonly PACKAGES_TO_INSTALL=( \
 readonly DEPENDENT_PACKAGES_TO_INSTALL=()
 readonly PACKAGES_NOT_INSTALL=()
 
-readonly MIRROR1="http://ftp.jp.debian.org/debian/"
-readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian/"
-readonly MIRROR3="http://cdn.debian.or.jp/debian/"
+readonly MIRROR1="http://ftp.jp.debian.org/debian"
+readonly MIRROR2="https://debian-mirror.sakura.ne.jp/debian"
+readonly MIRROR3="http://cdn.debian.or.jp/debian"
 readonly MIRROR_SECURITY="http://security.debian.org/debian-security"
 readonly ARCHIVE_KEYRING_PACKAGE="debian-archive-keyring"
 readonly ARCHIVE_KEYRING="/usr/share/keyrings/debian-archive-keyring.gpg"
-

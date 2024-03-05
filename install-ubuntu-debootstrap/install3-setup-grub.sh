@@ -34,11 +34,6 @@ function setup-grub-on-debian () {
 	adding-entries-to-grub
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
-	
-	if [ -e "${DISK2_PATH}" ]; then
-		DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends refind
-		arch-chroot "${MOUNT_POINT}" refind-install --usedefault "${DISK2_EFI}" --shim /usr/lib/shim/shimx64.efi.signed
-	fi
 }
 function adding-entries-to-grub () {
 	PERL_SCRIPT=$(cat <<- EOS
