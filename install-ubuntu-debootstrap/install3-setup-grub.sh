@@ -25,6 +25,7 @@ function setup-grub-on-ubuntu () {
 	fi
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
+	arch-chroot "${MOUNT_POINT}" update-grub
 }
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
@@ -34,6 +35,7 @@ function setup-grub-on-debian () {
 	adding-entries-to-grub
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
+	arch-chroot "${MOUNT_POINT}" update-grub
 }
 function adding-entries-to-grub () {
 	PERL_SCRIPT=$(cat <<- EOS

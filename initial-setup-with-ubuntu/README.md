@@ -1,4 +1,4 @@
-# Ubuntuの初期設定
+# 初期設定
 ## キーボード配列を日本語109にする（管理者）
 ```
 sudo perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"pc105\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"jp\"/g;s/^XKBVARIANT=.+\$/XKBVARIANT=\"OADG109A\"/g" "/etc/default/keyboard" &&
@@ -140,9 +140,6 @@ EOS
 cat "/etc/apt/mirrors.txt" # confirmation
 ```
 
-## 
-
-
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者）
 ```
@@ -192,21 +189,38 @@ docker-compose up
 
 ## DockerおよびDocker Composeをインストール・実行
 ### DockerおよびDocker Composeをインストール（管理者）
+#### Ubuntu
 ```
 sudo apt-get update &&
 sudo apt-get install -y ca-certificates curl gnupg &&
 sudo install -m 0755 -d /etc/apt/keyrings &&
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg &&
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc &&
 sudo chmod a+r /etc/apt/keyrings/docker.gpg &&
 echo \
   "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
 sudo apt-get update &&
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
-
 - [Install Docker Engine on Ubuntu | Docker Docs](https://docs.docker.com/engine/install/ubuntu/)
+
+#### Debian
+```
+sudo apt-get update &&
+sudo apt-get install -y ca-certificates curl &&
+sudo install -m 0755 -d /etc/apt/keyrings &&
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
+sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+sudo apt-get update &&
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+```
+- [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)
 
 ## Rootless DockerおよびDocker Composeをインストール・実行
 ### uidmapをインストール（管理者）
