@@ -1,13 +1,10 @@
 #!/bin/sh
 if [ "ubuntu" = "${DISTRIBUTION}" ]; then
-	source ./install-config-ubuntu.sh
+  source ./install-config-ubuntu.sh
 elif [ "debian" = "${DISTRIBUTION}" ]; then
-	source ./install-config-debian.sh
+  source ./install-config-debian.sh
 fi
 
-# Preinstall packages
-readonly PREINSTALL_PACKAGES=(apt console-setup locales tzdata keyboard-configuration)
- 
 # Storage
 readonly ROOT_FILESYSTEM="btrfs"
 readonly BTRFS_OPTIONS="defaults,ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
@@ -34,9 +31,9 @@ readonly GRUB_CMDLINE_LINUX_DEFAULT=""
 #readonly GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 
 # User
-readonly USER_NAME="ubuntu"
+readonly USER_NAME="newuser"
 readonly USER_PASSWORD='$6$LMqzniAEoBSSS4gu$mMmV91M3oXrIpYCxIM2AlgvjxUWH2OPmLptPkttULMYMRCaJsfYxSiIySVM1q/K/mJVrAXnNNQEK9PTciP2Oe.'
-readonly USER_HOME_DIR="/home2/ubuntu"
+readonly USER_HOME_DIR="/home2/newuser"
 readonly USER_LANG="ja_JP.UTF-8"
 
 # systemd-networkd
