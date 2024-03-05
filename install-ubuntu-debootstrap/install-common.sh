@@ -92,7 +92,7 @@ function create-source-list-for-one-line-style () {
 function create-source-list-for-deb822-style () {
 	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}.sources" <<- EOS > /dev/null
 	Types: deb
-	URIs: mirror+file:/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt
+	URIs: mirror+file:/etc/apt/${DISTRIBUTION}-mirrors.txt
 	Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
 	Components: $(IFS=" "; echo "${COMPONENTS[*]}")
 	Signed-By: ${ARCHIVE_KEYRING}
@@ -105,10 +105,10 @@ function create-source-list-for-deb822-style () {
 	EOS
 	cat "${MOUNT_POINT}/etc/apt/sources.list.d/ubuntu.sources" && # confirmation
 
-	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" <<- EOS > /dev/null
+	sudo tee "${MOUNT_POINT}/etc/apt/${DISTRIBUTION}-mirrors.txt" <<- EOS > /dev/null
 	${MIRROR1}	priority:1
 	${MIRROR2}	priority:2
 	${MIRROR3}
 	EOS
-	cat "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" # confirmation
+	cat "${MOUNT_POINT}/etc/apt/${DISTRIBUTION}-mirrors.txt" # confirmation
 }

@@ -34,11 +34,21 @@ function setup-grub-on-debian () {
 	adding-entries-to-grub
 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
+	
+	if [ -e "${DISK2_PATH}" ]; then
+		DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends refind
+		arch-chroot "${MOUNT_POINT}" refind-install --usedefault "${DISK2_EFI}" --shim /usr/lib/shim/shimx64.efi.signed
+	fi
 }
 function adding-entries-to-grub () {
-	perl -p -i -e "s/^#?GRUB_CMDLINE_LINUX_DEFAULT=.*\$/GRUB_CMDLINE_LINUX_DEFAULT=\"${GRUB_CMDLINE_LINUX_DEFAULT}\"/g" "${MOUNT_POINT}/etc/default/grub"
-	echo "GRUB_RECORDFAIL_TIMEOUT=0" | tee -a "${MOUNT_POINT}/etc/default/grub" > /dev/null
-
+	PERL_SCRIPT=$(cat <<- EOS
+	s/^#?GRUB_CMDLINE_LINUX_DEFAULT=.*\$/GRUB_CMDLINE_LINUX_DEFAULT=\"${GRUB_CMDLINE_LINUX_DEFAULT}\"/g;
+	s/^#?GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=\"${GRUB_TIMEOUT}\"/g;
+	s/^#?GRUB_DISABLE_OS_PROBER=.*\$/GRUB_DISABLE_OS_PROBER=\"${GRUB_DISABLE_OS_PROBER}\"/g;
+	EOS
+	)
+	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/grub"
+	echo "GRUB_RECORDFAIL_TIMEOUT=${GRUB_TIMEOUT}" | tee -a "${MOUNT_POINT}/etc/default/grub" > /dev/null
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
 		#!/bin/sh

@@ -108,7 +108,7 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 ### 各種ツールのインストール
 ```
 sudo apt-get install -y --no-install-recommends \
-  bzip2 curl gdisk git make nano perl rsync wget \
+  bzip2 curl gdisk git make perl rsync wget \
   htop lshw lsof mc moreutils psmisc time uuid-runtime zstd
 ```
 - htop: htop
