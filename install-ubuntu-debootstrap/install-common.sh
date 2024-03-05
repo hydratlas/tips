@@ -105,7 +105,7 @@ function create-source-list-for-deb822-style () {
 	EOS
 	cat "${MOUNT_POINT}/etc/apt/sources.list.d/ubuntu.sources" && # confirmation
 
-	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" && <<- EOS > /dev/null
+	sudo tee "${MOUNT_POINT}/etc/apt/sources.list.d/${DISTRIBUTION}-mirrors.txt" <<- EOS > /dev/null
 	${MIRROR1}	priority:1
 	${MIRROR2}	priority:2
 	${MIRROR3}

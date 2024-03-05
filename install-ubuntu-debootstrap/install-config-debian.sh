@@ -3,7 +3,7 @@ readonly SUITE="bookworm"
 readonly COMPONENTS=(main contrib non-free non-free-firmware)
 readonly VARIANT="standard"
 
-readonly PACKAGES_TO_INSTALL_FIRST=(linux-image-amd64, apt, console-setup, locales, tzdata, keyboard-configuration)
+readonly PACKAGES_TO_INSTALL_FIRST=(linux-image-amd64 apt console-setup locales tzdata keyboard-configuration)
 readonly PACKAGES_TO_INSTALL=( \
   firmware-linux intel-microcode amd64-microcode \
   initramfs-tools libpam-systemd systemd-timesyncd \
