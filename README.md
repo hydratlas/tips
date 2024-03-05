@@ -5,7 +5,7 @@
       - Btrfs RAID 1対応（オプションでExt4またはXFS）
       - キーボード、ロケールおよびタイムゾーン設定実施
       - ネットワークはsystemd-networkd（mDNS対応）
-  - [initial-setup-with-ubuntu](initial-setup-with-ubuntu/README.md)
-    - Ubuntuをインストールした後の初期セットアップ手順書
-  - [install-ubuntu](install-ubuntu/README.md)
+  - [initial-setup](debian-and-ubuntu-tips/initial-setup/README.md)
+    - DebinaまたはUbuntuをインストールした後の初期セットアップ手順書
+  - [install-ubuntu-with-btrfs](debian-and-ubuntu-tips/install-ubuntu-with-btrfs/README.md)
     - Ubuntuをデフォルトのインストーラーでインストールしつつ、Btrfs RAID 1を構成するスクリプト

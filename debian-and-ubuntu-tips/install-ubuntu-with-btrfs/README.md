@@ -19,11 +19,14 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 ### コンソール画面
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
 ```
-wget https://raw.githubusercontent.com/hydratlas/tips/main/debian-and-ubuntu-tips/install-ubuntu-with-btrfs/btrfs1.sh
-chmod a+x btrfs1.sh
+git clone --depth=1 git@github.com:hydratlas/tips.git &&
+cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
+
 lsblk -f -e 7 # インストール先のsdXがなにかを確認し、1回目および2回目の引数に指定する
+
 sudo bash -x btrfs1.sh sdX
 sudo bash -x btrfs1.sh sdX
+
 sudo shutdown -r now
 ```
 
@@ -108,10 +111,13 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 ### コンソール画面
 以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。終わったら再起動する。
 ```
-wget https://raw.githubusercontent.com/hydratlas/tips/main/debian-and-ubuntu-tips/install-ubuntu-with-btrfs/btrfs2.sh
-chmod a+x btrfs2.sh
+git clone --depth=1 git@github.com:hydratlas/tips.git &&
+cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
+
 lsblk -f -e 7 # /targetのsdXがなにかを確認し、/targetのsdXを1番目の引数、/targetではないsdXを2番目の引数に指定する
+
 sudo bash -eux btrfs2.sh sdX sdX
+
 sudo shutdown -r now
 ```
 
@@ -120,75 +126,4 @@ sudo shutdown -r now
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。
 ```
 sudo apt-get install -y avahi-daemon
-```
-
-### スクラブ・バランスタイマーの設定・確認
-設定。
-```
-sudo apt-get install -y btrfsmaintenance &&
-sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=fri/g;' /lib/systemd/system/btrfs-balance.timer &&
-sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=sat/g;' /lib/systemd/system/btrfs-scrub.timer &&
-sudo systemctl enable --now btrfs-balance.timer &&
-sudo systemctl enable --now btrfs-scrub.timer
-```
-
-確認。
-```
-sudo systemctl status btrfs-balance.timer
-sudo systemctl status btrfs-scrub.timer
-```
-
-### Snapperのインストールと設定・確認
-インストールと設定。
-```
-sudo apt-get install -y snapper &&
-sudo umount /.snapshots &&
-sudo rm -d /.snapshots &&
-sudo snapper -c root create-config / &&
-sudo btrfs subvolume delete /.snapshots &&
-sudo mkdir -p /.snapshots &&
-sudo mount -a &&
-sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/root &&
-sudo systemctl enable --now snapper-timeline.timer &&
-sudo systemctl enable --now snapper-cleanup.timer
-```
-
-確認。
-```
-sudo systemctl status snapper-timeline.timer
-sudo systemctl status snapper-cleanup.timer
-
-sudo btrfs subvolume list /
-sudo snapper -c root list
-```
-
-### grub-btrfsのインストールと設定
-インストールと設定。
-```
-sudo apt-get install -y gawk inotify-tools git make bzip2 &&
-cd ~/ &&
-git clone https://github.com/Antynea/grub-btrfs.git &&
-cd grub-btrfs &&
-sudo make install &&
-cd ../ &&
-rm -drf grub-btrfs &&
-sudo systemctl enable --now grub-btrfsd.service
-```
-
-確認。
-```
-sudo systemctl status grub-btrfsd.service
-```
-
-### btrfs-compsizeのインストールと使用
-Btrfsの圧縮機能でどの程度ファイルが圧縮されたのかを表示する。
-
-インストール。
-```
-sudo apt-get install -y btrfs-compsize
-```
-
-表示。
-```
-sudo compsize -x /
 ```
