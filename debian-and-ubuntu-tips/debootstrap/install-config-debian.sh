@@ -1,7 +1,7 @@
 #!/bin/sh
 readonly SUITE="bookworm"
 readonly COMPONENTS=(main contrib non-free non-free-firmware)
-readonly VARIANT="standard"
+readonly VARIANT="minbase"
 
 readonly PACKAGES_TO_INSTALL_FIRST=(apt console-setup locales tzdata keyboard-configuration)
 readonly PACKAGES_TO_INSTALL=( \
