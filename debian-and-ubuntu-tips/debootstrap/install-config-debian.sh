@@ -5,12 +5,11 @@ readonly VARIANT="minbase"
 
 readonly PACKAGES_TO_INSTALL_FIRST=(apt console-setup locales tzdata keyboard-configuration)
 readonly PACKAGES_TO_INSTALL=( \
-  linux-image-amd64 firmware-linux intel-microcode amd64-microcode \
-  initramfs-tools zstd libpam-systemd systemd-timesyncd \
-  e2fsprogs-l10n logrotate needrestart sudo unattended-upgrades \
-  dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
-  bash-completion command-not-found nano \
-  task-japanese \
+  linux-image-amd64 firmware-linux task-japanese \
+  intel-microcode amd64-microcode init initramfs-tools zstd libpam-systemd systemd-timesyncd \
+  logrotate needrestart sudo unattended-upgrades \
+  dmidecode efibootmgr fwupd iproute2 iputils-ping lsb-release pci.ids pciutils usb.ids usbutils \
+  bash-completion command-not-found nano whiptail \
   )
 readonly DEPENDENT_PACKAGES_TO_INSTALL=()
 readonly PACKAGES_NOT_INSTALL=()

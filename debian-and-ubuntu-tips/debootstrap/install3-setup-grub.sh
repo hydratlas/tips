@@ -50,7 +50,7 @@ function setup-grub-on-debian () {
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64 grub-efi-amd64-signed shim-signed
 	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
 
-	adding-entries-to-grub "/@/vmlinuz" "/@/initrd.img"
+	adding-entries-to-grub "/@/boot/vmlinuz" "/@/boot/initrd.img" # /etc/kernel-img.conf link_in_boot = yes
 	arch-chroot "${MOUNT_POINT}" update-grub
 
 	if [ -e "${DISK2_PATH}" ]; then
