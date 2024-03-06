@@ -19,10 +19,13 @@ LANG_BAK="${LANG}"
 export LANG="${INSTALLATION_LANG}"
 
 # Configure locale
-arch-chroot "${MOUNT_POINT}" locale-gen "${INSTALLATION_LANG}"
-if [ "${INSTALLATION_LANG}" != "${USER_LANG}" ]; then
-	arch-chroot "${MOUNT_POINT}" locale-gen "${USER_LANG}"
-fi
+PERL_SCRIPT=$(cat <<- EOS
+s/^#? *${INSTALLATION_LANG}/${INSTALLATION_LANG}/g;
+s/^#? *${USER_LANG}/${USER_LANG}/g;
+EOS
+)
+perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/locale.gen"
+arch-chroot "${MOUNT_POINT}" locale-gen
 echo "LANG=${INSTALLATION_LANG}" | sudo tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales

@@ -15,8 +15,7 @@ sudo dpkg-reconfigure --frontend noninteractive keyboard-configuration
 ## ロケールをシステム全体ではC.UTF-8にした上で、ユーザー個別ではja_JP.UTF-8に設定可能にする（管理者）
 ```
 sudo apt-get install -y language-pack-ja &&
-sudo locale-gen "C.UTF-8" &&
-sudo locale-gen "ja_JP.UTF-8" &&
+sudo perl -p -i -e "s/^#? *C.UTF-8/C.UTF-8/g;s/^#? *ja_JP.UTF-8/ja_JP.UTF-8/g" "/etc/locale.gen" && sudo locale-gen &&
 sudo localectl set-locale LANG=C.UTF-8 &&
 sudo dpkg-reconfigure --frontend noninteractive locales
 ```
