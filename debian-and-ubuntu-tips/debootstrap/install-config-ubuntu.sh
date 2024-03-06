@@ -6,7 +6,7 @@ readonly VARIANT="minbase"
 readonly PACKAGES_TO_INSTALL_FIRST=(apt console-setup locales tzdata keyboard-configuration)
 readonly PACKAGES_TO_INSTALL=( \
   linux-generic linux-firmware intel-microcode amd64-microcode \
-  initramfs-tools libpam-systemd systemd-timesyncd \
+  initramfs-tools zstd libpam-systemd systemd-timesyncd \
   e2fsprogs-l10n logrotate needrestart unattended-upgrades \
   dmidecode efibootmgr fwupd pci.ids pciutils usb.ids usbutils \
   bash-completion command-not-found landscape-common nano \
