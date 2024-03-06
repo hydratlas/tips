@@ -35,6 +35,17 @@ arch-chroot "${MOUNT_POINT}" ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "/etc/loca
 readlink "/etc/localtime" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
+# Configure keyboard
+PERL_SCRIPT=$(cat <<- EOS
+s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;
+s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g;
+s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g;
+EOS
+)
+perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
+cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
+arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
+
 # Install packages
 function install-packages () {
 	local CANDIDATE_INSTALL_PACKAGES=()
@@ -72,17 +83,6 @@ if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 	ADD_PACKAGES="${ADD_PACKAGES} xfsprogs"
 fi
 install-packages "${ADD_PACKAGES}"
-
-# Configure keyboard
-PERL_SCRIPT=$(cat <<- EOS
-s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;
-s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g;
-s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g;
-EOS
-)
-perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
-cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
-arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
 # Set Hostname
 echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
