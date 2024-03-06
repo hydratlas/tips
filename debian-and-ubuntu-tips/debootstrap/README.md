@@ -1,4 +1,4 @@
-# debootstrap
+# debootstrapでインストール
 ## ツールのセットアップ
 ### ダウンロード
 ```
@@ -9,7 +9,7 @@ cd tips/debian-and-ubuntu-tips/debootstrap
 
 ### ハッシュ化されたパスワードの生成
 ```
-openssl passwd -6 "ubuntu"
+openssl passwd -6 "newuser"
 ```
 
 ### 設定の変更
@@ -54,6 +54,13 @@ apt-cache rdepends apt
 ```
 cat /mnt/var/cache/debconf/config.dat
 ```
+
+### EFIシステムパーティションの確認
+```
+ls -la /mnt/boot/efi/EFI
+ls -la /mnt/boot/efi2/EFI
+```
+efi2/EFIはdebianの場合は空である。
 
 ### debootstrap実行直後に戻す（Btrfsの場合のみ）
 ```
