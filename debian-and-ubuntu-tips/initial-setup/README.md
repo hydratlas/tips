@@ -81,7 +81,7 @@ http://jp.archive.ubuntu.com/ubuntu
 EOS
 cat "/etc/apt/ubuntu-mirrors.txt" && # confirmation
 if [ -f "/etc/apt/sources.list" ]; then
-  rm "/etc/apt/sources.list"
+  sudo rm -f "/etc/apt/sources.list"
 fi
 sudo apt-get update
 ```
@@ -130,7 +130,7 @@ http://cdn.debian.or.jp/debian
 EOS
 cat "/etc/apt/debian-mirrors.txt" && # confirmation
 if [ -f "/etc/apt/sources.list" ]; then
-  rm "/etc/apt/sources.list"
+  sudo rm -f "/etc/apt/sources.list"
 fi
 sudo apt-get update
 ```

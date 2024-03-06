@@ -157,6 +157,7 @@ sudo apt-get install -y --no-install-recommends \
 sudo apt-get install -y --no-install-recommends network-manager &&
 sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &&
 ls -alF /etc/NetworkManager/system-connections && # confirmation
+echo -e "[main]\ndns=systemd-resolved" | sudo tee /etc/NetworkManager/conf.d/dns.conf &&
 sudo systemctl disable systemd-networkd.service &&
 sudo systemctl enable --now NetworkManager.service
 ```
@@ -174,8 +175,15 @@ sudo nmcli connection modify "Wired connection 1" connection.mdns 2
 ```
 
 #### CockpitとNetworkManagerを連携させる
+##### 通常版
 ```
 sudo apt-get install -y --no-install-recommends cockpit-networkmanager
+```
+
+##### バックポート版
+```
+sudo apt-get install -y --no-install-recommends \
+   -t "$(lsb_release --short --codename)-backports" cockpit-networkmanager
 ```
 
 ### 2つ目のEFIシステムパーティションにブートローダー（rEFInd）をインストール（Debian）（未検証）

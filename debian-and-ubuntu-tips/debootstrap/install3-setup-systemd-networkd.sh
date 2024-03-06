@@ -31,7 +31,7 @@ function setup-systemd-networkd () {
 	# Configure Wake On LAN
 	tee "${MOUNT_POINT}/etc/systemd/network/50-wired.link" <<- EOS > /dev/null
 	[Match]
-	Name=en*
+	OriginalName=*
 
 	[Link]
 	WakeOnLan=${WOL}
