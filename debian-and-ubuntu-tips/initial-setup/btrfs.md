@@ -45,12 +45,13 @@ sudo snapper -c root list
 sudo apt-get install -y --no-install-recommends gawk inotify-tools git make bzip2 &&
 cd ~/ &&
 git clone https://github.com/Antynea/grub-btrfs.git &&
-cd grub-btrfs &&
+cd grub-btrfs && # git checkout xxxxxxx
 sudo make install &&
 cd ../ &&
 rm -drf grub-btrfs &&
 sudo systemctl enable --now grub-btrfsd.service
 ```
+最新版で不具合がある場合は、git checkout xxxxxxxを挿入する。
 
 確認。
 ```
