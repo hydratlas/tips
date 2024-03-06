@@ -38,7 +38,7 @@ function setup-grub-on-debian () {
 
 	if [ -e "${DISK2_PATH}" ]; then
 		arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
-		local -r DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
+		local -r DISTRIBUTOR="$(arch-chroot "${MOUNT_POINT}" lsb_release -i -s 2> /dev/null || echo Debian)" &&
 		local -r ESP_DEV="$(findmnt --target /boot/efi2 --output SOURCE --noheadings)" &&
 		local -r ESP_DISK="${ESP_DEV:0:-1}" &&
 		local -r ESP_PART="${ESP_DEV: -1}" && # A space is required before the minus sign.
