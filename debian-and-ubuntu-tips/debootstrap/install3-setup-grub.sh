@@ -28,6 +28,23 @@ function setup-grub-on-ubuntu () {
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
 	arch-chroot "${MOUNT_POINT}" update-grub
 }
+function create-second-esp-entry () {
+	local -r DISTRIBUTOR="$(arch-chroot "${MOUNT_POINT}" lsb_release -i -s 2> /dev/null || echo Debian)"
+	local -r ENTRY_LABEL="${DISTRIBUTOR} (Second EFI system partition)"
+	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
+	local -r DISK2_EFI_PART="${DISK2_EFI: -1}" && # A space is required before the minus sign.
+	local -r PATTERN="^Boot([0-9A-F]+)\* (.+)$" &&
+	efibootmgr | while read LINE; do
+		if [[ ${LINE} =~ $PATTERN ]]; then
+			if [[ "${ENTRY_LABEL}" == "${BASH_REMATCH[2]}" ]]; then
+				efibootmgr -b "${BASH_REMATCH[1]}" -B
+			fi
+		fi
+	done
+
+	arch-chroot "${MOUNT_POINT}" efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
+		--loader /EFI/BOOT/bootx64.efi --label "${ENTRY_LABEL}" --unicode 
+}
 function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" apt-get update
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends grub-efi-amd64 grub-efi-amd64-signed shim-signed
@@ -37,13 +54,7 @@ function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" update-grub
 
 	if [ -e "${DISK2_PATH}" ]; then
-		arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
-		local -r DISTRIBUTOR="$(arch-chroot "${MOUNT_POINT}" lsb_release -i -s 2> /dev/null || echo Debian)" &&
-		local -r ESP_DEV="$(arch-chroot "${MOUNT_POINT}" findmnt --target /boot/efi2 --output SOURCE --noheadings)" &&
-		local -r ESP_DISK="${ESP_DEV:0:-1}" &&
-		local -r ESP_PART="${ESP_DEV: -1}" && # A space is required before the minus sign.
-		arch-chroot "${MOUNT_POINT}" efibootmgr -q --create --disk "${ESP_DISK}" --part "${ESP_PART}" \
-			--loader /EFI/BOOT/bootx64.efi --label "${DISTRIBUTOR} (Second EFI system partition)" --unicode 
+		create-second-esp-entry
 	fi
 
 	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}"  debconf-set-selections 

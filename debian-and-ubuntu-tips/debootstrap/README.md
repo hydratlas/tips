@@ -71,7 +71,7 @@ sudo efibootmgr -v
 
 ### NVRAMに保存されたブートエントリーを削除
 ```
-sudo efibootmgr -b 1234 -B
+sudo efibootmgr --bootnum 1234 --delete-bootnum
 ```
 
 ### debootstrap実行直後に戻す（Btrfsの場合のみ）
