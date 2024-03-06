@@ -36,7 +36,13 @@ readlink "/etc/localtime" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 # Configure keyboard
-perl -p -i -e "s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g;s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g" "${MOUNT_POINT}/etc/default/keyboard"
+PERL_SCRIPT=$(cat <<- EOS
+s/^XKBMODEL=.+\$/XKBMODEL=\"${XKBMODEL}\"/g;
+s/^XKBLAYOUT=.+\$/XKBLAYOUT=\"${XKBLAYOUT}\"/g;
+s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g;
+EOS
+)
+perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
 cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
 
