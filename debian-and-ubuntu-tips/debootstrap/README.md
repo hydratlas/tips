@@ -139,7 +139,7 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
 sudo apt-get install -y --no-install-recommends \
   bzip2 curl gdisk git make perl rsync wget \
-  htop lshw lsof mc moreutils psmisc time uuid-runtime zstd
+  htop lshw lsof mc moreutils psmisc time uuid-runtime
 ```
 - htop: htop
 - lshw: lshw
@@ -149,7 +149,6 @@ sudo apt-get install -y --no-install-recommends \
 - psmisc: killall
 - time: time
 - uuid-runtime: uuidgen
-- zstd: zstd
 
 ### NetworkManager関係（Debian）
 #### NetworkManagerに切り替える
