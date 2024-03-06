@@ -1,4 +1,6 @@
 # debootstrapでインストール
+debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.imgのシンボリックリンクが、/bootではなく/に作られる。
+
 ## ツールのセットアップ
 ### ダウンロード
 ```
@@ -67,6 +69,11 @@ efi2/EFIはdebianの場合は空である。
 sudo efibootmgr -v
 ```
 
+### NVRAMに保存されたブートエントリーを削除
+```
+sudo efibootmgr -b 1234 -B
+```
+
 ### debootstrap実行直後に戻す（Btrfsの場合のみ）
 ```
 sudo umount -R /mnt
@@ -133,17 +140,18 @@ sudo apt-get install -y --no-install-recommends \
 - uuid-runtime: uuidgen
 - zstd: zstd
 
-### 2つ目のEFIシステムパーティションにブートローダーをインストール（Debian）
+### 2つ目のEFIシステムパーティションにブートローダーをインストール（Debian）（未検証）
+KVM上でなぜかブートせず、動作を検証できていない。
 ```
 EFI_PATH="/boot/efi2" &&
 DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
 ROOT_UUID="$(findmnt --target / --output UUID --noheadings)" &&
-sudo apt-get install -y --no-install-recommends wget unzip &&
+sudo apt-get install -y --no-install-recommends wget unzip efibootmgr &&
 wget -O "refind.zip" https://sourceforge.net/projects/refind/files/latest/download &&
 unzip "refind.zip" -d refind &&
 cd refind/refind-bin-*/refind &&
 sudo mkdir -p "${EFI_PATH}/EFI/BOOT/drivers_x64" &&
-sudo cp refind_x64.efi "${EFI_PATH}/EFI/BOOT/BOOTX64.EFI" &&
+sudo cp refind_x64.efi "${EFI_PATH}/EFI/BOOT/bootx64.efi" &&
 sudo cp drivers_x64/btrfs_x64.efi "${EFI_PATH}/EFI/BOOT/drivers_x64/btrfs_x64.efi" &&
 sudo tee "${EFI_PATH}/EFI/BOOT/refind.conf" <<- EOS > /dev/null &&
 timeout 2
@@ -152,9 +160,9 @@ textonly
 scanfor internal,external,optical,manual
 menuentry "${DISTRIBUTOR}" {
   volume   "${DISTRIBUTOR}"
-  loader   /@/boot/vmlinuz-linux
-  initrd   /@/boot/initrd.img
-  options "root=UUID=${ROOT_UUID} ro"
+  loader   /@/vmlinuz-linux
+  initrd   /@/initrd.img
+  options "root=UUID=${ROOT_UUID} ro rootflags=subvol=@"
   submenuentry "rootflags=degraded" {
     options "root=UUID=${ROOT_UUID} ro rootflags=subvol=@,degraded"
   }
@@ -164,6 +172,7 @@ cat "${EFI_PATH}/EFI/BOOT/refind.conf" && # confirmation
 ESP_DEV="$(findmnt --target "${EFI_PATH}" --output SOURCE --noheadings)" &&
 ESP_DISK="${ESP_DEV:0:-1}" &&
 ESP_PART="${ESP_DEV: -1}" && # A space is required before the minus sign.
-echo "$ESP_DISK | $ESP_PART" &&
-sudo efibootmgr --create --disk "${ESP_DISK}" --part "${ESP_PART}" --loader /EFI/BOOT/BOOTX64.EFI --label "${DISTRIBUTOR} (rEFInd Boot Manager)" --unicode
+sudo efibootmgr -q --create --disk "${ESP_DISK}" --part "${ESP_PART}" \
+  --loader /EFI/BOOT/bootx64.efi --label "${DISTRIBUTOR} (rEFInd Boot Manager)" --unicode &&
+sudo efibootmgr -v
 ```
