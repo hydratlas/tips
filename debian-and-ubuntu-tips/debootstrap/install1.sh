@@ -108,3 +108,11 @@ cat "${MOUNT_POINT}/etc/fstab" # confirmation
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	btrfs subvolume snapshot -r "${MOUNT_POINT}" "${MOUNT_POINT}/.snapshots/after-installation"
 fi
+
+# Create kernel-img.conf
+tee "${MOUNT_POINT}/etc/kernel-img.conf" <<- EOS > /dev/null
+do_symlinks = yes
+do_bootloader = no
+do_initrd = yes
+link_in_boot = no
+EOS
