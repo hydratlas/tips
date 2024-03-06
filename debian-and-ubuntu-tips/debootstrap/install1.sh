@@ -70,12 +70,18 @@ function install-distribution () {
 		mmdebstrap --skip=check/empty --keyring="${ARCHIVE_KEYRING}" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
-	elif [ "debootstrap" = "${DISTRIBUTION}" ]; then
+	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
-		debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
-			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
-			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+		if [ "standard" = "${VARIANT}" ]; then
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" --variant="${VARIANT}" \
+				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
+				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+		else
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
+				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
+				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+		fi
 	fi
 }
 

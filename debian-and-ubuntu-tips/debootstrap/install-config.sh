@@ -15,8 +15,8 @@ readonly EFI_END="256MiB"
 readonly SWAP_END="4GiB"
 
 # Sebootstrap
-readonly INSTALLER="mmdebstrap"
-#readonly INSTALLER="debootstrap"
+#readonly INSTALLER="mmdebstrap"
+readonly INSTALLER="debootstrap"
 readonly CACHE_DIR="/tmp/debootstrap"
 
 # Basic Settings
