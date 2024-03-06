@@ -46,8 +46,8 @@ apt-cache search --names-only linux-image
 
 ### パッケージの依存関係の確認
 ```
-apt-cache depends apt
-apt-cache rdepends apt
+sudo arch-chroot /mnt apt-cache depends <name>
+sudo arch-chroot /mnt apt-cache rdepends <name>
 ```
 
 ### debconfの確認
@@ -62,11 +62,16 @@ ls -la /mnt/boot/efi2/EFI
 ```
 efi2/EFIはdebianの場合は空である。
 
+### NVRAMに保存されたブートエントリーの確認
+```
+sudo efibootmgr -v
+```
+
 ### debootstrap実行直後に戻す（Btrfsの場合のみ）
 ```
 sudo umount -R /mnt
 
-sudo mount -o subvolid=5 /dev/<sdX0> /mnt &&
+sudo mount -o subvolid=5 /dev/<sdXY> /mnt &&
 sudo btrfs subvolume set-default /mnt &&
 sudo btrfs subvolume delete /mnt/@ &&
 sudo btrfs subvolume snapshot /mnt/@snapshots/after-installation /mnt/@ &&
@@ -132,7 +137,7 @@ sudo apt-get install -y --no-install-recommends \
 ```
 EFI_PATH="/boot/efi2" &&
 DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
-UUID="$(findmnt --target / --output UUID --noheadings)" &&
+ROOT_UUID="$(findmnt --target / --output UUID --noheadings)" &&
 sudo apt-get install -y --no-install-recommends wget unzip &&
 wget -O "refind.zip" https://sourceforge.net/projects/refind/files/latest/download &&
 unzip "refind.zip" -d refind &&
@@ -149,11 +154,16 @@ menuentry "${DISTRIBUTOR}" {
   volume   "${DISTRIBUTOR}"
   loader   /@/boot/vmlinuz-linux
   initrd   /@/boot/initrd.img
-  options "root=UUID=${UUID} ro"
+  options "root=UUID=${ROOT_UUID} ro"
   submenuentry "rootflags=degraded" {
-    options "root=UUID=${UUID} ro rootflags=subvol=@,degraded"
+    options "root=UUID=${ROOT_UUID} ro rootflags=subvol=@,degraded"
   }
 }
 EOS
-cat "${EFI_PATH}/EFI/BOOT/refind.conf" # confirmation
+cat "${EFI_PATH}/EFI/BOOT/refind.conf" && # confirmation
+ESP_DEV="$(findmnt --target "${EFI_PATH}" --output SOURCE --noheadings)" &&
+ESP_DISK="${ESP_DEV:0:-1}" &&
+ESP_PART="${ESP_DEV: -1}" && # A space is required before the minus sign.
+echo "$ESP_DISK | $ESP_PART" &&
+sudo efibootmgr --create --disk "${ESP_DISK}" --part "${ESP_PART}" --loader /EFI/BOOT/BOOTX64.EFI --label "${DISTRIBUTOR} (rEFInd Boot Manager)" --unicode
 ```
