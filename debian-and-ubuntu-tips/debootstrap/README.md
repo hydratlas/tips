@@ -144,12 +144,17 @@ sudo apt-get install -y --no-install-recommends \
 #### NetworkManagerに切り替える
 ```
 sudo apt-get install -y --no-install-recommends network-manager &&
-nmcli connection show &&
-nmcli connection show "Wired connection 1" &&
 sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &&
 ls -alF /etc/NetworkManager/system-connections && # confirmation
-sudo systemctl disable --now systemd-networkd.service &&
+sudo systemctl disable systemd-networkd.service &&
 sudo systemctl enable --now NetworkManager.service
+```
+
+うまくいかない場合の状況確認。
+```
+nmcli connection show
+
+nmcli connection show "Wired connection 1"
 ```
 
 #### NetworkManagerでmDNSを使う

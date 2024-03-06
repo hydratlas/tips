@@ -8,6 +8,18 @@ sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-searc
 sudo touch /etc/containers/nodocker
 ```
 
+### CockpitとPodmanを連携させる
+#### 通常版
+```
+sudo apt-get install -y --no-install-recommends cockpit-podman
+```
+
+#### バックポート版
+```
+sudo apt-get install -y --no-install-recommends \
+  -t "$(lsb_release --short --codename)-backports" cockpit-podman
+```
+
 ### Podmanを実行（ユーザー）
 ```
 docker run hello-world

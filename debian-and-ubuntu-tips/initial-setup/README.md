@@ -80,7 +80,10 @@ https://linux.yz.yamagata-u.ac.jp/ubuntu	priority:2
 http://jp.archive.ubuntu.com/ubuntu
 EOS
 cat "/etc/apt/ubuntu-mirrors.txt" && # confirmation
-[ -f "/etc/apt/sources.list" ] && rm "/etc/apt/sources.list"
+if [ -f "/etc/apt/sources.list" ]; then
+  rm "/etc/apt/sources.list"
+fi
+sudo apt-get update
 ```
 
 #### One-Line-Style Format
@@ -98,7 +101,8 @@ http://ftp.udx.icscoe.jp/Linux/ubuntu	priority:1
 https://linux.yz.yamagata-u.ac.jp/ubuntu	priority:2
 http://jp.archive.ubuntu.com/ubuntu
 EOS
-cat "/etc/apt/mirrors.txt" # confirmation
+cat "/etc/apt/mirrors.txt" && # confirmation
+sudo apt-get update
 ```
 
 ### Debian
@@ -125,7 +129,10 @@ https://debian-mirror.sakura.ne.jp/debian	priority:2
 http://cdn.debian.or.jp/debian
 EOS
 cat "/etc/apt/debian-mirrors.txt" && # confirmation
-[ -f "/etc/apt/sources.list" ] && sudo rm "/etc/apt/sources.list"
+if [ -f "/etc/apt/sources.list" ]; then
+  rm "/etc/apt/sources.list"
+fi
+sudo apt-get update
 ```
 
 #### One-Line-Style Format
@@ -143,14 +150,25 @@ http://ftp.jp.debian.org/debian	priority:1
 https://debian-mirror.sakura.ne.jp/debian	priority:2
 http://cdn.debian.or.jp/debian
 EOS
-cat "/etc/apt/mirrors.txt" # confirmation
+cat "/etc/apt/mirrors.txt" && # confirmation
+sudo apt-get update
 ```
 
 ## Cockpitをインストール（管理者）
+### Cockpitをインストール（通常版）
 ```
 sudo apt-get install -y --no-install-recommends \
-  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit \
-  cockpit-podman &&
+  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit
+```
+
+### Cockpitをインストール（バックポート版）
+```
+sudo apt-get install -y --no-install-recommends -t "$(lsb_release --short --codename)-backports" \
+  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit
+```
+
+### Cockpitを起動
+```
 sudo systemctl enable --now cockpit.socket
 
 # http://xxx.local:9090
