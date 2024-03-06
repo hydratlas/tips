@@ -90,3 +90,4 @@ elif [ "debian" = "${DISTRIBUTION}" ]; then
 fi
 
 export LANG="${LANG_BAK}"
+efibootmgr -v
