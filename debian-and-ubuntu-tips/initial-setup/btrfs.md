@@ -47,6 +47,7 @@ cd ~/ &&
 git clone https://github.com/Antynea/grub-btrfs.git &&
 cd grub-btrfs && # git checkout xxxxxxx
 sudo make install &&
+sudo update-grub &&
 cd ../ &&
 rm -drf grub-btrfs &&
 sudo systemctl enable --now grub-btrfsd.service
