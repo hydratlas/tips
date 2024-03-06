@@ -155,3 +155,10 @@ sudo systemctl enable --now cockpit.socket
 
 # http://xxx.local:9090
 ```
+
+## SSHキーを生成（ユーザー）
+```
+ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa"
+ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa"
+ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
+```
