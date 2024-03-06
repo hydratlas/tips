@@ -2,7 +2,7 @@
 ## スクラブ・バランスタイマーの設定・確認
 設定。
 ```
-sudo apt-get install -y btrfsmaintenance &&
+sudo apt-get install -y --no-install-recommends btrfsmaintenance &&
 sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=fri/g;' /lib/systemd/system/btrfs-balance.timer &&
 sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=sat/g;' /lib/systemd/system/btrfs-scrub.timer &&
 sudo systemctl enable --now btrfs-balance.timer &&
@@ -18,7 +18,7 @@ sudo systemctl status btrfs-scrub.timer
 ## Snapperのインストールと設定・確認
 インストールと設定。
 ```
-sudo apt-get install -y snapper &&
+sudo apt-get install -y --no-install-recommends snapper &&
 sudo umount /.snapshots &&
 sudo rm -d /.snapshots &&
 sudo snapper -c root create-config / &&
@@ -42,7 +42,7 @@ sudo snapper -c root list
 ## grub-btrfsのインストールと設定
 インストールと設定。
 ```
-sudo apt-get install -y gawk inotify-tools git make bzip2 &&
+sudo apt-get install -y --no-install-recommends gawk inotify-tools git make bzip2 &&
 cd ~/ &&
 git clone https://github.com/Antynea/grub-btrfs.git &&
 cd grub-btrfs &&
@@ -62,7 +62,7 @@ Btrfsの圧縮機能でどの程度ファイルが圧縮されたのかを表示
 
 インストール。
 ```
-sudo apt-get install -y btrfs-compsize
+sudo apt-get install -y --no-install-recommends btrfs-compsize
 ```
 
 表示。

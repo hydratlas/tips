@@ -118,7 +118,7 @@ sudo bash -eux install-mount.sh <sdX> <sdX>
 ```
 
 ## その他、起動後の追加設定（オプション）
-### パッケージのアップデート通知
+### パッケージのアップデート通知（Ubuntu）
 SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proの広告という側面もある。
 ```
 sudo apt-get install -y --no-install-recommends update-notifier-common
@@ -140,7 +140,8 @@ sudo apt-get install -y --no-install-recommends \
 - uuid-runtime: uuidgen
 - zstd: zstd
 
-### NetworkManagerに切り替える
+### NetworkManager関係（Debian）
+#### NetworkManagerに切り替える
 ```
 sudo apt-get install -y --no-install-recommends network-manager &&
 nmcli connection show &&
@@ -151,12 +152,12 @@ sudo systemctl disable --now systemd-networkd.service &&
 sudo systemctl enable --now NetworkManager.service
 ```
 
-### NetworkManagerでmDNSを使う
+#### NetworkManagerでmDNSを使う
 ```
 sudo nmcli connection modify "Wired connection 1" connection.mdns 2
 ```
 
-### CockpitとNetworkManagerを連携させる
+#### CockpitとNetworkManagerを連携させる
 ```
 sudo apt-get install -y --no-install-recommends cockpit-networkmanager
 ```
