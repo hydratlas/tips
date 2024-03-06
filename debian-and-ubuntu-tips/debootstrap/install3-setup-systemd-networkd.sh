@@ -15,7 +15,7 @@ function setup-systemd-networkd () {
 
 	arch-chroot "${MOUNT_POINT}" apt-get update
 	DEBIAN_FRONTEND=noninteractive arch-chroot "${MOUNT_POINT}" apt-get install -y --no-install-recommends systemd-resolved
-	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
 
 	# Configure basic settings
 	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null

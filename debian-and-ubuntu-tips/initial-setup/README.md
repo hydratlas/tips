@@ -60,7 +60,7 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 #### Deb822-style Format
 新しいDeb822-style Formatに対応している場合。
 ```
-tee "/etc/apt/sources.list.d/ubuntu.sources" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/sources.list.d/ubuntu.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/ubuntu-mirrors.txt
 Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
@@ -74,7 +74,7 @@ Components: main restricted universe multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 EOS
 cat "/etc/apt/sources.list.d/ubuntu.sources" && # confirmation
-tee "/etc/apt/ubuntu-mirrors.txt" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/ubuntu-mirrors.txt" <<- EOS > /dev/null &&
 http://ftp.udx.icscoe.jp/Linux/ubuntu	priority:1
 https://linux.yz.yamagata-u.ac.jp/ubuntu	priority:2
 http://jp.archive.ubuntu.com/ubuntu
@@ -86,14 +86,14 @@ cat "/etc/apt/ubuntu-mirrors.txt" && # confirmation
 #### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
 ```
-tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename) main restricted universe multiverse
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-updates main restricted universe multiverse
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-backports main restricted universe multiverse
 deb http://security.ubuntu.com/ubuntu $(lsb_release --short --codename)-security main restricted universe multiverse
 EOS
 cat "/etc/apt/sources.list" && # confirmation
-tee "/etc/apt/mirrors.txt" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/mirrors.txt" <<- EOS > /dev/null &&
 http://ftp.udx.icscoe.jp/Linux/ubuntu	priority:1
 https://linux.yz.yamagata-u.ac.jp/ubuntu	priority:2
 http://jp.archive.ubuntu.com/ubuntu
@@ -105,7 +105,7 @@ cat "/etc/apt/mirrors.txt" # confirmation
 #### Deb822-style Format
 新しいDeb822-style Formatに対応している場合。
 ```
-tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/debian-mirrors.txt
 Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
@@ -119,26 +119,26 @@ Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOS
 cat "/etc/apt/sources.list.d/debian.sources" && # confirmation
-tee "/etc/apt/debian-mirrors.txt" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/debian-mirrors.txt" <<- EOS > /dev/null &&
 http://ftp.jp.debian.org/debian	priority:1
 https://debian-mirror.sakura.ne.jp/debian	priority:2
 http://cdn.debian.or.jp/debian
 EOS
 cat "/etc/apt/debian-mirrors.txt" && # confirmation
-[ -f "/etc/apt/sources.list" ] && rm "/etc/apt/sources.list"
+[ -f "/etc/apt/sources.list" ] && sudo rm "/etc/apt/sources.list"
 ```
 
 #### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
 ```
-tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename) main contrib non-free non-free-firmware
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-updates main contrib non-free non-free-firmware
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-backports main contrib non-free non-free-firmware
 deb http://security.debian.org/debian-security $(lsb_release --short --codename)-security main contrib non-free non-free-firmware
 EOS
 cat "/etc/apt/sources.list" && # confirmation
-tee "/etc/apt/mirrors.txt" <<- EOS > /dev/null &&
+sudo tee "/etc/apt/mirrors.txt" <<- EOS > /dev/null &&
 http://ftp.jp.debian.org/debian	priority:1
 https://debian-mirror.sakura.ne.jp/debian	priority:2
 http://cdn.debian.or.jp/debian
@@ -148,7 +148,7 @@ cat "/etc/apt/mirrors.txt" # confirmation
 
 ## Cockpitをインストール（管理者）
 ```
-sudo apt-get install -y -t mantic-backports --no-install-recommends \
+sudo apt-get install -y --no-install-recommends \
   cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit \
   cockpit-podman &&
 sudo systemctl enable --now cockpit.socket

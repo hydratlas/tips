@@ -140,7 +140,28 @@ sudo apt-get install -y --no-install-recommends \
 - uuid-runtime: uuidgen
 - zstd: zstd
 
-### 2つ目のEFIシステムパーティションにブートローダーをインストール（Debian）（未検証）
+### NetworkManagerに切り替える
+```
+sudo apt-get install -y --no-install-recommends network-manager &&
+nmcli connection show &&
+nmcli connection show "Wired connection 1" &&
+sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &&
+ls -alF /etc/NetworkManager/system-connections && # confirmation
+sudo systemctl disable --now systemd-networkd.service &&
+sudo systemctl enable --now NetworkManager.service
+```
+
+### NetworkManagerでmDNSを使う
+```
+sudo nmcli connection modify "Wired connection 1" connection.mdns 2
+```
+
+### CockpitとNetworkManagerを連携させる
+```
+sudo apt-get install -y --no-install-recommends cockpit-networkmanager
+```
+
+### 2つ目のEFIシステムパーティションにブートローダー（rEFInd）をインストール（Debian）（未検証）
 KVM上でなぜかブートせず、動作を検証できていない。
 ```
 EFI_PATH="/boot/efi2" &&
