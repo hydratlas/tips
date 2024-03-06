@@ -74,11 +74,11 @@ function install-distribution () {
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" --variant="${VARIANT}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		else
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" --variant="${VARIANT}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
