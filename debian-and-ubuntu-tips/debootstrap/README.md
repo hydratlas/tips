@@ -138,10 +138,11 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 ### 各種ツールのインストール
 ```
 sudo apt-get install -y --no-install-recommends \
-  bzip2 curl gdisk git make perl rsync wget \
+  bzip2 curl gdisk git make rsync wget \
   htop less lshw lsof mc moreutils psmisc time
 ```
 - htop: htop
+- less: less
 - lshw: lshw
 - lsof: lsof
 - mc: Midnight Commander (file manager)
