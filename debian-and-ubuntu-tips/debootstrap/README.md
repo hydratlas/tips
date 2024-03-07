@@ -155,7 +155,7 @@ sudo systemctl restart console-setup.service
 ```
 
 ### パッケージのアップデート通知（Ubuntu）
-SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proの広告という側面もある。
+SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proを導入する際には必要であるが、導入しない際には広告としての側面が目障りである。
 ```
 sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
