@@ -10,13 +10,34 @@ cd tips/debian-and-ubuntu-tips/debootstrap
 ```
 
 ### ハッシュ化されたパスワードの生成
+デフォルトでは「newuser」となっている。変更する場合は以下のようにハッシュ化されたパスワードの生成する。そして、設定ファイルに書き込む。
 ```
 openssl passwd -6 "newuser"
+```
+
+### インストールするカーネルの選択
+デフォルトでは「newuser」となっている。
+
+まず、使えるカーネルイメージを一覧表示する。
+```
+apt-cache search --names-only ^linux-image- | grep -v -E "[0-9]+\.[0-9]+\.[0-9]+" | sort
+```
+これらの中から任意のカーネルイメージを選ぶ。Dabianの場合はそれを設定ファイルに書き込む。Debian 12の場合にはlinux-image-amd64、linux-image-cloud-amd64またはlinux-image-rt-amd64になる。
+
+Ubuntuの場合は、選んだカーネルイメージの名前から「image」を抜いた名前がimageとheadersをセットにしたメタパッケージの名前になっていることを確認する。そのうえでそのメタパッケージの名前を設定ファイルに書き込む。
+```
+apt-cache depends linux-generic
+
+apt-cache depends linux-generic-hwe-22.04
+
+apt-cache depends linux-kvm
 ```
 
 ### 設定の変更
 ```
 nano install-config.sh
+nano install-config-debian.sh
+nano install-config-ubuntu.sh
 ```
 
 ## インストール
