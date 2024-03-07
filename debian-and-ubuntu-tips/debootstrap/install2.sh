@@ -91,6 +91,8 @@ echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
 cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 # Create user
+arch-chroot "${MOUNT_POINT}" passwd -l root
+
 arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
