@@ -9,7 +9,7 @@ readonly PACKAGES_TO_INSTALL=( \
   intel-microcode amd64-microcode init initramfs-tools zstd libpam-systemd systemd-timesyncd \
   logrotate needrestart sudo unattended-upgrades \
   dmidecode efibootmgr fwupd iproute2 iputils-ping lsb-release pci.ids pciutils usb.ids usbutils \
-  bash-completion command-not-found nano whiptail \
+  less bash-completion command-not-found nano whiptail \
   )
 readonly DEPENDENT_PACKAGES_TO_INSTALL=() # ubuntu-minimal
 readonly PACKAGES_NOT_INSTALL=( \

@@ -63,6 +63,8 @@ sudo bash -eux install3-setup-systemd-networkd.sh <distribution> <hostname> http
 ```
 sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
 ```
+- less: 入れないと、nmcliコマンドの色を正しく表示できない
+- libpam-systemd: 入れないと、不具合が出た
 
 ### パッケージの検索
 ```
@@ -162,10 +164,9 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
 sudo apt-get install -y --no-install-recommends \
   bzip2 curl gdisk git make rsync wget \
-  htop less psmisc time
+  htop psmisc time
 ```
 - htop: htop
-- less: less
 - psmisc: killall
 - time: time
 

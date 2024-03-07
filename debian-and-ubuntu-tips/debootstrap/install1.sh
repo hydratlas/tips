@@ -34,11 +34,13 @@ fi
 diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
 
 # Formatting
-mkfs.vfat -F 32 "${DISK1_EFI}"
 mkswap "${DISK1_SWAP}"
+mkfs.vfat -F 32 "${DISK1_EFI}"
+mkswap "${DISK1_SWAP}" # The UUID cannot be read without formatting it twice.
 if [ -e "${DISK2_PATH}" ]; then
-	mkfs.vfat -F 32 "${DISK2_EFI}"
 	mkswap "${DISK2_SWAP}"
+	mkfs.vfat -F 32 "${DISK2_EFI}"
+	mkswap "${DISK2_SWAP}" # The UUID cannot be read without formatting it twice.
 fi
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	if [ -e "${DISK2_PATH}" ]; then
@@ -65,8 +67,6 @@ if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	btrfs subvolume list "${MOUNT_POINT}" # confirmation
 	umount "${MOUNT_POINT}"
 fi
-
-sleep 5s
 
 # Set UUIDs
 get-filesystem-UUIDs
