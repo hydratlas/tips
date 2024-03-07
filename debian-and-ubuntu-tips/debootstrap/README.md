@@ -139,16 +139,21 @@ sudo apt-get install -y --no-install-recommends update-notifier-common
 ```
 sudo apt-get install -y --no-install-recommends \
   bzip2 curl gdisk git make rsync wget \
-  htop less lshw lsof mc moreutils psmisc time
+  htop less psmisc time
 ```
 - htop: htop
 - less: less
+- psmisc: killall
+- time: time
+
+```
+sudo apt-get install -y --no-install-recommends \
+  lshw lsof mc moreutils
+```
 - lshw: lshw
 - lsof: lsof
 - mc: Midnight Commander (file manager)
 - moreutils: Unix tools
-- psmisc: killall
-- time: time
 
 ### NetworkManager関係（Debian）
 #### NetworkManagerに切り替える
