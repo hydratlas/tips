@@ -16,7 +16,7 @@ openssl passwd -6 "newuser"
 ```
 
 ### インストールするカーネルの選択
-デフォルトでは「newuser」となっている。
+デフォルトではDebianの場合「linux-image-amd64」、ubuntuの場合「linux-generic」となっている。UbuntuではHWE（Hardware Enablement）カーネルを選ぶことができる。また、debian、Ubuntuともに、仮想マシンのゲストで動かすときに限ったハードウェアをサポートする、軽量なカーネルが用意されている。
 
 まず、使えるカーネルイメージを一覧表示する。
 ```
@@ -32,6 +32,8 @@ apt-cache depends linux-generic-hwe-22.04
 
 apt-cache depends linux-kvm
 ```
+
+さらに、仮想マシンのゲストではfirmwareとmicrocodeは不要であり、設定ファイルから削除することができる。ただし、その場合、ディスプレーは既定ではなくSPICE (qxl)またはVirtIO-GPUを選ばないと画面が表示されない（Proxmox VEのとき）。
 
 ### 設定の変更
 ```

@@ -49,11 +49,8 @@ if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 elif [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
 	mkfs.ext4 -F "${DISK1_ROOTFS}"
 elif [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-	mkfs.xfs -F "${DISK1_ROOTFS}"
+	mkfs.xfs -f "${DISK1_ROOTFS}"
 fi
-
-# Set UUIDs
-get-filesystem-UUIDs
 
 # Create Btrfs subvolumes
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
@@ -68,6 +65,11 @@ if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	btrfs subvolume list "${MOUNT_POINT}" # confirmation
 	umount "${MOUNT_POINT}"
 fi
+
+sleep 5s
+
+# Set UUIDs
+get-filesystem-UUIDs
 
 # Mount installation filesystem
 mount-installfs
