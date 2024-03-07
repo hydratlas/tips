@@ -6,6 +6,14 @@ source ./install-config.sh
 source ./install-common.sh
 diskname-to-diskpath "${4:-}" "${5:-}"
 
+if [ "mmdebstrap" = "${INSTALLER}" ]; then
+	P="mmdebstrap"
+elif [ "debootstrap" = "${INSTALLER}" ]; then
+	P="debootstrap"
+fi
+P="${P} efibootmgr gdisk wget"
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${P}
+
 # Check
 wget --spider "${PUBKEYURL}"
 
