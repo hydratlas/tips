@@ -166,16 +166,21 @@ sudo apt-get update
 ```
 
 ## Cockpitをインストール（管理者）
-### Cockpitをインストール（通常版）
+### Cockpitをインストール
+cockpit-pcpはメトリクスを収集・分析してくれるが、負荷がかかるので不要ならインストールしない。
+
+#### 通常版
 ```
 sudo apt-get install -y --no-install-recommends \
-  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit
+  cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-packagekit \
+  cockpit-pcp
 ```
 
-### Cockpitをインストール（バックポート版）
+#### バックポート版（新しい）
 ```
 sudo apt-get install -y --no-install-recommends -t "$(lsb_release --short --codename)-backports" \
-  cockpit cockpit-ws cockpit-system cockpit-pcp cockpit-storaged cockpit-packagekit
+  cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-packagekit \
+  cockpit-pcp
 ```
 
 ### Cockpitを起動

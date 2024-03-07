@@ -187,6 +187,7 @@ sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &
 ls -alF /etc/NetworkManager/system-connections && # confirmation
 echo -e "[main]\ndns=systemd-resolved" | sudo tee /etc/NetworkManager/conf.d/dns.conf &&
 sudo systemctl disable systemd-networkd.service &&
+sudo systemctl disable systemd-networkd-wait-online.service &&
 sudo systemctl enable --now NetworkManager.service
 ```
 
