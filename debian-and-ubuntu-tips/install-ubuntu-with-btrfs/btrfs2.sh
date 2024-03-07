@@ -35,6 +35,8 @@ sudo btrfs filesystem defragment -r -czstd .
 
 # 各サブボリュームを作成
 sudo btrfs subvolume snapshot . @
+sudo btrfs subvolume create @home
+sudo btrfs subvolume create @home2
 sudo btrfs subvolume create @root
 sudo btrfs subvolume create @var_log
 sudo btrfs subvolume create @snapshots
@@ -43,6 +45,7 @@ sudo btrfs subvolume create @snapshots
 sudo btrfs subvolume set-default @
 
 # 作成したサブボリュームにファイルをコピー
+sudo cp -RT --reflink=always home/ @home/
 sudo cp -RT --reflink=always root/ @root/
 sudo cp -RT --reflink=always var/log/ @var_log/
 
@@ -50,6 +53,7 @@ sudo cp -RT --reflink=always var/log/ @var_log/
 sudo find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
 
 # @サブボリュームから別のサブボリュームと重複するファイルを削除
+sudo find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 sudo find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 sudo find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
@@ -64,6 +68,7 @@ sudo tee @/etc/fstab << EOF >/dev/null
 /dev/disk/by-uuid/$EFI1_UUID /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/$EFI2_UUID /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
 /dev/disk/by-uuid/$ROOTFS_UUID / btrfs defaults,subvol=@,$BTRFS_OPTIONS 0 0
+/dev/disk/by-uuid/$ROOTFS_UUID /home btrfs defaults,subvol=@home,$BTRFS_OPTIONS 0 0
 /dev/disk/by-uuid/$ROOTFS_UUID /root btrfs defaults,subvol=@root,$BTRFS_OPTIONS 0 0
 /dev/disk/by-uuid/$ROOTFS_UUID /var/log btrfs defaults,subvol=@var_log,$BTRFS_OPTIONS 0 0
 /dev/disk/by-uuid/$ROOTFS_UUID /.snapshots btrfs defaults,subvol=@snapshots,$BTRFS_OPTIONS 0 0

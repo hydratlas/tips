@@ -55,6 +55,8 @@ function get-filesystem-UUIDs () {
 function mount-installfs () {
   if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
     mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@" --mkdir "${MOUNT_POINT}"
+    mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@home" --mkdir "${MOUNT_POINT}/home"
+    mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@home2" --mkdir "${MOUNT_POINT}/home2"
     mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@root" --mkdir "${MOUNT_POINT}/root"
     mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@var_log" --mkdir "${MOUNT_POINT}/var/log"
     mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS},subvol=@snapshots" --mkdir "${MOUNT_POINT}/.snapshots"

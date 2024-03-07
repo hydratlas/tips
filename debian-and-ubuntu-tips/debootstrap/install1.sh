@@ -59,6 +59,8 @@ get-filesystem-UUIDs
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	mount "${DISK1_ROOTFS}" -o "${BTRFS_OPTIONS}" --mkdir "${MOUNT_POINT}"
 	btrfs subvolume create "${MOUNT_POINT}/@"
+	btrfs subvolume create "${MOUNT_POINT}/@home"
+	btrfs subvolume create "${MOUNT_POINT}/@home2"
 	btrfs subvolume create "${MOUNT_POINT}/@root"
 	btrfs subvolume create "${MOUNT_POINT}/@var_log"
 	btrfs subvolume create "${MOUNT_POINT}/@snapshots"
@@ -99,6 +101,8 @@ install-distribution
 FSTAB_ARRAY=()
 if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} / btrfs ${BTRFS_OPTIONS},subvol=@ 0 0")
+	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /home btrfs ${BTRFS_OPTIONS},subvol=@home 0 0")
+	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /home2 btrfs ${BTRFS_OPTIONS},subvol=@home2 0 0")
 	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /root btrfs ${BTRFS_OPTIONS},subvol=@root 0 0")
 	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /var/log btrfs ${BTRFS_OPTIONS},subvol=@var_log 0 0")
 	FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs ${BTRFS_OPTIONS},subvol=@snapshots 0 0")

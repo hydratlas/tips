@@ -57,7 +57,7 @@ function setup-grub-on-debian () {
 		create-second-esp-entry
 	fi
 
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}"  debconf-set-selections 
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections 
 	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 	arch-chroot "${MOUNT_POINT}" update-grub
 }
