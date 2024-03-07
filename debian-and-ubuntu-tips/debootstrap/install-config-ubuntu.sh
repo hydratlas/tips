@@ -23,8 +23,5 @@ readonly PACKAGES_NOT_INSTALL=( \
   # vim-tiny: Vim in compact version
 
 readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu"
-readonly MIRROR2="https://linux.yz.yamagata-u.ac.jp/ubuntu"
-readonly MIRROR3="http://jp.archive.ubuntu.com/ubuntu"
-readonly MIRROR_SECURITY="http://security.ubuntu.com/ubuntu"
 readonly ARCHIVE_KEYRING_PACKAGE="ubuntu-keyring"
 readonly ARCHIVE_KEYRING="/usr/share/keyrings/ubuntu-archive-keyring.gpg"
