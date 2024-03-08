@@ -19,6 +19,7 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 ### コンソール画面
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
 ```
+sudo apt install git &&
 git clone --depth=1 git@github.com:hydratlas/tips.git &&
 cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
