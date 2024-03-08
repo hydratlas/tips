@@ -36,7 +36,6 @@ sudo btrfs filesystem defragment -r -czstd .
 # 各サブボリュームを作成
 sudo btrfs subvolume snapshot . @
 sudo btrfs subvolume create @home
-sudo btrfs subvolume create @home2
 sudo btrfs subvolume create @root
 sudo btrfs subvolume create @var_log
 sudo btrfs subvolume create @snapshots
