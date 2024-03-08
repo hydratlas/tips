@@ -17,7 +17,7 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 なにもせずに、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
 ### コンソール画面
-以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
+以下のようにスクリプトによってインストール先のストレージ2台をフォーマットする。
 ```
 sudo apt install git
 git clone --depth=1 git@github.com:hydratlas/tips.git
@@ -32,6 +32,7 @@ sudo bash -x btrfs1.sh sdX
 
 sudo shutdown -r now
 ```
+最後に再起動する。
 
 ## インストール
 ### GNU GRUB画面
@@ -112,7 +113,7 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 インストールが終わったら、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
 ### コンソール画面
-以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。終わったら再起動する。
+以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。
 ```
 sudo apt install git
 git clone --depth=1 git@github.com:hydratlas/tips.git
@@ -126,6 +127,7 @@ sudo bash -eux btrfs2.sh sdX sdX
 
 sudo shutdown -r now
 ```
+終わったら再起動する。
 
 ## インストール後に起動してからの設定
 ### 【オプション】mDNSのインストール
