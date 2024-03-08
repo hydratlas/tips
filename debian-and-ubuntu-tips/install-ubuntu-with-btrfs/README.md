@@ -19,12 +19,14 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 ### コンソール画面
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットして、最後に再起動する。
 ```
-sudo apt install git &&
-git clone --depth=1 git@github.com:hydratlas/tips.git &&
+sudo apt install git
+git clone --depth=1 git@github.com:hydratlas/tips.git
 cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
-lsblk -f -e 7 # インストール先のsdXがなにかを確認し、1回目および2回目の引数に指定する
-
+lsblk -f -e 7
+```
+lsblkコマンドでインストール先のsdX（sda、sdb…）がなにかを確認し、以下のコマンドの1回目および2回目の引数に指定する
+```
 sudo bash -x btrfs1.sh sdX
 sudo bash -x btrfs1.sh sdX
 
@@ -112,11 +114,14 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 ### コンソール画面
 以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。終わったら再起動する。
 ```
-git clone --depth=1 git@github.com:hydratlas/tips.git &&
+sudo apt install git
+git clone --depth=1 git@github.com:hydratlas/tips.git
 cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
-lsblk -f -e 7 # /targetのsdXがなにかを確認し、/targetのsdXを1番目の引数、/targetではないsdXを2番目の引数に指定する
-
+lsblk -f -e 7
+```
+lsblkコマンドで/targetのsdX（sda、sdb…）がなにかを確認し、以下のコマンドで/targetのsdXを1番目の引数、/targetではないsdXを2番目の引数に指定する。
+```
 sudo bash -eux btrfs2.sh sdX sdX
 
 sudo shutdown -r now
