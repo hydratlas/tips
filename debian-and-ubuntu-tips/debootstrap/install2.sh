@@ -53,7 +53,6 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
-	echo "useradd --password ${USER_PASSWORD} --user-group --groups sudo --shell /bin/bash --create-home --home-dir ${USER_HOME_DIR} ${USER_NAME}"
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	passwd -l root
 	useradd --password '${USER_PASSWORD}' --user-group --groups sudo --shell /bin/bash \
