@@ -77,7 +77,7 @@ mount-installfs
 function install-distribution () {
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${ARCHIVE_KEYRING_PACKAGE}
 
-	local -r PACKAGES=()
+	local PACKAGES=()
 	PACKAGES+=(${PACKAGES_TO_INSTALL_FIRST[@]})
 	PACKAGES+=(${PACKAGES_TO_INSTALL[@]})
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
