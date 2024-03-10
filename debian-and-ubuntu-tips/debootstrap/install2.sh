@@ -56,7 +56,7 @@ function install2 () {
 	echo "useradd --password ${USER_PASSWORD} --user-group --groups sudo --shell /bin/bash --create-home --home-dir ${USER_HOME_DIR} ${USER_NAME}"
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	passwd -l root
-	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
+	useradd --password '${USER_PASSWORD}' --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 	EOS
 	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
