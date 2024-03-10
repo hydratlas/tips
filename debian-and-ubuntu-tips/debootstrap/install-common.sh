@@ -92,7 +92,7 @@ function setup-grub-on-ubuntu () {
 		local -r ESPs="${DISK1_EFI}"
 	fi
 	
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
 	update-grub &&
 	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections &&
@@ -107,7 +107,7 @@ function setup-grub-on-debian () {
 		create-second-esp-entry
 	fi
 
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
 	update-grub &&
 	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections  &&
@@ -158,7 +158,7 @@ function create-second-esp-entry () {
 		fi
 	done
 
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram &&
 	efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
 		--loader /EFI/BOOT/bootx64.efi --label "${ENTRY_LABEL}" --unicode 

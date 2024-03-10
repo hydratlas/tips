@@ -39,7 +39,7 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 
 	# arch-chroot
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	locale-gen &&
 	dpkg-reconfigure --frontend noninteractive locales &&
 	dpkg-reconfigure --frontend noninteractive tzdata &&
@@ -53,7 +53,7 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	passwd -l root &&
 	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
