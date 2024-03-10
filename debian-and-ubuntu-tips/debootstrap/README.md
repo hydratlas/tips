@@ -38,8 +38,6 @@ apt-cache depends linux-kvm
 ### 設定の変更
 ```
 nano install-config.sh
-nano install-config-debian.sh
-nano install-config-ubuntu.sh
 ```
 
 ## インストール
@@ -51,11 +49,8 @@ lsblk -f -e 7
 ### インストール
 「lsblk」によって、インストール先のsdXを確認し、次のコマンドの1個目および2個目の引数に指定する。
 ```
-sudo bash -eux install1.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install2.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-grub.sh             <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-ssh-server.sh       <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
-sudo bash -eux install3-setup-systemd-networkd.sh <distribution> <hostname> https://github.com/<username>.keys <sdX> <sdX>
+sudo bash -eux install1.sh <config-path> <hostname> <sdX> <sdX>
+sudo bash -eux install2.sh <config-path> <hostname> <sdX> <sdX>
 ```
 
 ## トラブルシューティング
@@ -212,7 +207,7 @@ sudo apt-get install -y --no-install-recommends cockpit-networkmanager
 ##### バックポート版
 ```
 sudo apt-get install -y --no-install-recommends \
-   -t "$(lsb_release --short --codename)-backports" cockpit-networkmanager
+  -t "$(lsb_release --short --codename)-backports" cockpit-networkmanager
 ```
 
 ### 2つ目のEFIシステムパーティションにブートローダー（rEFInd）をインストール（Debian）（未検証）
@@ -234,9 +229,9 @@ use_nvram false
 textonly
 scanfor internal,external,optical,manual
 menuentry "${DISTRIBUTOR}" {
-  volume   "${DISTRIBUTOR}"
-  loader   /@/vmlinuz-linux
-  initrd   /@/initrd.img
+  volume  "${DISTRIBUTOR}"
+  loader  "/@/vmlinuz-linux"
+  initrd  "/@/initrd.img"
   options "root=UUID=${ROOT_UUID} ro rootflags=subvol=@"
   submenuentry "rootflags=degraded" {
     options "root=UUID=${ROOT_UUID} ro rootflags=subvol=@,degraded"

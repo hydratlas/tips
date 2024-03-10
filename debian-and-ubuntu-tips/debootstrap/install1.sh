@@ -1,10 +1,8 @@
 #!/bin/bash -eu
-DISTRIBUTION="${1}"
-HOSTNAME="${2}"
-PUBKEYURL="${3}"
-source ./install-config.sh
+source "${1}"
+readonly HOSTNAME="${2}"
 source ./install-common.sh
-diskname-to-diskpath "${4:-}" "${5:-}"
+diskname-to-diskpath "${3}" "${4:-}"
 
 if [ "mmdebstrap" = "${INSTALLER}" ]; then
 	P="mmdebstrap"
@@ -85,6 +83,15 @@ function install-distribution () {
 	fi
 	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
 		PACKAGES+=(xfsprogs)
+	fi
+	if "${IS_SSH_SERVER_INSTALLATION}"; then
+		PACKAGES+=(${INSTALLATION_PACKAGES_FOR_SSH_SERVER[@]})
+	fi
+	if "${IS_SYSTEMD_NETWORKD_INSTALLATION}"; then
+		PACKAGES+=(${INSTALLATION_PACKAGES_FOR_SYSTEMD_NETWORKD[@]})
+	fi
+	if "${IS_GRUB_INSTALLATION}"; then
+		PACKAGES+=(${INSTALLATION_PACKAGES_FOR_GRUB[@]})
 	fi
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
