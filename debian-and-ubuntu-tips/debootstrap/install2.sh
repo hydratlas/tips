@@ -61,7 +61,7 @@ function install2 () {
 	passwd -l root &&
 	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}" &&
-	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}" &&
+	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}"
 	EOS
 	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 
