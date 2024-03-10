@@ -41,8 +41,8 @@ function install2 () {
 	# arch-chroot
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	locale-gen &&
-	dpkg-reconfigure --frontend noninteractive locales &&
-	dpkg-reconfigure --frontend noninteractive tzdata &&
+	dpkg-reconfigure --frontend noninteractive locales
+	dpkg-reconfigure --frontend noninteractive tzdata
 	dpkg-reconfigure --frontend noninteractive keyboard-configuration
 	EOS
 
@@ -53,8 +53,9 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
+	echo "useradd --password ${USER_PASSWORD} --user-group --groups sudo --shell /bin/bash --create-home --home-dir ${USER_HOME_DIR} ${USER_NAME}"
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
-	passwd -l root &&
+	passwd -l root
 	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 	EOS

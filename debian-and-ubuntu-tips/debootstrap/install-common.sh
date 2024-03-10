@@ -93,10 +93,10 @@ function setup-grub-on-ubuntu () {
 	fi
 	
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
-	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
-	update-grub &&
-	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections &&
-	dpkg-reconfigure --frontend noninteractive shim-signed &&
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
+	update-grub
+	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections
+	dpkg-reconfigure --frontend noninteractive shim-signed
 	update-grub
 	EOS
 }
@@ -108,10 +108,10 @@ function setup-grub-on-debian () {
 	fi
 
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
-	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
-	update-grub &&
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections  &&
-	dpkg-reconfigure --frontend noninteractive grub-efi-amd64 &&
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
+	update-grub
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections
+	dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 	update-grub
 	EOS
 }
@@ -159,7 +159,7 @@ function create-second-esp-entry () {
 	done
 
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
-	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram &&
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
 	efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
 		--loader /EFI/BOOT/bootx64.efi --label "${ENTRY_LABEL}" --unicode 
 	EOS
