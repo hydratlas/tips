@@ -77,21 +77,31 @@ mount-installfs
 function install-distribution () {
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${ARCHIVE_KEYRING_PACKAGE}
 
+	local -r PACKAGES=()
+	PACKAGES+=(${PACKAGES_TO_INSTALL_FIRST[@]})
+	PACKAGES+=(${PACKAGES_TO_INSTALL[@]})
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		PACKAGES+=(btrfs-progs)
+	fi
+	if [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
+		PACKAGES+=(xfsprogs)
+	fi
+
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends mmdebstrap
 		mmdebstrap --skip=check/empty --keyring="${ARCHIVE_KEYRING}" \
-			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
+			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
 			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
-				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
+				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		else
 			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" --variant="${VARIANT}" \
-				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES_TO_INSTALL_FIRST[*]}")" \
+				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
 	fi
