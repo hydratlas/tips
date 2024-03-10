@@ -84,33 +84,36 @@ function setup-grub () {
 	efibootmgr -v
 }
 function setup-grub-on-ubuntu () {
-	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
-
 	adding-entries-to-grub "/@/boot/vmlinuz" "/@/boot/initrd.img"
-	arch-chroot "${MOUNT_POINT}" update-grub
 
 	if [ -e "${DISK2_PATH}" ]; then
 		local -r ESPs="${DISK1_EFI}, ${DISK2_EFI}"
 	else
 		local -r ESPs="${DISK1_EFI}"
 	fi
-	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | arch-chroot "${MOUNT_POINT}" debconf-set-selections
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive shim-signed
-	arch-chroot "${MOUNT_POINT}" update-grub
+	
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
+	update-grub &&
+	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections &&
+	dpkg-reconfigure --frontend noninteractive shim-signed &&
+	update-grub
+	EOS
 }
 function setup-grub-on-debian () {
-	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
-
 	adding-entries-to-grub "/@/boot/vmlinuz" "/@/boot/initrd.img" # /etc/kernel-img.conf link_in_boot = yes
-	arch-chroot "${MOUNT_POINT}" update-grub
 
 	if [ -e "${DISK2_PATH}" ]; then
 		create-second-esp-entry
 	fi
 
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | arch-chroot "${MOUNT_POINT}" debconf-set-selections 
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive grub-efi-amd64
-	arch-chroot "${MOUNT_POINT}" update-grub
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram &&
+	update-grub &&
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections  &&
+	dpkg-reconfigure --frontend noninteractive grub-efi-amd64 &&
+	update-grub
+	EOS
 }
 function adding-entries-to-grub () {
 	local -r LINUX_PATH="${1}"
@@ -145,7 +148,6 @@ function adding-entries-to-grub () {
 function create-second-esp-entry () {
 	local -r DISTRIBUTOR="$(arch-chroot "${MOUNT_POINT}" lsb_release -i -s 2> /dev/null || echo Debian)"
 	local -r ENTRY_LABEL="${DISTRIBUTOR} (Second EFI system partition)"
-	arch-chroot "${MOUNT_POINT}" grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
 	local -r DISK2_EFI_PART="${DISK2_EFI: -1}" && # A space is required before the minus sign.
 	local -r PATTERN="^Boot([0-9A-F]+)\* (.+)$" &&
 	efibootmgr | while read LINE; do
@@ -156,8 +158,11 @@ function create-second-esp-entry () {
 		fi
 	done
 
-	arch-chroot "${MOUNT_POINT}" efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram &&
+	efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
 		--loader /EFI/BOOT/bootx64.efi --label "${ENTRY_LABEL}" --unicode 
+	EOS
 }
 
 # SSH server

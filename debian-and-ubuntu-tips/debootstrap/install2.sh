@@ -21,15 +21,12 @@ function install2 () {
 	EOS
 	)
 	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/locale.gen"
-	arch-chroot "${MOUNT_POINT}" locale-gen
 	echo "LANG=${INSTALLATION_LANG}" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
 	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive locales
 
 	# Configure time zone
 	ln -sf "/usr/share/zoneinfo/${TIMEZONE}" "${MOUNT_POINT}/etc/localtime"
 	readlink "/etc/localtime" # confirmation
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive tzdata
 
 	# Configure keyboard
 	PERL_SCRIPT=$(cat <<- EOS
@@ -40,7 +37,14 @@ function install2 () {
 	)
 	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
 	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
-	arch-chroot "${MOUNT_POINT}" dpkg-reconfigure --frontend noninteractive keyboard-configuration
+
+	# arch-chroot
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	locale-gen &&
+	dpkg-reconfigure --frontend noninteractive locales &&
+	dpkg-reconfigure --frontend noninteractive tzdata &&
+	dpkg-reconfigure --frontend noninteractive keyboard-configuration
+	EOS
 
 	# Set hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
@@ -49,15 +53,17 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
-	arch-chroot "${MOUNT_POINT}" passwd -l root
-
-	arch-chroot "${MOUNT_POINT}" useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash --create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	passwd -l root &&
+	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
+		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}" &&
+	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh" &&
+	chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
+	EOS
+	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
-	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh"
-	arch-chroot "${MOUNT_POINT}" chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
-	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 
 	# Other installations
 	if "${IS_SSH_SERVER_INSTALLATION}"; then
