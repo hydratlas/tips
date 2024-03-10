@@ -76,8 +76,7 @@ function install-distribution () {
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${ARCHIVE_KEYRING_PACKAGE}
 
 	local PACKAGES=()
-	PACKAGES+=(${PACKAGES_TO_INSTALL_FIRST[@]})
-	PACKAGES+=(${PACKAGES_TO_INSTALL[@]})
+	PACKAGES+=(${INSTALLATION_PACKAGES[@]})
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		PACKAGES+=(btrfs-progs)
 	fi
