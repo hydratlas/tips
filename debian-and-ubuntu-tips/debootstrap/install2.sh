@@ -53,17 +53,17 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
+	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
+	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
+	chmod u=rw,go= "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys"
+	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
 	passwd -l root &&
 	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}" &&
-	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}/.ssh" &&
-	chmod u=rw,go= "${USER_HOME_DIR}/.ssh/authorized_keys"
+	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}" &&
 	EOS
 	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
-	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
-	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
-	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 
 	# Other installations
 	if "${IS_SSH_SERVER_INSTALLATION}"; then
