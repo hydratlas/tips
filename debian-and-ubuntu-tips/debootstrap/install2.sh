@@ -53,16 +53,16 @@ function install2 () {
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
+	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
+	passwd -l root &&
+	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
+		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
+	EOS
 	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
 	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
 	chmod u=rw,go= "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys"
 	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
-	arch-chroot "${MOUNT_POINT}" /bin/bash -- <<- EOS
-	passwd -l root &&
-	useradd --password "${USER_PASSWORD}" --user-group --groups sudo --shell /bin/bash \
-		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}" &&
-	chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}"
-	EOS
+	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}"
 	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
 
 	# Other installations
