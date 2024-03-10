@@ -30,7 +30,7 @@ lsblkコマンドでインストール先のsdX（sda、sdb…）がなにかを
 sudo bash -x btrfs1.sh sdX
 sudo bash -x btrfs1.sh sdX
 
-sudo shutdown -r now
+sudo poweroff
 ```
 最後に再起動する。
 
@@ -125,7 +125,7 @@ lsblkコマンドで/targetのsdX（sda、sdb…）がなにかを確認し、�
 ```
 sudo bash -eux btrfs2.sh sdX sdX
 
-sudo shutdown -r now
+sudo poweroff
 ```
 終わったら再起動する。
 

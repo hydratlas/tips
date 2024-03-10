@@ -133,7 +133,7 @@ sudo umount -R /mnt
 
 ### 再起動
 ```
-sudo shutdown -r now
+sudo poweroff
 ```
 
 ### 再起動後に再度マウント
