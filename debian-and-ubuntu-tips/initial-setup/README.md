@@ -165,6 +165,12 @@ cat "/etc/apt/mirrors.txt" && # confirmation
 sudo apt-get update
 ```
 
+## Flatpakをインストール（管理者）
+```
+sudo apt-get install -y --no-install-recommends flatpak &&
+sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+```
+
 ## Cockpitをインストール（管理者）
 ### Cockpitをインストール
 cockpit-pcpはメトリクスを収集・分析してくれるが、負荷がかかるので不要ならインストールしない。

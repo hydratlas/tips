@@ -24,6 +24,7 @@ readonly VARIANT="minbase"
 #  )
 #readonly INSTALLATION_PACKAGES_FOR_SSH_SERVER=(openssh-server)
 #readonly INSTALLATION_PACKAGES_FOR_SYSTEMD_NETWORKD=(systemd-resolved)
+#readonly INSTALLATION_PACKAGES_FOR_NETWORK_MANAGER=(network-manager systemd-resolved)
 #readonly INSTALLATION_PACKAGES_FOR_GRUB=(shim-signed)
 #readonly MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu"
 #readonly ARCHIVE_KEYRING_PACKAGE="ubuntu-keyring"
@@ -40,6 +41,7 @@ readonly INSTALLATION_PACKAGES=( \
   )
 readonly INSTALLATION_PACKAGES_FOR_SSH_SERVER=(openssh-server)
 readonly INSTALLATION_PACKAGES_FOR_SYSTEMD_NETWORKD=(systemd-resolved)
+readonly INSTALLATION_PACKAGES_FOR_NETWORK_MANAGER=(network-manager systemd-resolved)
 readonly INSTALLATION_PACKAGES_FOR_GRUB=(grub-efi-amd64 grub-efi-amd64-signed shim-signed)
 readonly MIRROR1="http://ftp.jp.debian.org/debian"
 readonly ARCHIVE_KEYRING_PACKAGE="debian-archive-keyring"
@@ -78,6 +80,9 @@ readonly IS_SSH_SERVER_INSTALLATION=true
 readonly IS_SYSTEMD_NETWORKD_INSTALLATION=true
 readonly WOL="magic" # off
 readonly MDNS=true
+
+# NetworkManager
+readonly IS_NETWORK_MANAGER_INSTALLATION=false
 
 # GRUB
 readonly IS_GRUB_INSTALLATION=true

@@ -216,3 +216,17 @@ function setup-systemd-networkd () {
 	EOS
 	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
 }
+
+# NetworkManager
+function setup-network-manager () {
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+
+	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
+	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
+
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+}
