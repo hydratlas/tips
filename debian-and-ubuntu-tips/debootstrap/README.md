@@ -186,16 +186,12 @@ sudo systemctl disable systemd-networkd-wait-online.service &&
 sudo systemctl enable --now NetworkManager.service
 ```
 
-うまくいかない場合の状況確認。
-```
-nmcli connection show
-
-nmcli connection show "Wired connection 1"
-```
-
 #### NetworkManagerでmDNSを使う
 ```
+nmcli connection show
+nmcli connection show "Wired connection 1"
 sudo nmcli connection modify "Wired connection 1" connection.mdns 2
+sudo nmcli connection up "Wired connection 1"
 ```
 
 #### CockpitとNetworkManagerを連携させる
