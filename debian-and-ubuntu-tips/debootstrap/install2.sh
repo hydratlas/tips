@@ -8,7 +8,7 @@ get-filesystem-UUIDs
 
 function install2 () {
 	# Install arch-install-scripts
-	apt-get install -y arch-install-scripts
+	apt-get install -y --no-install-recommends arch-install-scripts
 
 	# Temporarily set language
 	LANG_BAK="${LANG}"
