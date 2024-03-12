@@ -35,7 +35,7 @@ function install2 () {
 	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
 	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 
-	# arch-chroot
+	# dpkg-reconfigure
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	locale-gen &&
 	dpkg-reconfigure --frontend noninteractive locales
@@ -46,7 +46,15 @@ function install2 () {
 	# Set hostname
 	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
 	cat "${MOUNT_POINT}/etc/hostname" # confirmation
-	echo "127.0.0.1 ${HOSTNAME}" | tee -a "${MOUNT_POINT}/etc/hosts" > /dev/null
+	tee "${MOUNT_POINT}/etc/hosts" <<- EOS > /dev/null
+	127.0.0.1 localhost
+	127.0.1.1 ${HOSTNAME}
+	::1     ip6-localhost ip6-loopback
+	fe00::0 ip6-localnet
+	ff00::0 ip6-mcastprefix
+	ff02::1 ip6-allnodes
+	ff02::2 ip6-allrouters
+	EOS
 	cat "${MOUNT_POINT}/etc/hosts" # confirmation
 
 	# Create user
@@ -55,12 +63,17 @@ function install2 () {
 	useradd --password '${USER_PASSWORD}' --user-group --groups sudo --shell /bin/bash \
 		--create-home --home-dir "${USER_HOME_DIR}" "${USER_NAME}"
 	EOS
-	mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
-	wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${PUBKEYURL}"
-	chmod u=rw,go= "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys"
-	cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
+	if [ -n "${USER_PUBKEYURL}" ]; then
+		mkdir -p "${MOUNT_POINT}${USER_HOME_DIR}/.ssh"
+		wget -O "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" "${USER_PUBKEYURL}"
+		chmod u=rw,go= "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys"
+		cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
+	fi
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}"
 	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
+	if "${USER_NO_SUDO_PASSWORD}"; then
+		echo "%sudo ALL=(ALL) NOPASSWD: ALL" | tee -a "${MOUNT_POINT}/etc/sudoers.d/90-adm" > /dev/null
+	fi
 
 	# Other installations
 	if "${IS_SSH_SERVER_INSTALLATION}"; then
@@ -74,5 +87,162 @@ function install2 () {
 	fi
 
 	export LANG="${LANG_BAK}"
+}
+
+# GRUB
+function setup-grub () {
+	if [ "ubuntu" = "${DISTRIBUTION}" ]; then
+		setup-grub-on-ubuntu
+	elif [ "debian" = "${DISTRIBUTION}" ]; then
+		setup-grub-on-debian
+	fi
+	efibootmgr -v
+}
+function setup-grub-on-ubuntu () {
+	adding-entries-to-grub "/@/boot/vmlinuz" "/@/boot/initrd.img"
+
+	if [ -e "${DISK2_PATH}" ]; then
+		local -r ESPs="${DISK1_EFI}, ${DISK2_EFI}"
+	else
+		local -r ESPs="${DISK1_EFI}"
+	fi
+	
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
+	update-grub
+	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections
+	dpkg-reconfigure --frontend noninteractive shim-signed
+	update-grub
+	EOS
+}
+function setup-grub-on-debian () {
+	adding-entries-to-grub "/@/boot/vmlinuz" "/@/boot/initrd.img" # /etc/kernel-img.conf link_in_boot = yes
+
+	if [ -e "${DISK2_PATH}" ]; then
+		create-second-esp-entry
+	fi
+
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
+	update-grub
+	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections
+	dpkg-reconfigure --frontend noninteractive grub-efi-amd64
+	update-grub
+	EOS
+}
+function adding-entries-to-grub () {
+	local -r LINUX_PATH="${1}"
+	local -r INITRD_PATH="${2}"
+	local -r PERL_SCRIPT=$(cat <<- EOS
+	s/^#?GRUB_CMDLINE_LINUX_DEFAULT=.*\$/GRUB_CMDLINE_LINUX_DEFAULT=\"${GRUB_CMDLINE_LINUX_DEFAULT}\"/g;
+	s/^#?GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=${GRUB_TIMEOUT}/g;
+	s/^#?GRUB_DISABLE_OS_PROBER=.*\$/GRUB_DISABLE_OS_PROBER=${GRUB_DISABLE_OS_PROBER}/g;
+	EOS
+	)
+	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/grub"
+	echo "GRUB_RECORDFAIL_TIMEOUT=${GRUB_TIMEOUT}" | tee -a "${MOUNT_POINT}/etc/default/grub" > /dev/null
+	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
+		mkdir -p "${MOUNT_POINT}/etc/grub.d"
+		tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
+		#!/bin/sh
+		. "\$pkgdatadir/grub-mkconfig_lib"
+		TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
+		cat << EOS
+		menuentry '\$TITLE' {
+			search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+			linux ${LINUX_PATH} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+			initrd ${INITRD_PATH}
+		}
+		EOS
+		EOF
+		chmod a+x "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded"
+
+		cat "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" # confirmation
+	fi
+}
+function create-second-esp-entry () {
+	local -r DISTRIBUTOR="$(arch-chroot "${MOUNT_POINT}" lsb_release -i -s 2> /dev/null || echo Debian)"
+	local -r ENTRY_LABEL="${DISTRIBUTOR} (Second EFI system partition)"
+	local -r DISK2_EFI_PART="${DISK2_EFI: -1}" && # A space is required before the minus sign.
+	local -r PATTERN="^Boot([0-9A-F]+)\* (.+)$" &&
+	efibootmgr | while read LINE; do
+		if [[ ${LINE} =~ $PATTERN ]]; then
+			if [[ "${ENTRY_LABEL}" == "${BASH_REMATCH[2]}" ]]; then
+				efibootmgr -b "${BASH_REMATCH[1]}" -B
+			fi
+		fi
+	done
+
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram
+	efibootmgr --quiet --create-only --disk "${DISK2_PATH}" --part "${DISK2_EFI_PART}" \
+		--loader /EFI/BOOT/bootx64.efi --label "${ENTRY_LABEL}" --unicode 
+	EOS
+}
+
+# SSH server
+function setup-ssh-server () {
+	tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" <<- EOS > /dev/null
+	PasswordAuthentication no
+	PermitRootLogin no
+	EOS
+	cat "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" # confirmation
+}
+
+# systemd-networkd
+function setup-systemd-networkd () {
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
+
+	# Configure basic settings
+	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
+	[Match]
+	Name=en*
+
+	[Network]
+	DHCP=yes
+	MulticastDNS=${MDNS_STR}
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
+
+	# Configure Wake On LAN
+	tee "${MOUNT_POINT}/etc/systemd/network/50-wired.link" <<- EOS > /dev/null
+	[Match]
+	OriginalName=*
+
+	[Link]
+	WakeOnLan=${WOL}
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/network/50-wired.link" # confirmation
+
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+
+	# If one interface can be connected, it will start without waiting.
+	mkdir -p "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d"
+	tee "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" <<- EOS > /dev/null
+	[Service]
+	ExecStart=
+	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
+}
+
+# NetworkManager
+function setup-network-manager () {
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+
+	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
+	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
+
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 }
 install2

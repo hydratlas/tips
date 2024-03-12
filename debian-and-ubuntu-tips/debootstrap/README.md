@@ -63,7 +63,7 @@ sudo bash -eux install2.sh <config-path> <hostname> <sdX> <sdX>
 sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
 ```
 - less: 入れないと、nmcliコマンドの色を正しく表示できない
-- libpam-systemd: 入れないと、不具合が出た
+- libpam-systemd: 入れないと、SSH切断時にクライアント側がフリーズする
 
 ### パッケージの検索
 ```
