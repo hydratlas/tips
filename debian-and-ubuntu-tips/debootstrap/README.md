@@ -4,6 +4,7 @@ debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.img�
 ## ツールのセットアップ
 ### ダウンロード
 ```
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git &&
 cd ~/ &&
 git clone --depth=1 git@github.com:hydratlas/tips.git &&
 cd tips/debian-and-ubuntu-tips/debootstrap
