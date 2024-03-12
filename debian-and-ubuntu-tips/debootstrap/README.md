@@ -4,8 +4,11 @@ debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.img�
 ## ツールのセットアップ
 ### ダウンロード
 ```
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git &&
+DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends git &&
 cd ~/ &&
+if [ -d ./tips ]; then
+  rm -drf ./tips
+fi &&
 git clone --depth=1 git@github.com:hydratlas/tips.git &&
 cd tips/debian-and-ubuntu-tips/debootstrap
 ```
@@ -110,12 +113,6 @@ sudo bash -eux install-mount.sh sdX sdX
 ```
 
 ## 後処理
-### ツールの削除
-```
-cd ~/ &&
-rm -drf tips
-```
-
 ### debootstrap実行直後のスナップショットを削除（Btrfsの場合のみ）
 ```
 sudo btrfs subvolume delete /mnt/.snapshots/after-installation
@@ -124,6 +121,7 @@ sudo btrfs subvolume delete /mnt/.snapshots/after-installation
 ### アンマウント
 再起動するなら飛ばしてよい。
 ```
+cd ~/ &&
 sudo umount -R /mnt
 ```
 
