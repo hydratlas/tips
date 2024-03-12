@@ -9,7 +9,7 @@ if [ "mmdebstrap" = "${INSTALLER}" ]; then
 elif [ "debootstrap" = "${INSTALLER}" ]; then
 	P="debootstrap"
 fi
-P="${P} efibootmgr gdisk wget"
+P="${P} ${ARCHIVE_KEYRING_PACKAGE} gdisk util-linux wget efibootmgr arch-install-scripts"
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${P}
 
 # Check
@@ -73,8 +73,6 @@ get-filesystem-UUIDs
 mount-installfs
 
 function install-distribution () {
-	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${ARCHIVE_KEYRING_PACKAGE}
-
 	local PACKAGES=()
 	PACKAGES+=(${INSTALLATION_PACKAGES[@]})
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
@@ -97,12 +95,10 @@ function install-distribution () {
 	fi
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
-		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends mmdebstrap
 		mmdebstrap --skip=check/empty --keyring="${ARCHIVE_KEYRING}" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
-		DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends debootstrap
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
 			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \

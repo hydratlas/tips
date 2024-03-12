@@ -7,9 +7,6 @@ diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
 get-filesystem-UUIDs
 
 function install2 () {
-	# Install arch-install-scripts
-	apt-get install -y --no-install-recommends arch-install-scripts
-
 	# Temporarily set language
 	LANG_BAK="${LANG}"
 	export LANG="${INSTALLATION_LANG}"
