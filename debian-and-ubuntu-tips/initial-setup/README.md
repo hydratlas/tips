@@ -1,20 +1,8 @@
 # 初期設定
-## SSHから設定
-### 【オプション】ノートパソコンのふたをしめてもサスペンドしないようにする
+## ノートパソコンのふたをしめてもサスペンドしないようにする（管理者）
 ```
 sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
 sudo systemctl restart systemd-logind.service
-```
-
-## QEMUのゲストの場合には、ゲストエージェントをインストールする
-インストール。
-```
-sudo apt-get install -y --no-install-recommends qemu-guest-agent
-```
-
-確認。ホスト側でQEMUゲストエージェントを有効にしないとアクティブにならない。
-```
-sudo systemctl status qemu-guest-agent.service
 ```
 
 ## キーボード配列を日本語109にする（管理者）
@@ -167,8 +155,14 @@ sudo apt-get update
 
 ## Flatpakをインストール（管理者）
 ```
-sudo apt-get install -y --no-install-recommends flatpak &&
-sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+sudo apt-get install -y --no-install-recommends flatpak
+```
+
+## Flatpakでアプリケーションをインストール（ユーザー）
+```
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+flatpak install flathub org.gnome.TextEditor
 ```
 
 ## Cockpitをインストール（管理者）
