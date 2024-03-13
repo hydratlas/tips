@@ -76,6 +76,7 @@ function install2 () {
 	fi
 
 	# Other installations
+	setup-systemd-timesyncd
 	if "${IS_SSH_SERVER_INSTALLATION}"; then
 		setup-ssh-server
 	fi
@@ -93,6 +94,19 @@ function install2 () {
 	fi
 
 	export LANG="${LANG_BAK}"
+}
+
+function setup-systemd-timesyncd () {
+	if ${IS_SYSTEMD_TIMESYNCD_ENABLED}; then
+		arch-chroot "${MOUNT_POINT}" systemctl enable systemd-timesyncd.service
+	else
+		arch-chroot "${MOUNT_POINT}" systemctl disable systemd-timesyncd.service
+	fi
+	tee "${MOUNT_POINT}/etc/systemd/timesyncd.conf" <<- EOS > /dev/null
+	[Time]
+	NTP=${NTP}
+	FallbackNTP=${FallbackNTP}
+	EOS
 }
 
 # SSH server

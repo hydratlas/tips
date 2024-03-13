@@ -18,7 +18,10 @@ INSTALLATION_PACKAGES_FOR_BASE+=(landscape-common)
 INSTALLATION_PACKAGES_FOR_IMAGE=(linux-generic)
 
 # Firmware
-INSTALLATION_PACKAGES_FOR_FIRMWARE+=(linux-firmware)
+INSTALLATION_PACKAGES_FOR_FIRMWARE+=(linux-firmware fwupd-signed)
+
+# systemd-timesyncd
+FallbackNTP="ntp.ubuntu.com"
 
 # Netplan
 INSTALLATION_PACKAGES_FOR_NETPLAN=(network-manager netplan.io)

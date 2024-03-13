@@ -18,7 +18,10 @@ INSTALLATION_PACKAGES_FOR_BASE+=()
 INSTALLATION_PACKAGES_FOR_IMAGE=(linux-image-amd64)
 
 # Firmware
-INSTALLATION_PACKAGES_FOR_FIRMWARE+=(firmware-linux)
+INSTALLATION_PACKAGES_FOR_FIRMWARE+=(firmware-linux fwupd-amd64-signed)
+
+# systemd-timesyncd
+FallbackNTP="0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org"
 
 # GRUB
 INSTALLATION_PACKAGES_FOR_GRUB+=(grub-efi-amd64 grub-efi-amd64-signed shim-signed)

@@ -17,7 +17,7 @@ INSTALLATION_PACKAGES_FOR_BASE=( \
   init initramfs-tools zstd libpam-systemd systemd-timesyncd \
   apt console-setup locales tzdata keyboard-configuration \
   logrotate sudo unattended-upgrades needrestart \
-  dmidecode efibootmgr fwupd iproute2 iputils-ping lsb-release pci.ids pciutils usb.ids usbutils \
+  dmidecode efibootmgr iproute2 iputils-ping lsb-release pci.ids pciutils usb.ids usbutils \
   less bash-completion command-not-found nano whiptail \
 )
 INSTALLATION_PACKAGES_FOR_IMAGE=()
@@ -25,7 +25,7 @@ INSTALLATION_PACKAGES=()
 
 # Firmware
 IS_FIRMWARE_INSTALLATION=true
-INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode)
+INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode fwupd)
 
 # QEMU Guest
 IS_QEMU_GUEST_INSTALLATION=false
@@ -37,12 +37,18 @@ INSTALLATION_PACKAGES_FOR_GNOME=( \
   adwaita-icon-theme desktop-base gdm3 gnome-session gnome-shell \
   gnome-keyring seahorse libpam-gnome-keyring \
   gnome-control-center gnome-tweaks gnome-online-accounts gnome-shell-extension-manager \
-  gnome-console nautilus xdg-user-dirs-gtk \
+  network-manager-gnome gnome-browser-connector \
+  gnome-console nautilus webp-pixbuf-loader xdg-user-dirs-gtk \
   gnome-software flatpak gnome-software-plugin-flatpak \
   gnome-system-monitor gnome-firmware power-profiles-daemon \
   gnome-bluetooth-3-common bluez bluez-obexd pipewire-audio sound-theme-freedesktop \
   system-config-printer-udev system-config-printer-common cups-pk-helper \
 )
+
+# systemd-timesyncd
+IS_SYSTEMD_TIMESYNCD_ENABLED=true
+NTP=""
+FallbackNTP=""
 
 # SSH Server
 IS_SSH_SERVER_INSTALLATION=true
