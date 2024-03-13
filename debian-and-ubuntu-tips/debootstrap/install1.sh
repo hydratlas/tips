@@ -21,8 +21,8 @@ function install1 () {
 			-n "0::${2}" -t 0:ef00 \
 			-n "0::${3}" -t 0:8200 \
 			-n "0::"     -t 0:8304 "${1}"
-		mkswap "${1}1"
-		mkfs.vfat -F 32 "${1}2"
+		mkfs.vfat -F 32 "${1}1"
+		mkswap "${1}2"
 	}
 	disk-partitioning "${DISK1_PATH}" "${EFI_END}" "${SWAP_END}"
 	if [ -e "${DISK2_PATH}" ]; then
