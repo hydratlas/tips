@@ -41,8 +41,9 @@ INSTALLATION_PACKAGES_FOR_GNOME=( \
   gnome-console nautilus webp-pixbuf-loader xdg-user-dirs-gtk \
   gnome-software flatpak gnome-software-plugin-flatpak \
   gnome-system-monitor gnome-firmware power-profiles-daemon \
-  gnome-bluetooth-3-common bluez bluez-obexd pipewire-audio sound-theme-freedesktop \
-  system-config-printer-udev system-config-printer-common cups-pk-helper \
+  gnome-bluetooth-3-common bluez bluez-obexd \
+  pipewire-audio sound-theme-freedesktop \
+  system-config-printer-udev system-config-printer-common cups cups-pk-helper printer-driver-cups-pdf printer-driver-all-enforce  \
 )
 
 # systemd-timesyncd
