@@ -28,7 +28,7 @@ cat "/etc/default/locale" # confirmation
 
 ## ロケールをログインしているユーザー個別でja_JP.UTF-8に設定する（ユーザー）
 ```
-echo "export LANG=ja_JP.UTF-8" | tee -a "~/.bashrc" > /dev/null &&
+tee -a "~/.bashrc" << "export LANG=ja_JP.UTF-8" > /dev/null &&
 source ~/.bashrc
 ```
 

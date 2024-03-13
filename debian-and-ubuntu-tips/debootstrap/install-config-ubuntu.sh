@@ -20,5 +20,8 @@ INSTALLATION_PACKAGES_FOR_IMAGE=(linux-generic)
 # Firmware
 INSTALLATION_PACKAGES_FOR_FIRMWARE+=(linux-firmware)
 
+# Netplan
+INSTALLATION_PACKAGES_FOR_NETPLAN=(network-manager netplan.io)
+
 # GRUB
 INSTALLATION_PACKAGES_FOR_GRUB+=(shim-signed)

@@ -18,7 +18,7 @@ function install2 () {
 	EOS
 	)
 	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/locale.gen"
-	echo "LANG=${INSTALLATION_LANG}" | tee "${MOUNT_POINT}/etc/default/locale" > /dev/null
+	tee "${MOUNT_POINT}/etc/default/locale" <<< "LANG=${INSTALLATION_LANG}" > /dev/null
 	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 
 	# Configure time zone
@@ -44,7 +44,7 @@ function install2 () {
 	EOS
 
 	# Set hostname
-	echo "${HOSTNAME}" | tee "${MOUNT_POINT}/etc/hostname" > /dev/null
+	tee "${MOUNT_POINT}/etc/hostname" <<< "${HOSTNAME}" > /dev/null
 	cat "${MOUNT_POINT}/etc/hostname" # confirmation
 	tee "${MOUNT_POINT}/etc/hosts" <<- EOS > /dev/null
 	127.0.0.1 localhost
@@ -70,9 +70,9 @@ function install2 () {
 		cat "${MOUNT_POINT}${USER_HOME_DIR}/.ssh/authorized_keys" # confirmation
 	fi
 	arch-chroot "${MOUNT_POINT}" chown -R "${USER_NAME}:${USER_NAME}" "${USER_HOME_DIR}"
-	echo "export LANG=${USER_LANG}" | tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" > /dev/null
+	tee -a "${MOUNT_POINT}${USER_HOME_DIR}/.bashrc" <<< "export LANG=${USER_LANG}" > /dev/null
 	if "${USER_NO_SUDO_PASSWORD}"; then
-		echo "%sudo ALL=(ALL) NOPASSWD: ALL" | tee -a "${MOUNT_POINT}/etc/sudoers.d/90-adm" > /dev/null
+		tee "${MOUNT_POINT}/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 	fi
 
 	# Other installations
@@ -84,6 +84,9 @@ function install2 () {
 	fi
 	if "${IS_NETWORK_MANAGER_INSTALLATION}"; then
 		setup-network-manager
+	fi
+	if "${IS_NETPLAN_INSTALLATION}"; then
+		setup-netplan
 	fi
 	if "${IS_GRUB_INSTALLATION}"; then
 		setup-grub
@@ -152,13 +155,31 @@ function setup-network-manager () {
 		local -r MDNS_STR="no"
 	fi
 
-	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
+	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf" <<- EOS > /dev/null
+	[main]
+	dns=systemd-resolved
+	EOS
 	if ${MDNS}; then
-		echo -e "[connection]\nconnection.mdns=2" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf"
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf" <<- EOS > /dev/null
+		[connection]
+		connection.mdns=2
+		EOS
 	fi
 	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 
 	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+}
+
+# Netplan
+function setup-netplan () {
+	tee "${MOUNT_POINT}/etc/netplan/90-custom.yaml" <<- EOS > /dev/null
+	network:
+	  version: 2
+	  renderer: NetworkManager
+	  ethernets:
+	    en*:
+	      dhcp4: true
+	EOS
 }
 
 # GRUB
@@ -212,7 +233,7 @@ function adding-entries-to-grub () {
 	EOS
 	)
 	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/grub"
-	echo "GRUB_RECORDFAIL_TIMEOUT=${GRUB_TIMEOUT}" | tee -a "${MOUNT_POINT}/etc/default/grub" > /dev/null
+	tee -a "${MOUNT_POINT}/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=${GRUB_TIMEOUT}" > /dev/null
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		mkdir -p "${MOUNT_POINT}/etc/grub.d"
 		tee "${MOUNT_POINT}/etc/grub.d/19_linux_rootflags_degraded" <<- EOF > /dev/null
