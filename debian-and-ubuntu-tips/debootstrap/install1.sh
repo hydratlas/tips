@@ -24,10 +24,14 @@ function install1 () {
 		mkfs.vfat -F 32 "${1}1"
 		mkswap "${1}2"
 	}
-	disk-partitioning "${DISK1_PATH}" "${EFI_END}" "${SWAP_END}"
-	if [ -e "${DISK2_PATH}" ]; then
-		disk-partitioning "${DISK2_PATH}" "${EFI_END}" "${SWAP_END}"
-	fi
+
+	for i in {1..2} ; do
+		disk-partitioning "${DISK1_PATH}" "${EFI_END}" "${SWAP_END}"
+		if [ -e "${DISK2_PATH}" ]; then
+			disk-partitioning "${DISK2_PATH}" "${EFI_END}" "${SWAP_END}"
+		fi
+		sleep 1s
+	done
 
 	# Formatting
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
