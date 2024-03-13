@@ -82,11 +82,83 @@ function install2 () {
 	if "${IS_SYSTEMD_NETWORKD_INSTALLATION}"; then
 		setup-systemd-networkd
 	fi
+	if "${IS_NETWORK_MANAGER_INSTALLATION}"; then
+		setup-network-manager
+	fi
 	if "${IS_GRUB_INSTALLATION}"; then
 		setup-grub
 	fi
 
 	export LANG="${LANG_BAK}"
+}
+
+# SSH server
+function setup-ssh-server () {
+	tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" <<- EOS > /dev/null
+	PasswordAuthentication no
+	PermitRootLogin no
+	EOS
+	cat "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" # confirmation
+}
+
+# systemd-networkd
+function setup-systemd-networkd () {
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
+
+	# Configure basic settings
+	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
+	[Match]
+	Name=en*
+
+	[Network]
+	DHCP=yes
+	MulticastDNS=${MDNS_STR}
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
+
+	# Configure Wake On LAN
+	tee "${MOUNT_POINT}/etc/systemd/network/50-wired.link" <<- EOS > /dev/null
+	[Match]
+	OriginalName=*
+
+	[Link]
+	WakeOnLan=${WOL}
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/network/50-wired.link" # confirmation
+
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+
+	# If one interface can be connected, it will start without waiting.
+	mkdir -p "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d"
+	tee "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" <<- EOS > /dev/null
+	[Service]
+	ExecStart=
+	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
+	EOS
+	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
+}
+
+# NetworkManager
+function setup-network-manager () {
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+
+	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
+	if ${MDNS}; then
+		echo -e "[connection]\nconnection.mdns=2" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf"
+	fi
+	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
+
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 }
 
 # GRUB
@@ -180,72 +252,4 @@ function create-second-esp-entry () {
 	EOS
 }
 
-# SSH server
-function setup-ssh-server () {
-	tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" <<- EOS > /dev/null
-	PasswordAuthentication no
-	PermitRootLogin no
-	EOS
-	cat "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" # confirmation
-}
-
-# systemd-networkd
-function setup-systemd-networkd () {
-	if ${MDNS}; then
-		local -r MDNS_STR="yes"
-	else
-		local -r MDNS_STR="no"
-	fi
-
-	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
-
-	# Configure basic settings
-	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
-	[Match]
-	Name=en*
-
-	[Network]
-	DHCP=yes
-	MulticastDNS=${MDNS_STR}
-	EOS
-	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
-
-	# Configure Wake On LAN
-	tee "${MOUNT_POINT}/etc/systemd/network/50-wired.link" <<- EOS > /dev/null
-	[Match]
-	OriginalName=*
-
-	[Link]
-	WakeOnLan=${WOL}
-	EOS
-	cat "${MOUNT_POINT}/etc/systemd/network/50-wired.link" # confirmation
-
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
-
-	# If one interface can be connected, it will start without waiting.
-	mkdir -p "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d"
-	tee "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" <<- EOS > /dev/null
-	[Service]
-	ExecStart=
-	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
-	EOS
-	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
-}
-
-# NetworkManager
-function setup-network-manager () {
-	if ${MDNS}; then
-		local -r MDNS_STR="yes"
-	else
-		local -r MDNS_STR="no"
-	fi
-
-	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
-	if ${MDNS}; then
-		echo -e "[connection]\nconnection.mdns=2" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf"
-	fi
-	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
-
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
-}
 install2
