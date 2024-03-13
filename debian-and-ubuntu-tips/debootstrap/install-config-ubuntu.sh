@@ -20,11 +20,14 @@ INSTALLATION_PACKAGES_FOR_IMAGE=(linux-generic)
 # Firmware
 INSTALLATION_PACKAGES_FOR_FIRMWARE+=(linux-firmware fwupd-signed)
 
+# GNOME
+#INSTALLATION_PACKAGES_FOR_GNOME+=(avahi-daemon)
+
 # systemd-timesyncd
 FallbackNTP="ntp.ubuntu.com"
 
 # Netplan
-INSTALLATION_PACKAGES_FOR_NETPLAN=(network-manager netplan.io)
+INSTALLATION_PACKAGES_FOR_NETPLAN=(network-manager netplan.io systemd-resolved)
 
 # GRUB
 INSTALLATION_PACKAGES_FOR_GRUB+=(shim-signed)

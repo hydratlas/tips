@@ -163,37 +163,67 @@ function setup-systemd-networkd () {
 
 # NetworkManager
 function setup-network-manager () {
+	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" <<- EOS > /dev/null
+	[connection]
+	wifi.powersave=3
+	EOS
+	if ${MDNS}; then
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" <<- EOS > /dev/null
+		[connection]
+		connection.mdns=2
+		EOS
+	fi
+	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-dns.conf" <<- EOS > /dev/null
+	[main]
+	dns=systemd-resolved
+	EOS
+	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
+
 	if ${MDNS}; then
 		local -r MDNS_STR="yes"
 	else
 		local -r MDNS_STR="no"
 	fi
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+}
 
-	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf" <<- EOS > /dev/null
-	[main]
-	dns=systemd-resolved
+# Netplan
+function setup-netplan () {
+	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" <<- EOS > /dev/null
+	[connection]
+	wifi.powersave=3
 	EOS
 	if ${MDNS}; then
-		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf" <<- EOS > /dev/null
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" <<- EOS > /dev/null
 		[connection]
 		connection.mdns=2
 		EOS
 	fi
 	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
-}
-
-# Netplan
-function setup-netplan () {
+	local IS_WOL=false
+	if [ "off" != "${WOL}" ]; then
+		IS_WOL=true
+	fi
 	tee "${MOUNT_POINT}/etc/netplan/90-custom.yaml" <<- EOS > /dev/null
 	network:
 	  version: 2
 	  renderer: NetworkManager
 	  ethernets:
-	    en*:
+	    eth0:
+	      match:
+	        name: en*
 	      dhcp4: true
+		  dhcp6: true
+		  wakeonlan: ${IS_WOL}
 	EOS
+
+	if ${MDNS}; then
+		local -r MDNS_STR="yes"
+	else
+		local -r MDNS_STR="no"
+	fi
+	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 }
 
 # GRUB
