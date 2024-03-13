@@ -43,8 +43,8 @@ function get-partition-path () {
 	local ROOTFS=""
 	lsblk --output PATH,PARTTYPE --noheadings "${1}" | while read LINE; do
 		set ${LINE}
-		local PATH="${1}"
-		local PARTTYPE="${2}"
+		local PATH="${1:-}"
+		local PARTTYPE="${2:-}"
 		if [ "${PARTTYPE}" = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" ]; then
 			EFI="${PATH}"
 		elif [ "${PARTTYPE}" = "0657fd6d-a4ab-43c4-84e5-0933c84b4f4f" ]; then
