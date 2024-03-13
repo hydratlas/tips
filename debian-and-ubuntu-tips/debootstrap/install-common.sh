@@ -53,6 +53,7 @@ function get-partition-path () {
 			ROOTFS="${PATH}"
 		fi
 	done
+	echo "${EFI}"
 	echo -e "${EFI}\t${SWAP}\t${ROOTFS}"
 }
 
