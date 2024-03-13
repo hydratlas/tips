@@ -165,13 +165,13 @@ function create-second-esp-entry () {
 	local -r ENTRY_LABEL="${DISTRIBUTOR} (Second EFI system partition)"
 	local -r DISK2_EFI_PART="${DISK2_EFI: -1}" && # A space is required before the minus sign.
 	local -r PATTERN="^Boot([0-9A-F]+)\* (.+)$" &&
-	efibootmgr | while read LINE; do
+	while read LINE; do
 		if [[ ${LINE} =~ $PATTERN ]]; then
 			if [[ "${ENTRY_LABEL}" == "${BASH_REMATCH[2]}" ]]; then
 				efibootmgr -b "${BASH_REMATCH[1]}" -B
 			fi
 		fi
-	done
+	done <<< efibootmgr
 
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi2 --removable --no-nvram

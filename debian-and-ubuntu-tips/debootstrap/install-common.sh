@@ -38,10 +38,10 @@ function diskpath-to-partitionpath () {
 }
 
 function get-partition-path () {
-	EFI=""
-	SWAP=""
-	ROOTFS=""
-	lsblk --output PATH,PARTTYPE --noheadings "${1}" | while read LINE; do
+	local EFI=""
+	local SWAP=""
+	local ROOTFS=""
+	while read LINE; do
 		set ${LINE}
 		local PATH="${1:-}"
 		local PARTTYPE="${2:-}"
@@ -52,8 +52,7 @@ function get-partition-path () {
 		elif [ "${PARTTYPE}" = "4f68bce3-e8cd-4db1-96e7-fbcaf984b709" ]; then
 			ROOTFS="${PATH}"
 		fi
-	done
-	echo "${EFI}"
+	done <<< "$(lsblk --output PATH,PARTTYPE --noheadings "${1}")"
 	echo -e "${EFI}\t${SWAP}\t${ROOTFS}"
 }
 
