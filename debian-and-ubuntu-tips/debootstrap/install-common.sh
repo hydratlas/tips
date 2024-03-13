@@ -38,9 +38,9 @@ function diskpath-to-partitionpath () {
 }
 
 function get-partition-path () {
-	local EFI=""
-	local SWAP=""
-	local ROOTFS=""
+	EFI=""
+	SWAP=""
+	ROOTFS=""
 	lsblk --output PATH,PARTTYPE --noheadings "${1}" | while read LINE; do
 		set ${LINE}
 		local PATH="${1:-}"
