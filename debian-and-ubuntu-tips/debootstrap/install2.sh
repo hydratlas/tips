@@ -177,7 +177,6 @@ function setup-network-manager () {
 	[main]
 	dns=systemd-resolved
 	EOS
-	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 
 	if ${MDNS}; then
 		local -r MDNS_STR="yes"
@@ -185,6 +184,8 @@ function setup-network-manager () {
 		local -r MDNS_STR="no"
 	fi
 	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+
+	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 }
 
 # Netplan
@@ -199,7 +200,6 @@ function setup-netplan () {
 		connection.mdns=2
 		EOS
 	fi
-	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 
 	local IS_WOL=false
 	if [ "off" != "${WOL}" ]; then
@@ -214,9 +214,10 @@ function setup-netplan () {
 	      match:
 	        name: en*
 	      dhcp4: true
-		  dhcp6: true
-		  wakeonlan: ${IS_WOL}
+	      dhcp6: true
+	      wakeonlan: ${IS_WOL}
 	EOS
+	chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/90-custom.yaml"
 
 	if ${MDNS}; then
 		local -r MDNS_STR="yes"
@@ -224,6 +225,11 @@ function setup-netplan () {
 		local -r MDNS_STR="no"
 	fi
 	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+
+	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
+	systemctl enable NetworkManager.service
+	netplan generate
+	EOS
 }
 
 # GRUB
