@@ -241,6 +241,9 @@ function setup-network-manager () {
 	fi
 
 	echo -e "[main]\ndns=systemd-resolved" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/dns.conf"
+	if ${MDNS}; then
+		echo -e "[connection]\nconnection.mdns=2" | tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/mdns.conf"
+	fi
 	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
 
 	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
