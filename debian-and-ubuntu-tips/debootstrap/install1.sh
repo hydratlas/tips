@@ -21,33 +21,25 @@ function install1 () {
 			-n "0::${2}" -t 0:ef00 \
 			-n "0::${3}" -t 0:8200 \
 			-n "0::"     -t 0:8304 "${1}"
+		mkswap "${1}1"
+		mkfs.vfat -F 32 "${1}2"
 	}
 	disk-partitioning "${DISK1_PATH}" "${EFI_END}" "${SWAP_END}"
 	if [ -e "${DISK2_PATH}" ]; then
 		disk-partitioning "${DISK2_PATH}" "${EFI_END}" "${SWAP_END}"
 	fi
 
-	diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
-
 	# Formatting
-	mkswap "${DISK1_SWAP}"
-	mkfs.vfat -F 32 "${DISK1_EFI}"
-	mkswap "${DISK1_SWAP}" # The UUID cannot be read without formatting it twice.
-	if [ -e "${DISK2_PATH}" ]; then
-		mkswap "${DISK2_SWAP}"
-		mkfs.vfat -F 32 "${DISK2_EFI}"
-		mkswap "${DISK2_SWAP}" # The UUID cannot be read without formatting it twice.
-	fi
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		if [ -e "${DISK2_PATH}" ]; then
-			mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_ROOTFS}" "${DISK2_ROOTFS}"
+			mkfs.btrfs -f -d raid1 -m raid1 "${DISK1_PATH}3" "${DISK2_PATH}3"
 		else
-			mkfs.btrfs -f "${DISK1_ROOTFS}"
+			mkfs.btrfs -f "${DISK1_PATH}3"
 		fi
 	elif [ "ext4" = "${ROOT_FILESYSTEM}" ]; then
-		mkfs.ext4 -F "${DISK1_ROOTFS}"
+		mkfs.ext4 -F "${DISK1_PATH}3"
 	elif [ "xfs" = "${ROOT_FILESYSTEM}" ]; then
-		mkfs.xfs -f "${DISK1_ROOTFS}"
+		mkfs.xfs -f "${DISK1_PATH}3"
 	fi
 
 	# Create Btrfs subvolumes
@@ -63,6 +55,9 @@ function install1 () {
 		btrfs subvolume list "${MOUNT_POINT}" # confirmation
 		umount "${MOUNT_POINT}"
 	fi
+
+	# Get Partition Path
+	diskpath-to-partitionpath "${DISK1_PATH}" "${DISK2_PATH}"
 
 	# Set UUIDs
 	get-filesystem-UUIDs
