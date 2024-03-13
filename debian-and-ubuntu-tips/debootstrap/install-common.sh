@@ -1,11 +1,11 @@
 #!/bin/bash -eu
 function diskname-to-diskpath () {
-	if [ -n "${1}" ]; then
+	if [ -n "${1:-}" ]; then
 		DISK1_PATH="/dev/${1}"
 	else
 		DISK1_PATH=""
 	fi
-	if [ -n "${2}" ]; then
+	if [ -n "${2:-}" ]; then
 		DISK2_PATH="/dev/${2}"
 	else
 		DISK2_PATH=""
@@ -13,24 +13,52 @@ function diskname-to-diskpath () {
 }
 
 function diskpath-to-partitionpath () {
-	if [ -e "${1}" ]; then
-		DISK1_EFI="${1}1"
-		DISK1_SWAP="${1}2"
-		DISK1_ROOTFS="${1}3"
+	local -r DISK1="${1:-}"
+	local -r DISK2="${2:-}"
+	if [ -e "${DISK1}" ]; then
+		local -r DISK1_INFO="$(get-partition-path "${DISK1}")"
+		DISK1_EFI="$(cut -f 1 <<< "${DISK1_INFO}")"
+		DISK1_SWAP="$(cut -f 2 <<< "${DISK1_INFO}")"
+		DISK1_ROOTFS="$(cut -f 3 <<< "${DISK1_INFO}")"
 	else
 		DISK1_EFI=""
 		DISK1_SWAP=""
 		DISK1_ROOTFS=""
 	fi
-	if [ -e "${2}" ]; then
-		DISK2_EFI="${2}1"
-		DISK2_SWAP="${2}2"
-		DISK2_ROOTFS="${2}3"
+	if [ -e "${DISK2}" ]; then
+		local -r DISK2_INFO="$(get-partition-path "${DISK2}")"
+		DISK2_EFI="$(cut -f 1 <<< "${DISK2_INFO}")"
+		DISK2_SWAP="$(cut -f 2 <<< "${DISK2_INFO}")"
+		DISK2_ROOTFS="$(cut -f 3 <<< "${DISK2_INFO}")"
 	else
 		DISK2_EFI=""
 		DISK2_SWAP=""
 		DISK2_ROOTFS=""
 	fi
+}
+
+function get-partition-path () {
+	local EFI=""
+	local SWAP=""
+	local ROOTFS=""
+	lsblk --output PATH,PARTTYPE --noheadings "${1}" | while read LINE; do
+		set ${LINE}
+		local PATH="${1}"
+		local PARTTYPE="${2}"
+		if [ "${PARTTYPE}" = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" ]; then
+			EFI="${PATH}"
+		elif [ "${PARTTYPE}" = "0657fd6d-a4ab-43c4-84e5-0933c84b4f4f" ]; then
+			SWAP="${PATH}"
+		elif [ "${PARTTYPE}" = "4f68bce3-e8cd-4db1-96e7-fbcaf984b709" ]; then
+			ROOTFS="${PATH}"
+		fi
+	done
+	echo -e "${EFI}\t${SWAP}\t${ROOTFS}"
+}
+
+# unused
+function partitionpath-to-fstype () {
+	lsblk --output FSTYPE --noheadings "${1}"
 }
 
 function get-fs-UUID () {

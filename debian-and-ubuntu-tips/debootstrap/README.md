@@ -132,8 +132,8 @@ sudo poweroff
 
 ### 再起動後に再度マウント
 ```
-cd tips/tips/debian-and-ubuntu-tips/debootstrap &&
-sudo bash -eux install-mount.sh <sdX> <sdX>
+cd tips/debian-and-ubuntu-tips/debootstrap &&
+sudo bash -eux install-mount.sh <config-path> <sdX> <sdX>
 ```
 
 ## その他、起動後の追加設定（オプション）
