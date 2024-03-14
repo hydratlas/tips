@@ -205,8 +205,8 @@ function setup-netplan () {
 
 		tee "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml" <<- EOS > /dev/null
 		network:
-		version: 2
-		renderer: NetworkManager
+		  version: 2
+		  renderer: NetworkManager
 		EOS
 		cat "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"  # confirmation
 		chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"
