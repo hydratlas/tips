@@ -11,13 +11,18 @@ VARIANT="minbase"
 # Packages
 MIRROR1="http://ftp.jp.debian.org/debian"
 KEYS=( \
-  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x790bc7277767219c42c86f933b4fe6acc0b21f32' \
-    # Ubuntu Archive Automatic Signing Key (2012)
-  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c' \
-    # Ubuntu Archive Automatic Signing Key (2018)
+  'https://ftp-master.debian.org/keys/release-10.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-10.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-10-security.asc' \
+  'https://ftp-master.debian.org/keys/release-11.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-11.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-11-security.asc' \
+  'https://ftp-master.debian.org/keys/release-12.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-12.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-12-security.asc' \
   )
-# SecurityTeam/FAQ - Ubuntu Wiki
-# https://wiki.ubuntu.com/SecurityTeam/FAQ
+# ftp-master.debian.org Archive Signing Keys
+# https://ftp-master.debian.org/keys.html
 
 # Base and Image
 INSTALLATION_PACKAGES_FOR_BASE+=()
