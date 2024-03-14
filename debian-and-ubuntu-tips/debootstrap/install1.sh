@@ -14,12 +14,16 @@ function install1 () {
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ${P}
 
 	# Keyring
+	if [ -f './debootstrap-key-temp.asc' ]; then
+		rm './debootstrap-key-temp.asc'
+	fi
 	if [ -f './debootstrap-keyring-temp.gpg' ]; then
 		rm './debootstrap-keyring-temp.gpg'
 	fi
 	for KEY in "${KEYS[@]}"; do
 		wget -O './debootstrap-key-temp.asc' "${KEY}"
 		gpg --no-default-keyring --keyring='./debootstrap-keyring-temp.gpg' --import './debootstrap-key-temp.asc'
+		rm './debootstrap-key-temp.asc'
 	done
 
 	# Partitioning
