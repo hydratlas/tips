@@ -13,19 +13,6 @@ function install1 () {
 	P="${P} gdisk util-linux wget efibootmgr arch-install-scripts"
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ${P}
 
-	# Keyring
-	if [ -f './debootstrap-key-temp.asc' ]; then
-		rm './debootstrap-key-temp.asc'
-	fi
-	if [ -f './debootstrap-keyring-temp.gpg' ]; then
-		rm './debootstrap-keyring-temp.gpg'
-	fi
-	for KEY in "${KEYS[@]}"; do
-		wget -O './debootstrap-key-temp.asc' "${KEY}"
-		gpg --no-default-keyring --keyring='./debootstrap-keyring-temp.gpg' --import './debootstrap-key-temp.asc'
-		rm './debootstrap-key-temp.asc'
-	done
-
 	# Partitioning
 	function disk-partitioning () {
 		wipefs --all "${1}"
@@ -137,18 +124,33 @@ function install-distribution () {
 		PACKAGES+=(xfsprogs)
 	fi
 
+	local KEY_FILE="/tmp/debootstrap-key.asc"
+	local KEYRING_FILE="/tmp/debootstrap-keyring.gpg"
+	# Keyring
+	if [ -f "${KEY_FILE}" ]; then
+		rm "${KEY_FILE}"
+	fi
+	if [ -f "${KEYRING_FILE}" ]; then
+		rm "${KEYRING_FILE}"
+	fi
+	for KEY in "${KEYS[@]}"; do
+		wget -O "${KEY_FILE}" "${KEY}"
+		gpg --no-default-keyring --keyring="${KEYRING_FILE}" --import "${KEY_FILE}"
+		rm "${KEY_FILE}"
+	done
+
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
-		mmdebstrap --skip=check/empty --keyring="./debootstrap-keyring-temp.gpg" \
+		mmdebstrap --skip=check/empty \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
-			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
+			"${SUITE}" "${MOUNT_POINT}" "deb [signed-by=${KEYRING_FILE}] ${MIRROR1} ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./debootstrap-keyring-temp.gpg" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${KEYRING_FILE}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		else
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./debootstrap-keyring-temp.gpg" --variant="${VARIANT}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${KEYRING_FILE}" --variant="${VARIANT}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
