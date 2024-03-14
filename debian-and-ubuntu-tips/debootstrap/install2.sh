@@ -121,35 +121,29 @@ function setup-ssh-server () {
 # systemd-networkd
 function setup-systemd-networkd () {
 	if ${MDNS}; then
-		local -r MDNS_STR="yes"
-	else
-		local -r MDNS_STR="no"
+		setup-mdns
 	fi
 
-	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
-
-	# Configure basic settings
-	tee "${MOUNT_POINT}/etc/systemd/network/20-wired.network" <<- EOS > /dev/null
+	# Configuration
+	tee "${MOUNT_POINT}/etc/systemd/network/10-dhcp-all.network" <<- EOS > /dev/null
 	[Match]
 	Name=en*
 
 	[Network]
 	DHCP=yes
-	MulticastDNS=${MDNS_STR}
 	EOS
-	cat "${MOUNT_POINT}/etc/systemd/network/20-wired.network" # confirmation
+	cat "${MOUNT_POINT}/etc/systemd/network/10-dhcp-all.network" # confirmation
 
-	# Configure Wake On LAN
-	tee "${MOUNT_POINT}/etc/systemd/network/50-wired.link" <<- EOS > /dev/null
-	[Match]
-	OriginalName=*
+	if [ "off" != "${WOL}" ]; then
+		tee "${MOUNT_POINT}/etc/systemd/network/10-wol-all.link" <<- EOS > /dev/null
+		[Match]
+		OriginalName=*
 
-	[Link]
-	WakeOnLan=${WOL}
-	EOS
-	cat "${MOUNT_POINT}/etc/systemd/network/50-wired.link" # confirmation
-
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+		[Link]
+		WakeOnLan=${WOL}
+		EOS
+		cat "${MOUNT_POINT}/etc/systemd/network/10-wol-all.link" # confirmation
+	fi
 
 	# If one interface can be connected, it will start without waiting.
 	mkdir -p "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d"
@@ -159,56 +153,68 @@ function setup-systemd-networkd () {
 	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
 	EOS
 	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
+
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
 }
 
 # NetworkManager
 function setup-network-manager () {
-	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" <<- EOS > /dev/null
-	[connection]
-	wifi.powersave=3
-	EOS
 	if ${MDNS}; then
-		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" <<- EOS > /dev/null
-		[connection]
-		connection.mdns=2
-		EOS
+		setup-mdns
 	fi
+
+	setup-network-manager-core
+
+	if [ "off" != "${WOL}" ]; then
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wol.conf" <<- EOS > /dev/null
+		[connection]
+		802-3-ethernet.wake-on-lan=${WOL}
+		EOS
+		cat "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wol.conf" # confirmation
+	fi
+
 	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-dns.conf" <<- EOS > /dev/null
 	[main]
 	dns=systemd-resolved
 	EOS
-
-	if ${MDNS}; then
-		local -r MDNS_STR="yes"
-	else
-		local -r MDNS_STR="no"
-	fi
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+	cat "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-dns.conf" # confirmation
 
 	arch-chroot "${MOUNT_POINT}" systemctl enable NetworkManager.service
+}
+function setup-network-manager-core () {
+	if [ ! -f "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" ]; then
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" <<- EOS > /dev/null
+		[connection]
+		wifi.powersave=3
+		EOS
+		cat "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" # confirmation
+	fi
 }
 
 # Netplan
 function setup-netplan () {
-	tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-wifi-powersave-on.conf" <<- EOS > /dev/null
-	[connection]
-	wifi.powersave=3
-	EOS
 	if ${MDNS}; then
-		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" <<- EOS > /dev/null
-		[connection]
-		connection.mdns=2
+		setup-mdns
+	fi
+
+	if [ -f "${MOUNT_POINT}/usr/bin/nmcli" ]; then
+		setup-network-manager-core
+
+		tee "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml" <<- EOS > /dev/null
+		network:
+		version: 2
+		renderer: NetworkManager
 		EOS
+		cat "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"  # confirmation
+		chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"
 	fi
 
 	local IS_WOL=false
 	if [ "off" != "${WOL}" ]; then
 		IS_WOL=true
 	fi
-	tee "${MOUNT_POINT}/etc/netplan/90-custom.yaml" <<- EOS > /dev/null
+	tee "${MOUNT_POINT}/etc/netplan/60-custom.yaml" <<- EOS > /dev/null
 	network:
-	  version: 2
-	  renderer: NetworkManager
 	  ethernets:
 	    eth0:
 	      match:
@@ -217,19 +223,42 @@ function setup-netplan () {
 	      dhcp6: true
 	      wakeonlan: ${IS_WOL}
 	EOS
-	chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/90-custom.yaml"
-
-	if ${MDNS}; then
-		local -r MDNS_STR="yes"
-	else
-		local -r MDNS_STR="no"
-	fi
-	perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+	chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/60-custom.yaml"
 
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	systemctl enable NetworkManager.service
 	netplan generate
 	EOS
+}
+
+function setup-mdns () {
+	if [ -d "${MOUNT_POINT}/etc/systemd/network" ]; then
+		tee "${MOUNT_POINT}/etc/systemd/network/10-mdns-all.network" <<- EOS > /dev/null
+		[Match]
+		Name=en*
+
+		[Network]
+		MulticastDNS=yes
+		EOS
+		cat "${MOUNT_POINT}/etc/systemd/network/10-mdns-all.network" # confirmation
+	fi
+
+	if [ -f "${MOUNT_POINT}/etc/systemd/resolved.conf" ]; then
+		if ${MDNS}; then
+			local -r MDNS_STR="yes"
+		else
+			local -r MDNS_STR="no"
+		fi
+		perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+	fi
+
+	if [ -d "${MOUNT_POINT}/etc/NetworkManager/conf.d" ]; then
+		tee "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" <<- EOS > /dev/null
+		[connection]
+		connection.mdns=2
+		EOS
+		cat "${MOUNT_POINT}/etc/NetworkManager/conf.d/default-mdns.conf" # confirmation
+	fi
 }
 
 # GRUB

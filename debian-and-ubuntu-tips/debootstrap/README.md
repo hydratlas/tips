@@ -4,7 +4,7 @@ debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.img�
 ## ツールのセットアップ
 ### ダウンロード
 ```
-DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends git &&
+DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y git &&
 cd ~/ &&
 if [ -d ./tips ]; then
   rm -drf ./tips
@@ -151,12 +151,12 @@ sudo systemctl restart console-setup.service
 ### パッケージのアップデート通知（Ubuntu）
 SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proを導入する際には必要であるが、導入しない際には広告としての側面が目障りである。
 ```
-sudo apt-get install -y --no-install-recommends update-notifier-common
+sudo apt-get install --no-install-recommends -y update-notifier-common
 ```
 
 ### 各種ツールのインストール
 ```
-sudo apt-get install -y --no-install-recommends \
+sudo apt-get install --no-install-recommends -y \
   bzip2 curl gdisk git make rsync wget \
   htop psmisc time
 ```
@@ -165,7 +165,7 @@ sudo apt-get install -y --no-install-recommends \
 - time: time
 
 ```
-sudo apt-get install -y --no-install-recommends \
+sudo apt-get install --no-install-recommends -y \
   lshw lsof mc moreutils
 ```
 - lshw: lshw
@@ -176,7 +176,7 @@ sudo apt-get install -y --no-install-recommends \
 ### NetworkManager関係（Debian）
 #### NetworkManagerに切り替える
 ```
-sudo apt-get install -y --no-install-recommends network-manager &&
+sudo apt-get install --no-install-recommends -y network-manager &&
 sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &&
 ls -alF /etc/NetworkManager/system-connections && # confirmation
 echo -e "[main]\ndns=systemd-resolved" | sudo tee /etc/NetworkManager/conf.d/dns.conf &&
@@ -196,12 +196,12 @@ sudo nmcli connection up "Wired connection 1"
 #### CockpitとNetworkManagerを連携させる
 ##### 通常版
 ```
-sudo apt-get install -y --no-install-recommends cockpit-networkmanager
+sudo apt-get install --no-install-recommends -y cockpit-networkmanager
 ```
 
 ##### バックポート版
 ```
-sudo apt-get install -y --no-install-recommends \
+sudo apt-get install --no-install-recommends -y \
   -t "$(lsb_release --short --codename)-backports" cockpit-networkmanager
 ```
 
@@ -211,7 +211,7 @@ KVM上でなぜかブートせず、動作を検証できていない。
 EFI_PATH="/boot/efi2" &&
 DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
 ROOT_UUID="$(findmnt --target / --output UUID --noheadings)" &&
-sudo apt-get install -y --no-install-recommends wget unzip efibootmgr &&
+sudo apt-get install --no-install-recommends -y wget unzip efibootmgr &&
 wget -O "refind.zip" https://sourceforge.net/projects/refind/files/latest/download &&
 unzip "refind.zip" -d refind &&
 cd refind/refind-bin-*/refind &&

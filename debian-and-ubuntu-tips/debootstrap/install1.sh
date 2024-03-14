@@ -11,7 +11,7 @@ function install1 () {
 		P="debootstrap"
 	fi
 	P="${P} ${ARCHIVE_KEYRING_PACKAGE} gdisk util-linux wget efibootmgr arch-install-scripts"
-	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${P}
+	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ${P}
 
 	# Partitioning
 	function disk-partitioning () {

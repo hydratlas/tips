@@ -54,6 +54,16 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
+## QEMUゲストエージェントをインストールする（QEMU＝仮想マシン）
+```
+apt-get install -y --no-install-recommends qemu-guest-agent
+```
+
+## sudoをパスワードなしで使えるようにする（テスト機のみ）
+```
+sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
+```
+
 ## aptの取得先にミラーを設定する
 ### Ubuntu
 #### Deb822-style Format
@@ -155,7 +165,7 @@ sudo apt-get update
 
 ## Flatpakをインストール（管理者）
 ```
-sudo apt-get install -y --no-install-recommends flatpak
+sudo apt-get install --no-install-recommends -y flatpak
 ```
 
 ## Flatpakでアプリケーションをインストール（ユーザー）
@@ -171,14 +181,14 @@ cockpit-pcpはメトリクスを収集・分析してくれるが、負荷がか
 
 #### 通常版
 ```
-sudo apt-get install -y --no-install-recommends \
+sudo apt-get install --no-install-recommends -y \
   cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-packagekit \
   cockpit-pcp
 ```
 
 #### バックポート版（新しい）
 ```
-sudo apt-get install -y --no-install-recommends -t "$(lsb_release --short --codename)-backports" \
+sudo apt-get install --no-install-recommends -y -t "$(lsb_release --short --codename)-backports" \
   cockpit cockpit-ws cockpit-system cockpit-storaged cockpit-packagekit \
   cockpit-pcp
 ```
