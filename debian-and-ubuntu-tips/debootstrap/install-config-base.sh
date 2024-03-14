@@ -25,7 +25,7 @@ INSTALLATION_PACKAGES=()
 
 # Firmware
 IS_FIRMWARE_INSTALLATION=true
-INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode fwupd thermald usb-modeswitch)
+INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode fwupd thermald usb-modeswitch bolt)
 
 # QEMU Guest
 IS_QEMU_GUEST_INSTALLATION=false
