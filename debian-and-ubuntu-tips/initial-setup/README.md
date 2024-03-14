@@ -96,7 +96,7 @@ EOS
 cat "/etc/apt/ubuntu-mirrors.txt" && # confirmation
 if [ -f "/etc/apt/sources.list" ]; then
   sudo rm -f "/etc/apt/sources.list"
-fi
+fi &&
 sudo apt-get update
 ```
 
@@ -145,7 +145,7 @@ EOS
 cat "/etc/apt/debian-mirrors.txt" && # confirmation
 if [ -f "/etc/apt/sources.list" ]; then
   sudo rm -f "/etc/apt/sources.list"
-fi
+fi &&
 sudo apt-get update
 ```
 
