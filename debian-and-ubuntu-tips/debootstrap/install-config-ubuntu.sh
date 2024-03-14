@@ -11,8 +11,10 @@ VARIANT="minbase"
 # Packages
 MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu"
 KEYS=( \
-  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x790bc7277767219c42c86f933b4fe6acc0b21f32' \ # Ubuntu Archive Automatic Signing Key (2012)
-  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c' \ # Ubuntu Archive Automatic Signing Key (2018)
+  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x790bc7277767219c42c86f933b4fe6acc0b21f32' \
+    # Ubuntu Archive Automatic Signing Key (2012)
+  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c' \
+    # Ubuntu Archive Automatic Signing Key (2018)
   )
 # SecurityTeam/FAQ - Ubuntu Wiki
 # https://wiki.ubuntu.com/SecurityTeam/FAQ
