@@ -1,4 +1,5 @@
 #!/bin/bash -eu
+SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
 source "${1}"
 readonly HOSTNAME="${2}"
 source ./install-common.sh
@@ -124,8 +125,8 @@ function install-distribution () {
 		PACKAGES+=(xfsprogs)
 	fi
 
-	local KEY_FILE="/tmp/debootstrap-key.asc"
-	local KEYRING_FILE="/tmp/debootstrap-keyring.gpg"
+	local KEY_FILE="${SCRIPT_DIR}/debootstrap-key.asc"
+	local KEYRING_FILE="${SCRIPT_DIR}/debootstrap-keyring.gpg"
 	# Keyring
 	if [ -f "${KEY_FILE}" ]; then
 		rm "${KEY_FILE}"
@@ -155,7 +156,7 @@ function install-distribution () {
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
 	fi
-	rm './debootstrap-keyring-temp.gpg'
+	rm "${KEYRING_FILE}"
 }
 function create-fstab () {
 	local FSTAB_ARRAY=()
