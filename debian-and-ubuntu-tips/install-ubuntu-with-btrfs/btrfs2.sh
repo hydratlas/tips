@@ -29,8 +29,7 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # アンマウント
-umount /target/boot/efi
-umount -l /target
+umount -R /target
 
 # マウント
 MOUNT_POINT="/mnt"
