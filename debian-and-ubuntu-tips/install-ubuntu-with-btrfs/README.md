@@ -5,7 +5,7 @@
 Try or Install Ubuntu Serverにフォーカスを当てて、Enterキーを押下する。
 
 ### Welcome!画面
-![02_welcome.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/122614/536f6e62-e55f-9736-d7c0-2c37774146cd.png)
+![](02_welcome.png)
 Englishにフォーカスを当てて、Enterキーを押下する。
 
 ### Keyboard configuration画面
