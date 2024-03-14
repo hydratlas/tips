@@ -35,7 +35,7 @@ INSTALLATION_PACKAGES_FOR_QEMU_GUEST=(qemu-guest-agent)
 IS_GNOME_INSTALLATION=false
 INSTALLATION_PACKAGES_FOR_GNOME=( \
   adwaita-icon-theme desktop-base gdm3 gnome-session gnome-shell at-spi2-core systemd-oomd \
-  gnome-keyring seahorse libpam-gnome-keyring policykit-desktop-privileges \
+  gnome-keyring seahorse libpam-gnome-keyring \
   gnome-control-center gnome-tweaks gnome-online-accounts gnome-shell-extension-manager \
   network-manager-gnome gnome-browser-connector \
   gnome-console nautilus webp-pixbuf-loader xdg-user-dirs-gtk \

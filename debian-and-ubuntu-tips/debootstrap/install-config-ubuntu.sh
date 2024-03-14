@@ -27,6 +27,9 @@ INSTALLATION_PACKAGES_FOR_IMAGE=(linux-generic)
 # Firmware
 INSTALLATION_PACKAGES_FOR_FIRMWARE+=(linux-firmware fwupd-signed)
 
+# GNOME
+INSTALLATION_PACKAGES_FOR_GNOME+=(policykit-desktop-privileges)
+
 # systemd-timesyncd
 FallbackNTP="ntp.ubuntu.com"
 
