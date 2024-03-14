@@ -11,8 +11,10 @@ VARIANT="minbase"
 # Packages
 MIRROR1="http://ftp.jp.debian.org/debian"
 KEYS=( \
+  'https://ftp-master.debian.org/keys/release-11.asc' \
   'https://ftp-master.debian.org/keys/archive-key-11.asc' \
   'https://ftp-master.debian.org/keys/archive-key-11-security.asc' \
+  'https://ftp-master.debian.org/keys/release-12.asc' \
   'https://ftp-master.debian.org/keys/archive-key-12.asc' \
   'https://ftp-master.debian.org/keys/archive-key-12-security.asc' \
   )
