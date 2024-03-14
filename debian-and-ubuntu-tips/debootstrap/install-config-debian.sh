@@ -10,8 +10,14 @@ VARIANT="minbase"
 
 # Packages
 MIRROR1="http://ftp.jp.debian.org/debian"
-ARCHIVE_KEYRING_PACKAGE="debian-archive-keyring"
-ARCHIVE_KEYRING="/usr/share/keyrings/debian-archive-keyring.gpg"
+KEYS=( \
+  'https://ftp-master.debian.org/keys/archive-key-11.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-11-security.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-12.asc' \
+  'https://ftp-master.debian.org/keys/archive-key-12-security.asc' \
+  )
+# ftp-master.debian.org Archive Signing Keys
+# https://ftp-master.debian.org/keys.html
 
 # Base and Image
 INSTALLATION_PACKAGES_FOR_BASE+=()

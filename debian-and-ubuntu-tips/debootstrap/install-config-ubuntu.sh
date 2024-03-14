@@ -10,8 +10,12 @@ VARIANT="minbase"
 
 # Packages
 MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu"
-ARCHIVE_KEYRING_PACKAGE="ubuntu-keyring"
-ARCHIVE_KEYRING="/usr/share/keyrings/ubuntu-archive-keyring.gpg"
+KEYS=( \
+  'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x790bc7277767219c42c86f933b4fe6acc0b21f32' \
+  'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c' \
+  )
+# SecurityTeam/FAQ - Ubuntu Wiki
+# https://wiki.ubuntu.com/SecurityTeam/FAQ
 
 # Base and Image
 INSTALLATION_PACKAGES_FOR_BASE+=(landscape-common)

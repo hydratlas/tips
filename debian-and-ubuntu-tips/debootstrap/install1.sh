@@ -10,8 +10,17 @@ function install1 () {
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		P="debootstrap"
 	fi
-	P="${P} ${ARCHIVE_KEYRING_PACKAGE} gdisk util-linux wget efibootmgr arch-install-scripts"
+	P="${P} gdisk util-linux wget efibootmgr arch-install-scripts"
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ${P}
+
+	# Keyring
+	if [ -f './keyring-temp.gpg' ]; then
+		rm './keyring-temp.gpg'
+	fi
+	for KEY in "${KEYS[@]}"; do
+		wget -O './key-temp.asc' "${KEY}"
+		gpg --no-default-keyring --keyring='./keyring-temp.gpg' --import './key-temp.asc'
+	done
 
 	# Partitioning
 	function disk-partitioning () {
@@ -125,21 +134,22 @@ function install-distribution () {
 	fi
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
-		mmdebstrap --skip=check/empty --keyring="${ARCHIVE_KEYRING}" \
+		mmdebstrap --skip=check/empty --keyring="./keyring-temp.gpg" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./keyring-temp.gpg" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		else
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="${ARCHIVE_KEYRING}" --variant="${VARIANT}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./keyring-temp.gpg" --variant="${VARIANT}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
 	fi
+	rm './keyring-temp.gpg'
 }
 function create-fstab () {
 	local FSTAB_ARRAY=()
