@@ -10,6 +10,7 @@ VARIANT="minbase"
 
 # Packages
 MIRROR1="http://ftp.jp.debian.org/debian"
+KEYRING_FILENAME="debian-archive-keyring.gpg"
 KEYS=( \
   'https://ftp-master.debian.org/keys/release-10.asc' \
   'https://ftp-master.debian.org/keys/archive-key-10.asc' \

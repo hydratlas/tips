@@ -126,7 +126,7 @@ function install-distribution () {
 	fi
 
 	local KEY_FILE="${SCRIPT_DIR}/debootstrap-key.asc"
-	local KEYRING_FILE="${SCRIPT_DIR}/debootstrap-keyring.gpg"
+	local KEYRING_FILE="/usr/local/share/${KEYRING_FILENAME}"
 	# Keyring
 	if [ -f "${KEY_FILE}" ]; then
 		rm "${KEY_FILE}"

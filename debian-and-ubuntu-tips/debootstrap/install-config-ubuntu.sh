@@ -10,6 +10,7 @@ VARIANT="minbase"
 
 # Packages
 MIRROR1="http://ftp.udx.icscoe.jp/Linux/ubuntu"
+KEYRING_FILENAME="ubuntu-archive-keyring.gpg"
 KEYS=( \
   'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x790bc7277767219c42c86f933b4fe6acc0b21f32' \
     # Ubuntu Archive Automatic Signing Key (2012)
