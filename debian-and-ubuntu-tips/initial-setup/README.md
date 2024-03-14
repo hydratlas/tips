@@ -54,6 +54,11 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
+## NTP (Network Time Protocol)の設定
+```
+sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.windows.com/g' '/etc/systemd/timesyncd.conf'
+```
+
 ## QEMUゲストエージェントをインストールする（QEMU＝仮想マシン）
 ```
 apt-get install -y --no-install-recommends qemu-guest-agent

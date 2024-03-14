@@ -124,6 +124,8 @@ function setup-systemd-networkd () {
 		setup-mdns
 	fi
 
+	setup-systemd-networkd-core
+
 	# Configuration
 	tee "${MOUNT_POINT}/etc/systemd/network/10-dhcp-all.network" <<- EOS > /dev/null
 	[Match]
@@ -145,6 +147,9 @@ function setup-systemd-networkd () {
 		cat "${MOUNT_POINT}/etc/systemd/network/10-wol-all.link" # confirmation
 	fi
 
+	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
+}
+function setup-systemd-networkd-core () {
 	# If one interface can be connected, it will start without waiting.
 	mkdir -p "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d"
 	tee "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" <<- EOS > /dev/null
@@ -153,8 +158,6 @@ function setup-systemd-networkd () {
 	ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any
 	EOS
 	cat "${MOUNT_POINT}/etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf" # confirmation
-
-	arch-chroot "${MOUNT_POINT}" systemctl enable systemd-networkd.service
 }
 
 # NetworkManager
@@ -207,6 +210,8 @@ function setup-netplan () {
 		EOS
 		cat "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"  # confirmation
 		chmod u=rw,go= "${MOUNT_POINT}/etc/netplan/01-network-manager-all.yaml"
+	else
+		setup-systemd-networkd-core
 	fi
 
 	local IS_WOL=false
