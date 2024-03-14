@@ -14,7 +14,7 @@ CACHE_DIR="/tmp/debootstrap"
 
 # Base and Image
 INSTALLATION_PACKAGES_FOR_BASE=( \
-  init initramfs-tools zstd libpam-systemd systemd-timesyncd \
+  init initramfs-tools zstd irqbalance libpam-systemd systemd-timesyncd \
   apt console-setup locales tzdata keyboard-configuration \
   logrotate sudo unattended-upgrades needrestart \
   dmidecode efibootmgr iproute2 iputils-ping lsb-release pci.ids pciutils usb.ids usbutils \
@@ -25,7 +25,7 @@ INSTALLATION_PACKAGES=()
 
 # Firmware
 IS_FIRMWARE_INSTALLATION=true
-INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode fwupd)
+INSTALLATION_PACKAGES_FOR_FIRMWARE=(intel-microcode amd64-microcode fwupd thermald usb-modeswitch)
 
 # QEMU Guest
 IS_QEMU_GUEST_INSTALLATION=false
@@ -34,16 +34,17 @@ INSTALLATION_PACKAGES_FOR_QEMU_GUEST=(qemu-guest-agent)
 # GNOME
 IS_GNOME_INSTALLATION=false
 INSTALLATION_PACKAGES_FOR_GNOME=( \
-  adwaita-icon-theme desktop-base gdm3 gnome-session gnome-shell \
-  gnome-keyring seahorse libpam-gnome-keyring \
+  adwaita-icon-theme desktop-base gdm3 gnome-session gnome-shell at-spi2-core systemd-oomd \
+  gnome-keyring seahorse libpam-gnome-keyring policykit-desktop-privileges \
   gnome-control-center gnome-tweaks gnome-online-accounts gnome-shell-extension-manager \
   network-manager-gnome gnome-browser-connector \
   gnome-console nautilus webp-pixbuf-loader xdg-user-dirs-gtk \
+  orca \
   gnome-software flatpak gnome-software-plugin-flatpak \
   gnome-system-monitor gnome-firmware power-profiles-daemon \
   gnome-bluetooth-3-common bluez bluez-obexd \
-  pipewire-audio rtkit sound-theme-freedesktop \
-  system-config-printer-udev system-config-printer-common cups cups-pk-helper printer-driver-cups-pdf printer-driver-all-enforce  \
+  pipewire-audio pipewire-libcamera rtkit sound-theme-freedesktop \
+  system-config-printer-udev system-config-printer-common cups cups-pk-helper printer-driver-cups-pdf printer-driver-all-enforce openprinting-ppdsopenprinting-ppds \
 )
 
 # systemd-timesyncd
