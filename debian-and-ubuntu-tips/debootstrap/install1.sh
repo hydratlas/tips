@@ -144,6 +144,7 @@ function install-distribution () {
 		mmdebstrap --skip=check/empty \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "deb [signed-by=${KEYRING_FILE}] ${MIRROR1} ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")"
+		tee "${MOUNT_POINT}/etc/apt/sources.list" <<< "deb ${MIRROR1} ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
