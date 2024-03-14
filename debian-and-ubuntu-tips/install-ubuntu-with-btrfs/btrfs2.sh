@@ -1,11 +1,15 @@
 #!/bin/bash -eu
 
 # ディスク
-DISK1="/dev/$1"
-DISK2="/dev/$2"
+DISK1="/dev/${1}"
+if [ -n "${2:-}" ]; then
+  DISK2="/dev/${2}"
+else
+  DISK2=""
+fi
 
 # Btrfsオプション
-BTRFS_OPTIONS="ssd,noatime,discard=async,compress=zstd:1,degraded"
+BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 
 # パーティション
 EFI1_PART="${DISK1}1"
@@ -19,64 +23,71 @@ ROOTFS2_PART="${DISK2}3"
 EFI1_UUID="$(lsblk -dno UUID $EFI1_PART)"
 SWAP1_UUID="$(lsblk -dno UUID $SWAP1_PART)"
 ROOTFS_UUID="$(lsblk -dno UUID $ROOTFS1_PART)"
-EFI2_UUID="$(lsblk -dno UUID $EFI2_PART)"
-SWAP2_UUID="$(lsblk -dno UUID $SWAP2_PART)"
+if [ -e "${DISK2}" ]; then
+  EFI2_UUID="$(lsblk -dno UUID $EFI2_PART)"
+  SWAP2_UUID="$(lsblk -dno UUID $SWAP2_PART)"
+fi
 
 # アンマウント
-sudo umount /target/boot/efi
-sudo umount -l /target
+umount /target/boot/efi
+umount -l /target
 
 # マウント
-sudo mount "/dev/disk/by-uuid/$ROOTFS_UUID" -o "$BTRFS_OPTIONS" /mnt
-cd /mnt
+MOUNT_POINT="/mnt"
+mount "/dev/disk/by-uuid/$ROOTFS_UUID" -o "$BTRFS_OPTIONS" "${MOUNT_POINT}"
+cd "${MOUNT_POINT}"
 
 # 圧縮
-sudo btrfs filesystem defragment -r -czstd .
+btrfs filesystem defragment -r -czstd .
 
 # 各サブボリュームを作成
-sudo btrfs subvolume snapshot . @
-sudo btrfs subvolume create @home
-sudo btrfs subvolume create @root
-sudo btrfs subvolume create @var_log
-sudo btrfs subvolume create @snapshots
+btrfs subvolume snapshot . @
+btrfs subvolume create @home
+btrfs subvolume create @root
+btrfs subvolume create @var_log
+btrfs subvolume create @snapshots
 
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
-sudo btrfs subvolume set-default @
+btrfs subvolume set-default @
 
 # 作成したサブボリュームにファイルをコピー
-sudo cp -RT --reflink=always home/ @home/
-sudo cp -RT --reflink=always root/ @root/
-sudo cp -RT --reflink=always var/log/ @var_log/
+cp -RT --reflink=always home/ @home/
+cp -RT --reflink=always root/ @root/
+cp -RT --reflink=always var/log/ @var_log/
 
 # ルートボリュームからファイルを削除
-sudo find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
+find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
 
 # @サブボリュームから別のサブボリュームと重複するファイルを削除
-sudo find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-sudo find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-sudo find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
 # RAID1化
-sudo btrfs device add -f "$ROOTFS2_PART" .
-sudo btrfs balance start -mconvert=raid1 -dconvert=raid1 .
+if [ -e "${DISK2}" ]; then
+  btrfs device add -f "$ROOTFS2_PART" .
+  btrfs balance start -mconvert=raid1 -dconvert=raid1 .
+fi
+#btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / # 1台で運用した後に修復する場合
 
-#sudo btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / # 1台で運用した後に修復する場合
-
-# fstabでBtrfsファイルシステムのマウントを次のように編集（「Ctrl + K」で行カット、「Ctrl + U」で行ペースト）
-sudo tee @/etc/fstab << EOF >/dev/null
-/dev/disk/by-uuid/$EFI1_UUID /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/$EFI2_UUID /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/$ROOTFS_UUID / btrfs defaults,subvol=@,$BTRFS_OPTIONS 0 0
-/dev/disk/by-uuid/$ROOTFS_UUID /home btrfs defaults,subvol=@home,$BTRFS_OPTIONS 0 0
-/dev/disk/by-uuid/$ROOTFS_UUID /root btrfs defaults,subvol=@root,$BTRFS_OPTIONS 0 0
-/dev/disk/by-uuid/$ROOTFS_UUID /var/log btrfs defaults,subvol=@var_log,$BTRFS_OPTIONS 0 0
-/dev/disk/by-uuid/$ROOTFS_UUID /.snapshots btrfs defaults,subvol=@snapshots,$BTRFS_OPTIONS 0 0
-/dev/disk/by-uuid/$SWAP1_UUID none swap sw,nofail,x-systemd.device-timeout=5 0 0
-/dev/disk/by-uuid/$SWAP2_UUID none swap sw,nofail,x-systemd.device-timeout=5 0 0
-EOF
+# fstabを作成
+FSTAB_ARRAY=()
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$ROOTFS_UUID / btrfs defaults,subvol=@,$BTRFS_OPTIONS 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$ROOTFS_UUID /home btrfs defaults,subvol=@home,$BTRFS_OPTIONS 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$ROOTFS_UUID /root btrfs defaults,subvol=@root,$BTRFS_OPTIONS 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$ROOTFS_UUID /var/log btrfs defaults,subvol=@var_log,$BTRFS_OPTIONS 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$ROOTFS_UUID /.snapshots btrfs defaults,subvol=@snapshots,$BTRFS_OPTIONS 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$EFI1_UUID /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0")
+FSTAB_ARRAY+=("/dev/disk/by-uuid/$SWAP1_UUID none swap sw,nofail,x-systemd.device-timeout=5 0 0")
+if [ -e "${DISK2}" ]; then
+  FSTAB_ARRAY+=("/dev/disk/by-uuid/$EFI2_UUID /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0")
+  FSTAB_ARRAY+=("/dev/disk/by-uuid/$SWAP2_UUID none swap sw,nofail,x-systemd.device-timeout=5 0 0")
+fi
+printf -v FSTAB_STR "%s\n" "${FSTAB_ARRAY[@]}"
+tee @/etc/fstab <<< "$FSTAB_STR" > /dev/null
 
 # GRUB設定の変更
-sudo tee @/etc/grub.d/19_linux_rootflags_degraded << EOF >/dev/null
+tee @/etc/grub.d/19_linux_rootflags_degraded << EOF > /dev/null
 #!/bin/sh
 . "\$pkgdatadir/grub-mkconfig_lib"
 TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
@@ -89,20 +100,24 @@ menuentry '\$TITLE' {
 EOS
 EOF
 
-sudo chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
+chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
 
 # いったんアンマウント
-cd ../
-sudo umount -l /mnt
+cd /
+umount -l "${MOUNT_POINT}"
 
 # マウント
-sudo mount "$ROOTFS1_PART" -o "subvol=@,$BTRFS_OPTIONS" /mnt
-sudo mount "$ROOTFS1_PART" -o "subvol=@var_log,$BTRFS_OPTIONS" /mnt/var/log
-sudo mount "$EFI1_PART" /mnt/boot/efi
-sudo mkdir /mnt/boot/efi2
-sudo mount "$EFI2_PART" /mnt/boot/efi2
+mount "$ROOTFS1_PART" -o "subvol=@,$BTRFS_OPTIONS" "${MOUNT_POINT}"
+mount "$ROOTFS1_PART" -o "subvol=@var_log,$BTRFS_OPTIONS" "${MOUNT_POINT}/var/log"
+mount "$EFI1_PART" "${MOUNT_POINT}/boot/efi"
+if [ -e "${DISK2}" ]; then
+  mkdir "${MOUNT_POINT}/boot/efi2"
+  mount "$EFI2_PART" "${MOUNT_POINT}/boot/efi2"
+fi
 
 # GRUB・ESPを更新
-sudo apt-get install -y arch-install-scripts
-sudo arch-chroot /mnt update-grub
-sudo arch-chroot /mnt dpkg-reconfigure --frontend noninteractive shim-signed
+DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y arch-install-scripts
+arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
+update-grub
+dpkg-reconfigure --frontend noninteractive shim-signed
+EOS

@@ -128,10 +128,3 @@ sudo bash -eux btrfs2.sh sdX sdX
 sudo poweroff
 ```
 終わったら再起動する。
-
-## インストール後に起動してからの設定
-### 【オプション】mDNSのインストール
-LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。
-```
-sudo apt-get install -y avahi-daemon
-```

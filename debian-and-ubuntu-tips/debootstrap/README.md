@@ -193,18 +193,6 @@ sudo nmcli connection modify "Wired connection 1" connection.mdns 2
 sudo nmcli connection up "Wired connection 1"
 ```
 
-#### CockpitとNetworkManagerを連携させる
-##### 通常版
-```
-sudo apt-get install --no-install-recommends -y cockpit-networkmanager
-```
-
-##### バックポート版
-```
-sudo apt-get install --no-install-recommends -y \
-  -t "$(lsb_release --short --codename)-backports" cockpit-networkmanager
-```
-
 ### 2つ目のEFIシステムパーティションにブートローダー（rEFInd）をインストール（Debian）（未検証）
 KVM上でなぜかブートせず、動作を検証できていない。
 ```
