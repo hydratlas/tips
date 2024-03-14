@@ -141,12 +141,9 @@ function install-distribution () {
 	done
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
-		mmdebstrap --skip=check/empty --keyring="${KEYRING_FILE}" \
+		mmdebstrap --skip=check/empty \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
-			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
-		#mmdebstrap --skip=check/empty \
-		#	--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
-		#	"${SUITE}" "${MOUNT_POINT}" "deb [signed-by=${KEYRING_FILE}] ${MIRROR1} ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")"
+			"${SUITE}" "${MOUNT_POINT}" "deb [signed-by=${KEYRING_FILE}] ${MIRROR1} ${SUITE} $(IFS=" "; echo "${COMPONENTS[*]}")"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
