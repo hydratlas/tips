@@ -14,12 +14,12 @@ function install1 () {
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ${P}
 
 	# Keyring
-	if [ -f './keyring-temp.gpg' ]; then
-		rm './keyring-temp.gpg'
+	if [ -f './debootstrap-keyring-temp.gpg' ]; then
+		rm './debootstrap-keyring-temp.gpg'
 	fi
 	for KEY in "${KEYS[@]}"; do
-		wget -O './key-temp.asc' "${KEY}"
-		gpg --no-default-keyring --keyring='./keyring-temp.gpg' --import './key-temp.asc'
+		wget -O './debootstrap-key-temp.asc' "${KEY}"
+		gpg --no-default-keyring --keyring='./debootstrap-keyring-temp.gpg' --import './debootstrap-key-temp.asc'
 	done
 
 	# Partitioning
@@ -134,22 +134,22 @@ function install-distribution () {
 	fi
 
 	if [ "mmdebstrap" = "${INSTALLER}" ]; then
-		mmdebstrap --skip=check/empty --keyring="./keyring-temp.gpg" \
+		mmdebstrap --skip=check/empty --keyring="./debootstrap-keyring-temp.gpg" \
 			--components="$(IFS=","; echo "${COMPONENTS[*]}")" --variant="${VARIANT}" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 			"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 	elif [ "debootstrap" = "${INSTALLER}" ]; then
 		mkdir -p "${CACHE_DIR}"
 		if [ "standard" = "${VARIANT}" ]; then
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./keyring-temp.gpg" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./debootstrap-keyring-temp.gpg" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		else
-			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./keyring-temp.gpg" --variant="${VARIANT}" \
+			debootstrap --cache-dir="${CACHE_DIR}" --keyring="./debootstrap-keyring-temp.gpg" --variant="${VARIANT}" \
 				--components="$(IFS=","; echo "${COMPONENTS[*]}")" --include="$(IFS=","; echo "${PACKAGES[*]}")" \
 				"${SUITE}" "${MOUNT_POINT}" "${MIRROR1}"
 		fi
 	fi
-	rm './keyring-temp.gpg'
+	rm './debootstrap-keyring-temp.gpg'
 }
 function create-fstab () {
 	local FSTAB_ARRAY=()
