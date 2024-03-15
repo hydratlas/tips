@@ -287,7 +287,7 @@ function setup-grub-on-ubuntu () {
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
 	update-grub
-	echo "grub-efi grub-efi/install_devices multiselect ${ESPs}" | debconf-set-selections
+	debconf-set-selections <<< "grub-common grub-efi/install_devices multiselect ${ESPs}"
 	dpkg-reconfigure --frontend noninteractive shim-signed
 	update-grub
 	EOS
@@ -302,7 +302,7 @@ function setup-grub-on-debian () {
 	arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- <<- EOS
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --no-nvram
 	update-grub
-	echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections
+	debconf-set-selections <<< "grub-efi-amd64 grub2/force_efi_extra_removable boolean true"
 	dpkg-reconfigure --frontend noninteractive grub-efi-amd64
 	update-grub
 	EOS

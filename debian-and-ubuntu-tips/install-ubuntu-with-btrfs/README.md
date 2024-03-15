@@ -20,8 +20,8 @@ Layout、VariantともにJapaneseを選択したうえで、Doneにフォーカ�
 以下のようにスクリプトによってインストール先のストレージ2台をフォーマットする。
 ```
 sudo apt install git
-git clone --depth=1 git@github.com:hydratlas/tips.git
-cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
+git clone --depth=1 https://github.com/hydratlas/tips
+cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
 lsblk -f -e 7
 ```
@@ -116,8 +116,8 @@ SSHキーを確認してから、Yesにフォーカスを当ててEnterキーを
 以下のようにスクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。
 ```
 sudo apt install git
-git clone --depth=1 git@github.com:hydratlas/tips.git
-cd debian-and-ubuntu-tips/install-ubuntu-with-btrfs
+git clone --depth=1 https://github.com/hydratlas/tips
+cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
 lsblk -f -e 7
 ```
