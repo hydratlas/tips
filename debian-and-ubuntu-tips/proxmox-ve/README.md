@@ -32,11 +32,6 @@ EOF
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
 ```
 
-## CT作成
-Proxmox VEのストレージ（local）画面で、CTテンプレートの「テンプレート」ボタンからダウンロード。バージョン違いは[http://download.proxmox.com/images/system/](http://download.proxmox.com/images/system/)にある。
-
-Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
-
 ## VM作成
 ### イメージをダウンロード
 Proxmox VEのストレージ（local）画面でイメージをダウンロードする。
@@ -111,3 +106,71 @@ qm template "$VMID"
 ## ノード削除
 Proxmox VE Administration Guide
 https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_remove_a_cluster_node
+
+## CT作成（UbuntuまたはDebian）
+### 一般
+Proxmox VEのストレージ（local）画面で、CTテンプレートの「テンプレート」ボタンからダウンロード。バージョン違いは[http://download.proxmox.com/images/system/](http://download.proxmox.com/images/system/)にある。
+
+Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
+
+### 初期設定
+```
+apt-get update &&
+apt-get dist-upgrade &&
+apt-get install -y --no-install-recommends avahi-daemon &&
+timedatectl set-timezone Asia/Tokyo &&
+dpkg-reconfigure --frontend noninteractive tzdata &&
+systemctl disable --now systemd-timesyncd.service
+```
+
+### Podmanをインストール
+```
+apt-get install -y podman &&
+apt-get install --no-install-recommends -y podman-docker &&
+perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
+touch /etc/containers/nodocker &&
+tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
+#!/bin/sh
+exec /bin/mount -t overlay overlay "\$@"
+EOS
+chmod a+x /usr/local/bin/overlayzfsmount &&
+tee /etc/containers/storage.conf << EOS > /dev/null &&
+[storage]
+driver = "overlay"
+runroot = "/run/containers/storage"
+graphroot = "/var/lib/containers/storage"
+
+[storage.options]
+pull_options = {enable_partial_images = "false", use_hard_links = "false", ostree_repos=""}
+mount_program = "/usr/local/bin/overlayzfsmount"
+
+[storage.options.overlay]
+mountopt = "nodev"
+EOS
+systemctl restart podman.service
+```
+
+### Podmanをテスト実行
+```
+docker run hello-world
+```
+
+### PodmanにPortainerをインストール
+```
+docker volume create portainer_data &&
+docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data portainer/portainer-ce:latest
+
+# https://localhost:9443
+```
+
+### 新しいPodmanを使う（うまく動かない）
+```
+apt-get install --no-install-recommends -y gpg &&
+source /etc/os-release &&
+wget http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_$VERSION_ID/Release.key -O alvistack_key &&
+cat alvistack_key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/alvistack.gpg  >/dev/null &&
+echo "deb http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_$VERSION_ID/ /" | tee /etc/apt/sources.list.d/alvistack.list &&
+rm alvistack_key
+```
