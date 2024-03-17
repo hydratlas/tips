@@ -8,7 +8,7 @@ sudo systemctl restart systemd-logind.service
 ## SSHサーバーのインストールと設定（管理者）
 ```
 sudo apt-get install --no-install-recommends -y openssh-server &&
-sudo tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/20-local.conf" << EOS > /dev/null
+sudo tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/90-local.conf" << EOS > /dev/null
 PasswordAuthentication no
 PermitRootLogin no
 EOS
@@ -70,12 +70,17 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
 ## systemd-timesyncdによるNTP (Network Time Protocol)の設定（管理者）
+### 状況確認
+```
+systemctl status systemd-timesyncd.service
+```
+
 ### NTPサーバーを最適化する（一般）
 ```
 sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.windows.com/g' '/etc/systemd/timesyncd.conf'
 ```
 
-### systemd-timesyncdを無効にする（仮想マシンゲスト）
+### 無効にする（仮想マシンゲスト）
 ```
 sudo systemctl disable --now systemd-timesyncd.service
 ```
@@ -84,6 +89,11 @@ sudo systemctl disable --now systemd-timesyncd.service
 QEMU＝仮想マシン。
 ```
 sudo apt-get install -y --no-install-recommends qemu-guest-agent
+```
+
+## Nanoをインストールする（管理者）
+```
+sudo apt-get install -y --no-install-recommends nano
 ```
 
 ## sudoをパスワードなしで使えるようにする（管理者）
