@@ -147,7 +147,7 @@ mount_program = "/usr/local/bin/overlayzfsmount"
 [storage.options.overlay]
 mountopt = "nodev"
 EOS
-systemctl restart podman.service
+reboot
 ```
 
 ### Podmanをテスト実行
