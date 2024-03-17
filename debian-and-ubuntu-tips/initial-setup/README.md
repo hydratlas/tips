@@ -77,7 +77,7 @@ sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.
 ## QEMUゲストエージェントをインストールする（管理者）
 QEMU＝仮想マシン。
 ```
-apt-get install -y --no-install-recommends qemu-guest-agent
+sudo apt-get install -y --no-install-recommends qemu-guest-agent
 ```
 
 ## sudoをパスワードなしで使えるようにする（管理者）
