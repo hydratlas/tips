@@ -18,7 +18,7 @@ EOS
 ## mDNSのインストール（管理者）
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。mDNSがインストールされていない場合は以下でインストールできる。
 ```
-sudo apt-get install -y avahi-daemon
+sudo apt-get install -y --no-install-recommends avahi-daemon
 ```
 
 ## キーボード配列を日本語109にする（管理者）
@@ -69,9 +69,15 @@ echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
-## NTP (Network Time Protocol)の設定（管理者）
+## systemd-timesyncdによるNTP (Network Time Protocol)の設定（管理者）
+### NTPサーバーを最適化する（一般）
 ```
 sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.windows.com/g' '/etc/systemd/timesyncd.conf'
+```
+
+### systemd-timesyncdを無効にする（仮想マシンゲスト）
+```
+sudo systemctl disable --now systemd-timesyncd.service
 ```
 
 ## QEMUゲストエージェントをインストールする（管理者）
