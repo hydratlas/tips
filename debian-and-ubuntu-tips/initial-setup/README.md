@@ -102,6 +102,13 @@ sudo apt-get install -y --no-install-recommends nano
 sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 ```
 
+## SSHキーを生成（ユーザー）
+```
+ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa"
+ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa"
+ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
+```
+
 ## Flatpakをインストール（管理者）
 ```
 sudo apt-get install --no-install-recommends -y flatpak
@@ -114,9 +121,34 @@ flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/fl
 flatpak install flathub org.gnome.TextEditor
 ```
 
-## SSHキーを生成（ユーザー）
-```
-ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa"
-ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa"
-ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
-```
+## GUIアプリケーションのインストール
+|Deb (Debian/Ubuntu)|Flathub|Snapcraft|
+|:----|:----|:----|
+|baobab|org.gnome.baobab| |
+|celluloid|io.github.celluloid_player.Celluloid|celluloid|
+|deja-dup|org.gnome.DejaDup| |
+|evince|org.gnome.Evince|evince|
+|font-viewer|org.gnome.font-viewer| |
+|gimp|org.gimp.GIMP|gimp|
+|gnome-calculator|org.gnome.Calculator|gnome-calculator|
+|gnome-characters|org.gnome.Characters|gnome-characters|
+|gnome-clocks|org.gnome.clocks|gnome-clocks|
+|gnome-logs|org.gnome.Logs| |
+|gnome-text-editor|org.gnome.TextEditor| |
+|inkscape|org.inkscape.Inkscape|inkscape|
+|libreoffice|org.libreoffice.LibreOffice|libreoffice|
+|loupe|org.gnome.Loupe|loupe|
+|meld|org.gnome.meld| |
+|nemo-fileroller|org.gnome.FileRoller| |
+|photoqt|org.photoqt.PhotoQt| |
+|simple-scan|org.gnome.SimpleScan| |
+|transmission|com.transmissionbt.Transmission|transmission|
+|vlc|org.videolan.VLC|vlc|
+| |com.discordapp.Discord|discord|
+| |com.github.Eloston.UngoogledChromium|chromium|
+| |com.vscodium.codium|codium|
+| |io.dbeaver.DBeaverCommunity|dbeaver-ce|
+| |md.obsidian.Obsidian|obsidian|
+| |org.mozilla.firefox|firefox|
+| |org.zotero.Zotero|zotero-snap|
+| |us.zoom.Zoom|zoom-client|

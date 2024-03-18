@@ -113,13 +113,35 @@ Proxmox VEのストレージ（local）画面で、CTテンプレートの「テ
 
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
-### 初期設定
+### 初期設定（Debian12）
 ```
-apt-get update &&
-apt-get dist-upgrade &&
-apt-get install -y --no-install-recommends avahi-daemon &&
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
+apt-get update &&
+apt-get dist-upgrade -y &&
+apt-get install --no-install-recommends -y avahi-daemon libnss-mdns lsb-release &&
+tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
+Types: deb
+URIs: mirror+file:/etc/apt/debian-mirrors.txt
+Suites: $(lsb_release --short --codename) $(lsb_release --short --codename)-updates $(lsb_release --short --codename)-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: http://security.debian.org/debian-security
+Suites: $(lsb_release --short --codename)-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOS
+tee "/etc/apt/debian-mirrors.txt" <<- EOS > /dev/null &&
+http://ftp.jp.debian.org/debian	priority:1
+https://debian-mirror.sakura.ne.jp/debian	priority:2
+http://cdn.debian.or.jp/debian
+EOS
+if [ -f "/etc/apt/sources.list" ]; then
+  rm -f "/etc/apt/sources.list"
+fi &&
+apt-get update &&
 systemctl disable --now systemd-timesyncd.service
 ```
 
@@ -149,6 +171,8 @@ mountopt = "nodev"
 EOS
 reboot
 ```
+- [storage.conf mishandling with zfs storage driver · Issue #20324 · containers/podman](https://github.com/containers/podman/issues/20324)
+- [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 
 ### Podmanをテスト実行
 ```
@@ -161,6 +185,14 @@ docker volume create portainer_data &&
 docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v portainer_data:/data portainer/portainer-ce:latest
+
+docker run -d \
+  -p 9001:9001 \
+  --name portainer_agent \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
+  portainer/agent
 
 # https://localhost:9443
 ```
