@@ -40,6 +40,26 @@ Ubuntuの場合は、[Ubuntu Cloud Images - the official Ubuntu images for publi
 
 Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images/cloud/)からダウンロードする。拡張子が.qcow2のものをダウンロードするが、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする。ダウンロードするファイルの例：[https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2](https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2)
 
+### イメージのカスタマイズ
+適宜変更して使用する。
+
+#### Ubuntu 23.10の場合
+```
+BASE_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64.img" &&
+CUSTOM_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64-custom.img" &&
+apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
+cd /var/lib/vz/template/iso &&
+cp "${BASE_IMAGE}" "${CUSTOM_IMAGE}" &&
+virt-customize -a "${CUSTOM_IMAGE}" \
+  --install qemu-guest-agent,avahi-daemon,libnss-mdns,bash-completion,nano \
+  --timezone Asia/Tokyo \
+  --write '/etc/ssh/ssh_config.d/90-local.conf:
+PasswordAuthentication no
+PermitRootLogin no' \
+  --run-command 'systemctl disable systemd-timesyncd.service' &&
+virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
+```
+
 ### テンプレートの作成
 適宜変更して使用する。
 
@@ -51,8 +71,8 @@ PASSWORD="$(openssl passwd -6 "<password>")" &&
 KEY_URI=https://github.com/<name>.keys &&
 KEY_FILE="$(mktemp)" && wget -O "$KEY_FILE" "$KEY_URI" &&
 qm create "$VMID" \
-  --name ubuntu-23.10-minimal \
-  --virtio0 local-zfs:0,import-from=/var/lib/vz/template/iso/ubuntu-23.10-minimal-cloudimg-amd64.img \
+  --name ubuntu-23.10-minimal-custom \
+  --virtio0 local-zfs:0,import-from=/var/lib/vz/template/iso/ubuntu-23.10-minimal-cloudimg-amd64-custom.img \
   --memory 2048 \
   --cores 2 \
   --cpu x86-64-v3 \
@@ -113,7 +133,7 @@ Proxmox VEのストレージ（local）画面で、CTテンプレートの「テ
 
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
-### 初期設定（Debian12）
+### 初期設定（Debian 12）
 ```
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&

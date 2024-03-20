@@ -18,7 +18,7 @@ EOS
 ## mDNSのインストール（管理者）
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。mDNSがインストールされていない場合は以下でインストールできる。
 ```
-sudo apt-get install -y --no-install-recommends avahi-daemon
+sudo apt-get install --no-install-recommends -y avahi-daemon
 ```
 
 ## キーボード配列を日本語109にする（管理者）
@@ -88,12 +88,12 @@ sudo systemctl disable --now systemd-timesyncd.service
 ## QEMUゲストエージェントをインストールする（管理者）
 QEMU＝仮想マシン。
 ```
-sudo apt-get install -y --no-install-recommends qemu-guest-agent
+sudo apt-get install --no-install-recommends -y qemu-guest-agent
 ```
 
 ## Nanoをインストールする（管理者）
 ```
-sudo apt-get install -y --no-install-recommends nano
+sudo apt-get install --no-install-recommends -y nano
 ```
 
 ## sudoをパスワードなしで使えるようにする（管理者）
