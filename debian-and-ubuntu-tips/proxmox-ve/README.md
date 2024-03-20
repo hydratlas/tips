@@ -53,9 +53,11 @@ cp "${BASE_IMAGE}" "${CUSTOM_IMAGE}" &&
 virt-customize -a "${CUSTOM_IMAGE}" \
   --install qemu-guest-agent,avahi-daemon,libnss-mdns,bash-completion,nano \
   --timezone Asia/Tokyo \
+  --mkdir /etc/ssh/ssh_config.d \
   --write '/etc/ssh/ssh_config.d/90-local.conf:
 PasswordAuthentication no
-PermitRootLogin no' \
+PermitRootLogin no
+' \
   --run-command 'systemctl disable systemd-timesyncd.service' &&
 virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
 ```
