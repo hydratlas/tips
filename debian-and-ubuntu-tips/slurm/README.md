@@ -20,14 +20,14 @@ mariadb -u slurm -h localhost -p
 quit;
 ```
 
-## SlurmDBDのインストール
+## 管理ノードへのインストール
 ```
-sudo apt-get install -y slurmdbd
+sudo apt-get install -y slurm-client slurmctld slurmdbd
 ```
 
-## Slurmのインストール
+## 計算ノードへのインストール
 ```
-sudo apt-get install -y slurm-wlm
+sudo apt-get install -y slurm-client slurmd
 ```
 
 ## 設定の下準備として変数を設定
@@ -134,6 +134,7 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
 ### Slurmの設定ファイルを設置
+AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。
 ```
 sudo tee "$ETC_PATH/slurm.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurm.conf.example
