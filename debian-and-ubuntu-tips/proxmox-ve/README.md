@@ -51,7 +51,7 @@ apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
 cd /var/lib/vz/template/iso &&
 cp "${BASE_IMAGE}" "${CUSTOM_IMAGE}" &&
 virt-customize -a "${CUSTOM_IMAGE}" \
-  --install qemu-guest-agent,avahi-daemon,libnss-mdns,bash-completion,nano \
+  --install qemu-guest-agent,avahi-daemon,libnss-mdns,less,bash-completion,command-not-found,nano,whiptail \
   --timezone Asia/Tokyo \
   --mkdir /etc/ssh/ssh_config.d \
   --write '/etc/ssh/ssh_config.d/90-local.conf:
@@ -242,6 +242,11 @@ docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v portainer_data:/data portainer/portainer-ce:latest
 
+# https://localhost:9443
+```
+
+### PodmanにPortainer Agentをインストール
+```
 docker run -d \
   -p 9001:9001 \
   --name portainer_agent \
@@ -249,8 +254,6 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
   portainer/agent
-
-# https://localhost:9443
 ```
 
 ### 新しいPodmanを使う（うまく動かない）
