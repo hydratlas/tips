@@ -1,5 +1,6 @@
 # Slurm
 ## データベースのインストール・設定
+slurmdbdを使う場合のみ。
 ```
 sudo apt-get install -y mariadb-server
 
@@ -24,6 +25,7 @@ quit;
 ```
 sudo apt-get install -y slurm-client slurmctld slurmdbd
 ```
+slurmdbdはオプション。
 
 ## 計算ノードへのインストール
 ```
@@ -134,7 +136,7 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
 ### Slurmの設定ファイルを設置
-AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。
+AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。ProctrackType=proctrack/linuxprocはProctrackType=proctrack/cgroupが推奨されているが、エラーが出る。cgroup.confを設置すれば出なくなる？
 ```
 sudo tee "$ETC_PATH/slurm.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurm.conf.example
@@ -305,12 +307,15 @@ sudo systemctl enable --now slurmdbd.service &&
 sudo systemctl status slurmdbd.service
 ```
 
-## Slurmの起動
+## 管理デーモンの起動
 ```
 sudo systemctl stop slurmctld.service &&
 sudo systemctl enable --now slurmctld.service &&
 sudo systemctl status slurmctld.service
+```
 
+## 計算デーモンの起動
+```
 sudo systemctl stop slurmd.service &&
 sudo systemctl enable --now slurmd.service &&
 sudo systemctl status slurmd.service
