@@ -108,7 +108,7 @@ MpiDefault=none
 #PluginDir=
 #PlugStackConfig=
 #PrivateData=jobs
-ProctrackType=proctrack/cgroup
+ProctrackType=proctrack/linuxproc
 #Prolog=
 #PrologFlags=
 #PrologSlurmctld=
@@ -226,10 +226,21 @@ SlurmdLogFile=/var/log/slurm/slurmd.log
 NodeName=localhost CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=512 State=UNKNOWN
 PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
 EOS
-sudo chmod 600 /etc/slurm/slurm.conf &&
+sudo chmod 644 /etc/slurm/slurm.conf &&
 sudo chown slurm:slurm /etc/slurm/slurm.conf &&
 sudo systemctl enable --now slurmctld.service &&
 sudo systemctl status slurmctld.service &&
 sudo systemctl enable --now slurmd.service &&
 sudo systemctl status slurmd.service
+```
+
+## Slurmのテスト実行
+```
+cd ~/ &&
+tee hello-world.sh << EOS > /dev/null &&
+#!/bin/bash
+echo 'Hello, world!'
+EOS
+chmod 775 hello-world.sh &&
+sbatch hello-world.sh
 ```
