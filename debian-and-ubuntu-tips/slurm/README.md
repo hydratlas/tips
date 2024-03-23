@@ -136,8 +136,22 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
 ### Slurmの設定ファイルを設置
-AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。ProctrackType=proctrack/linuxprocはProctrackType=proctrack/cgroupが推奨されているが、エラーが出る。cgroup.confを設置すれば出なくなる？
+AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。
 ```
+sudo tee "$ETC_PATH/cgroup.conf" << EOS > /dev/null &&
+# https://github.com/SchedMD/slurm/blob/master/etc/cgroup.conf.example
+###
+#
+# Slurm cgroup support configuration file
+#
+# See man slurm.conf and man cgroup.conf for further
+# information on cgroup configuration parameters
+#--
+ConstrainCores=yes
+ConstrainDevices=yes
+ConstrainRAMSpace=yes
+ConstrainSwapSpace=yes
+EOS
 sudo tee "$ETC_PATH/slurm.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurm.conf.example
 #
@@ -178,7 +192,7 @@ MpiDefault=none
 #PluginDir=
 #PlugStackConfig=
 #PrivateData=jobs
-ProctrackType=proctrack/linuxproc
+ProctrackType=proctrack/cgroup
 #Prolog=
 #PrologFlags=
 #PrologSlurmctld=
