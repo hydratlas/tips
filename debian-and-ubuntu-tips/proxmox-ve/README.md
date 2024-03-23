@@ -32,6 +32,11 @@ EOF
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
 ```
 
+## VM/CTの名前を後から変更
+```
+qm set <vmid> --name <name>
+```
+
 ## VM作成
 ### イメージをダウンロード
 Proxmox VEのストレージ（local）画面でイメージをダウンロードする。

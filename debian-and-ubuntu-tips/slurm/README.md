@@ -5,23 +5,94 @@ sudo apt-get install -y mariadb-server
 
 sudo mysql_secure_installation
 
-mariadb -u root -p
-#create database slurm_acct_db;
-#show databases;
-#create user 'slurm'@'localhost' identified by 'password';
-#select user,host from mysql.user;
-#grant all on slurm_acct_db.* TO 'slurm'@'localhost';
-#FLUSH PRIVILEGES;
-#quit;
+sudo mariadb -u root -p
+
+create database slurm_acct_db;
+show databases;
+create user 'slurm'@'localhost' identified by '<password>';
+select user,host from mysql.user;
+grant all on slurm_acct_db.* TO 'slurm'@'localhost';
+FLUSH PRIVILEGES;
+quit;
 
 mariadb -u slurm -h localhost -p
-#quit;
+
+quit;
 ```
 
-## Slurmデータベースデーモンのインストール・設定
+## SlurmDBDのインストール
 ```
-sudo apt-get install -y slurmdbd &&
-sudo tee /etc/slurm/slurmdbd.conf << EOS > /dev/null &&
+sudo apt-get install -y slurmdbd
+```
+
+## Slurmのインストール
+```
+sudo apt-get install -y slurm-wlm
+```
+
+## 設定の下準備として変数を設定
+```
+if [ -e /etc/slurm-llnl ]; then
+  ETC_PATH=/etc/slurm-llnl
+elif [ -e /etc/slurm ]; then
+  ETC_PATH=/etc/slurm
+else
+  ETC_PATH="(null)"
+fi &&
+if [ -e /var/log/slurm-llnl ]; then
+  VAR_LOG_PATH=/var/log/slurm-llnl
+elif [ -e /var/log/slurm ]; then
+  VAR_LOG_PATH=/var/log/slurm
+else
+  VAR_LOG_PATH="(null)"
+fi &&
+if [ -e /var/lib/slurm-llnl ]; then
+  VAR_LIB_PATH=/var/lib/slurm-llnl &&
+  RUN_PATH=/run/slurm-llnl
+elif [ -e /var/lib/slurm ]; then
+  VAR_LIB_PATH=/var/lib/slurm &&
+  RUN_PATH=/run/slurm
+else
+  VAR_LIB_PATH="(null)" &&
+  RUN_PATH="(null)"
+fi &&
+echo "ETC_PATH: $ETC_PATH" &&
+echo "VAR_LOG_PATH: $VAR_LOG_PATH" &&
+echo "VAR_LIB_PATH: $VAR_LIB_PATH" &&
+echo "RUN_PATH: $RUN_PATH"
+```
+
+## PIDファイルの置き場所を作る
+```
+sudo tee "/etc/tmpfiles.d/slurm.conf" << EOS > /dev/null &&
+d $RUN_PATH 0775 slurm slurm -
+EOS
+sudo systemd-tmpfiles --create /etc/tmpfiles.d/slurm.conf
+```
+
+## PIDファイルの場所をsystemdに伝える（Ubuntu 20.04以前）
+```
+sudo mkdir -p /etc/systemd/system/slurmdbd.service.d &&
+sudo mkdir -p /etc/systemd/system/slurmctld.service.d &&
+sudo mkdir -p /etc/systemd/system/slurmd.service.d &&
+sudo tee "/etc/systemd/system/slurmdbd.service.d/custom.conf" << EOS > /dev/null &&
+[Service]
+PIDFile=$RUN_PATH/slurmdbd.pid
+EOS
+sudo tee "/etc/systemd/system/slurmctld.service.d/custom.conf" << EOS > /dev/null &&
+[Service]
+PIDFile=$RUN_PATH/slurmctld.pid
+EOS
+sudo tee "/etc/systemd/system/slurmd.service.d/custom.conf" << EOS > /dev/null &&
+[Service]
+PIDFile=$RUN_PATH/slurmd.pid
+EOS
+sudo systemctl daemon-reload
+```
+
+### SlurmDBDの設定ファイルを設置
+```
+sudo tee "$ETC_PATH/slurmdbd.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurmdbd.conf.example
 #
 # Archive info
@@ -44,9 +115,9 @@ SlurmUser=slurm
 #MessageTimeout=300
 DebugLevel=verbose
 #DefaultQOS=normal,standby
-LogFile=/var/log/slurm/slurmdbd.log
-PidFile=/var/run/slurmdbd.pid
-#PluginDir=/usr/lib/slurm
+LogFile=$VAR_LOG_PATH/slurmdbd.log
+PidFile=$RUN_PATH/slurmdbd.pid
+#PluginDir=$VAR_LIB_PATH
 #PrivateData=accounts,users,usage,jobs
 #TrackWCKey=yes
 #
@@ -54,21 +125,17 @@ PidFile=/var/run/slurmdbd.pid
 StorageType=accounting_storage/mysql
 #StorageHost=localhost
 #StoragePort=1234
-StoragePass=password
+StoragePass=<password>
 StorageUser=slurm
 #StorageLoc=slurm_acct_db
 EOS
-sudo chmod 600 /etc/slurm/slurmdbd.conf &&
-sudo chown slurm:slurm /etc/slurm/slurmdbd.conf
-
-sudo systemctl enable --now slurmdbd.service &&
-sudo systemctl status slurmdbd.service
+sudo chmod 600 "$ETC_PATH/slurmdbd.conf" &&
+sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
-## Slurmのインストール・設定
+### Slurmの設定ファイルを設置
 ```
-sudo apt-get install -y slurm-wlm &&
-sudo tee /etc/slurm/slurm.conf << EOS > /dev/null &&
+sudo tee "$ETC_PATH/slurm.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurm.conf.example
 #
 # Example slurm.conf file. Please run configurator.html
@@ -117,16 +184,16 @@ ProctrackType=proctrack/linuxproc
 #PropagateResourceLimitsExcept=
 #RebootProgram=
 ReturnToService=1
-SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmctldPidFile=$RUN_PATH/slurmctld.pid
 SlurmctldPort=6817
-SlurmdPidFile=/var/run/slurmd.pid
+SlurmdPidFile=$RUN_PATH/slurmd.pid
 SlurmdPort=6818
-SlurmdSpoolDir=/var/lib/slurm/slurmd
+SlurmdSpoolDir=$VAR_LIB_PATH/slurmd
 SlurmUser=slurm
 #SlurmdUser=root
 #SrunEpilog=
 #SrunProlog=
-StateSaveLocation=/var/lib/slurm/checkpoint
+StateSaveLocation=$VAR_LIB_PATH/checkpoint
 SwitchType=switch/none
 #TaskEpilog=
 TaskPlugin=task/affinity
@@ -201,9 +268,9 @@ JobCompType=jobcomp/none
 JobAcctGatherFrequency=30
 JobAcctGatherType=jobacct_gather/none
 SlurmctldDebug=info
-SlurmctldLogFile=/var/log/slurm/slurmctld.log
+SlurmctldLogFile=$VAR_LOG_PATH/slurmctld.log
 SlurmdDebug=info
-SlurmdLogFile=/var/log/slurm/slurmd.log
+SlurmdLogFile=$VAR_LOG_PATH/slurmd.log
 #SlurmSchedLogFile=
 #SlurmSchedLogLevel=
 #DebugFlags=
@@ -226,10 +293,24 @@ SlurmdLogFile=/var/log/slurm/slurmd.log
 NodeName=localhost CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=512 State=UNKNOWN
 PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
 EOS
-sudo chmod 644 /etc/slurm/slurm.conf &&
-sudo chown slurm:slurm /etc/slurm/slurm.conf &&
+sudo chmod 644 "$ETC_PATH/slurm.conf" &&
+sudo chown slurm:slurm "$ETC_PATH/slurm.conf"
+```
+
+## SlurmDBDの起動
+```
+sudo systemctl stop slurmdbd.service &&
+sudo systemctl enable --now slurmdbd.service &&
+sudo systemctl status slurmdbd.service
+```
+
+## Slurmの起動
+```
+sudo systemctl stop slurmctld.service &&
 sudo systemctl enable --now slurmctld.service &&
-sudo systemctl status slurmctld.service &&
+sudo systemctl status slurmctld.service
+
+sudo systemctl stop slurmd.service &&
 sudo systemctl enable --now slurmd.service &&
 sudo systemctl status slurmd.service
 ```

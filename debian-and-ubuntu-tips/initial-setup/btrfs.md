@@ -3,8 +3,19 @@
 設定。
 ```
 sudo apt-get install --no-install-recommends -y btrfsmaintenance &&
-sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=fri/g;' /lib/systemd/system/btrfs-balance.timer &&
-sudo perl -p -i -e 's/^OnCalendar=.+$/OnCalendar=sat/g;' /lib/systemd/system/btrfs-scrub.timer &&
+
+
+sudo mkdir -p /etc/systemd/system/btrfs-balance.timer.d &&
+sudo mkdir -p /etc/systemd/system/btrfs-scrub.timer.d &&
+sudo tee "/etc/systemd/system/btrfs-balance.timer.d/schedule.conf" << EOS > /dev/null &&
+[Timer]
+OnCalendar=fri
+EOS
+sudo tee "/etc/systemd/system/btrfs-scrub.timer.d/schedule.conf" << EOS > /dev/null &&
+[Timer]
+OnCalendar=sat
+EOS
+sudo systemctl daemon-reload &&
 sudo systemctl enable --now btrfs-balance.timer &&
 sudo systemctl enable --now btrfs-scrub.timer
 ```
