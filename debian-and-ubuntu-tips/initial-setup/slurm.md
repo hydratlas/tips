@@ -122,7 +122,7 @@ SlurmctldPort=6817
 SlurmdPidFile=/var/run/slurmd.pid
 SlurmdPort=6818
 SlurmdSpoolDir=/var/lib/slurm/slurmd
-SlurmUser=slurm *slurm
+SlurmUser=slurm
 #SlurmdUser=root
 #SrunEpilog=
 #SrunProlog=
@@ -227,5 +227,9 @@ NodeName=localhost CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPer
 PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
 EOS
 sudo chmod 600 /etc/slurm/slurm.conf &&
-sudo chown slurm:slurm /etc/slurm/slurm.conf
+sudo chown slurm:slurm /etc/slurm/slurm.conf &&
+sudo systemctl enable --now slurmctld.service &&
+sudo systemctl status slurmctld.service &&
+sudo systemctl enable --now slurmd.service &&
+sudo systemctl status slurmd.service
 ```
