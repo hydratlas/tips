@@ -8,12 +8,27 @@ sudo systemctl restart systemd-logind.service
 ## SSHサーバーのインストールと設定（管理者）
 ```
 sudo apt-get install --no-install-recommends -y openssh-server &&
-sudo tee "${MOUNT_POINT}/etc/ssh/ssh_config.d/90-local.conf" << EOS > /dev/null
+sudo mkdir -p "/etc/ssh/sshd_config.d" &&
+sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null
 PasswordAuthentication no
 PermitRootLogin no
 EOS
 ```
-パスワードによるログインと、rootユーザーでのログインを禁止する設定。
+パスワードによるログイン、rootユーザーでのログインを禁止する設定。
+
+## SSHサーバーの古い方式の禁止（管理者）
+```
+sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null
+Ciphers -*-cbc
+KexAlgorithms -*-sha1
+PubkeyAcceptedKeyTypes -ssh-rsa*,ssh-dss*
+EOS
+
+sudo sshd -T | grep -i -e PasswordAuthentication -e PermitRootLogin
+
+sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms
+```
+古いタイプの方式を禁止する設定。PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が変わっている。Ubuntu 20.04は8.2、22.04は8.9。OpenSSH 8.5以降でもPubkeyAcceptedKeyTypesによる禁止設定は効果がある。
 
 ## mDNSのインストール（管理者）
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。mDNSがインストールされていない場合は以下でインストールできる。

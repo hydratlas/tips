@@ -58,8 +58,8 @@ cp "${BASE_IMAGE}" "${CUSTOM_IMAGE}" &&
 virt-customize -a "${CUSTOM_IMAGE}" \
   --install qemu-guest-agent,avahi-daemon,libnss-mdns,less,bash-completion,command-not-found,nano,whiptail \
   --timezone Asia/Tokyo \
-  --mkdir /etc/ssh/ssh_config.d \
-  --write '/etc/ssh/ssh_config.d/90-local.conf:
+  --mkdir /etc/ssh/sshd_config.d \
+  --write '/etc/ssh/sshd_config.d/90-local.conf:
 PasswordAuthentication no
 PermitRootLogin no
 ' \
