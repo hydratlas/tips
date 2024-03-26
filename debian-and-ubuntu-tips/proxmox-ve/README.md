@@ -206,11 +206,31 @@ apt-get update &&
 systemctl disable --now systemd-timesyncd.service
 ```
 
-### Podmanをインストール
+### 初期設定（Alpine Linux）
+```
+apk update &&
+apk upgrade &&
+setup-timezone -z Asia/Tokyo
+```
+
+### Podmanをインストール（Ubuntu・Debian）
 ```
 apt-get install -y podman &&
-apt-get install --no-install-recommends -y podman-docker &&
-perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
+apt-get install --no-install-recommends -y podman-docker
+```
+
+### Podmanをインストール（Alpine Linux）
+```
+apk add podman podman-bash-completion podman-docker fuse-overlayfs &&
+sed -i 's/^#*rc_cgroup_mode=.*/rc_cgroup_mode="unified"/' /etc/rc.conf &&
+rc-update add cgroups &&
+rc-service cgroups start
+```
+未検証。
+
+### Podmanを設定
+```
+sed -i 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
 touch /etc/containers/nodocker &&
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
 #!/bin/sh
