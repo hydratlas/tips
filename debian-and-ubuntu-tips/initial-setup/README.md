@@ -17,6 +17,16 @@ EOS
 パスワードによるログイン、rootユーザーでのログインを禁止する設定。
 
 ## SSHサーバーの古い方式の禁止（管理者）
+Includeで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認。
+```
+grep -i Include /etc/ssh/sshd_config
+```
+
+読み込まれていないなら読み込むように追記。
+```
+sudo tee -a "/etc/ssh/sshd_config" <<< "Include /etc/ssh/sshd_config.d/*.conf" > /dev/null
+```
+
 ```
 sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null
 Ciphers -*-cbc
@@ -52,7 +62,7 @@ sudo dpkg-reconfigure --frontend noninteractive locales
 ### 補足
 「localectl set-locale」に代えて、/etc/default/localeに書き込んでもよい（おそらくlocalectlはこの処理のラッパーとなっている）。
 ```
-echo "LANG=C.UTF-8" | sudo tee "/etc/default/locale" > /dev/null
+sudo tee "/etc/default/locale" <<< "LANG=C.UTF-8" > /dev/null
 cat "/etc/default/locale" # confirmation
 ```
 
@@ -73,14 +83,14 @@ timedatectl status # confirmation
 ### 補足
 設定の場所は3つある。
 ```
-echo "Asia/Tokyo" | sudo tee "/etc/timezone" > /dev/null
+sudo tee "/etc/timezone" <<< "Asia/Tokyo" > /dev/null
 cat "/etc/timezone" # confirmation
 
 sudo ln -sf "/usr/share/zoneinfo/Asia/Tokyo" "/etc/localtime"
 readlink "/etc/localtime" # confirmation
 
-echo "tzdata tzdata/Areas select Asia" | sudo debconf-set-selections &&
-echo "tzdata tzdata/Zones/Asia select Tokyo" | sudo debconf-set-selections
+sudo debconf-set-selections <<< "tzdata tzdata/Areas select Asia" &&
+sudo debconf-set-selections <<< "tzdata tzdata/Zones/Asia select Tokyo"
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
@@ -119,8 +129,8 @@ sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 
 ## SSHキーを生成（ユーザー）
 ```
-ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa"
-ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa"
+ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa" &&
+ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa" &&
 ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
 ```
 
