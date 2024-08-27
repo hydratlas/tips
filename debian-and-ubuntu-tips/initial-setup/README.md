@@ -1,4 +1,9 @@
 # 初期設定
+## GRUBの待ち時間をなくす
+```
+sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null
+```
+
 ## ノートパソコンのふたをしめてもサスペンドしないようにする（管理者）
 ```
 sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
