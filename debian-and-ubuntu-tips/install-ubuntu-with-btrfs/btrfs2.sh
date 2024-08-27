@@ -12,12 +12,41 @@ fi
 BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
 
 # パーティション
-EFI1_PART="${DISK1}1"
-SWAP1_PART="${DISK1}2"
-ROOTFS1_PART="${DISK1}3"
-EFI2_PART="${DISK2}1"
-SWAP2_PART="${DISK2}2"
-ROOTFS2_PART="${DISK2}3"
+if [ -e "${DISK1}p1" ]; then
+  EFI1_PART="${DISK1}p1"
+else
+  EFI1_PART="${DISK1}1"
+fi
+
+if [ -e "${DISK1}p2" ]; then
+  SWAP1_PART="${DISK1}p2"
+else
+  SWAP1_PART="${DISK1}2"
+fi
+
+if [ -e "${DISK1}p3" ]; then
+  ROOTFS1_PART="${DISK1}p3"
+else
+  ROOTFS1_PART="${DISK1}3"
+fi
+
+if [ -e "${DISK2}p1" ]; then
+  EFI2_PART="${DISK2}p1"
+else
+  EFI2_PART="${DISK2}1"
+fi
+
+if [ -e "${DISK2}p2" ]; then
+  SWAP2_PART="${DISK2}p2"
+else
+  SWAP2_PART="${DISK2}2"
+fi
+
+if [ -e "${DISK2}p3" ]; then
+  ROOTFS2_PART="${DISK2}p3"
+else
+  ROOTFS2_PART="${DISK2}3"
+fi
 
 # UUIDを取得
 EFI1_UUID="$(lsblk -dno UUID ${EFI1_PART})"
