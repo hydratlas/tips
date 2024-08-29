@@ -40,6 +40,11 @@ sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /
 sudo systemctl enable --now snapper-timeline.timer &&
 sudo systemctl enable --now snapper-cleanup.timer
 ```
+/homeディレクトリーでもスナップショットを保存する場合の追加設定。
+```
+sudo snapper -c home create-config /home &&
+sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/home
+```
 
 確認。
 ```
