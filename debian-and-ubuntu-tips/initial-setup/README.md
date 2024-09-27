@@ -110,7 +110,7 @@ systemctl status systemd-timesyncd.service
 sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.windows.com/g' '/etc/systemd/timesyncd.conf'
 ```
 
-### 無効にする（仮想マシンゲスト）
+### systemd-timesyncdを無効にする（仮想マシンゲスト）
 ```
 sudo systemctl disable --now systemd-timesyncd.service
 ```
