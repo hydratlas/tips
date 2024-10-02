@@ -1,6 +1,10 @@
 # Docker関係
+DockerのコンテナエンジンはDockerとその互換エンジンであるPodmanがある。大きな違いはないがPodmanはデフォルトでRootlessであり、Rootlessで使う場合にはスムーズである。
+
+また、コンテナを管理するGUIツールがDockerの場合はPortainer、Podmanの場合はCockpitであるという違いもある。PortainerはDockerやKubernetesといったコンテナ環境の管理に特化したもので、Cockpitはサーバー全体の管理ができるものである。
+
 ## PodmanおよびDocker Composeをインストール・実行
-### Podmanをインストール（管理者）
+### Podmanをインストール（管理者・マシン全体）
 ```
 sudo apt-get install -y podman &&
 sudo apt-get install --no-install-recommends -y podman-docker &&
@@ -8,24 +12,26 @@ sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-searc
 sudo touch /etc/containers/nodocker
 ```
 
-### CockpitとPodmanを連携させる（管理者）
-#### Cockpit通常版
+### CockpitとPodmanを連携させる（管理者・マシン全体）
+Cockpitを使う場合のみ。
+#### Cockpit通常版（バーションが古い）
 ```
 sudo apt-get install --no-install-recommends -y cockpit-podman
 ```
 
-#### Cockpitバックポート版（新しい）
+#### Cockpitバックポート版（バーションが新しい）
 ```
 sudo apt-get install --no-install-recommends -y \
   -t "$(lsb_release --short --codename)-backports" cockpit-podman
 ```
 
-### Podmanを実行（ユーザー）
+### Podmanをテスト実行（各ユーザー）
 ```
 docker run hello-world
 ```
 
-### Podman用にDocker Composeをインストール（ユーザー）
+### Podman用にDocker Composeをインストール（各ユーザー）
+Docker Composeを使わない場合には必要ない。
 ```
 mkdir -p "$HOME/.local/bin" &&
 wget -O "$HOME/.local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
@@ -46,7 +52,7 @@ EOS
 docker-compose --version
 ```
 
-### Docker Composeを実行（ユーザー）
+### Docker Composeを実行（各ユーザー）
 ```
 cd "$HOME" &&
 tee docker-compose.yml << 'EOF' >/dev/null &&
@@ -59,8 +65,10 @@ docker-compose up
 ```
 
 ## DockerおよびDocker Composeをインストール・実行
-### DockerおよびDocker Composeをインストール（管理者）
-#### Ubuntu
+Dockerの場合には、RootfulとRootlessでインストール方法が分かれる。
+
+### Rootful DockerおよびDocker Composeをインストール（管理者・マシン全体）
+#### Ubuntuの場合
 ```
 sudo apt-get update &&
 sudo apt-get install --no-install-recommends -y ca-certificates curl gnupg &&
@@ -76,7 +84,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 ```
 - [Install Docker Engine on Ubuntu | Docker Docs](https://docs.docker.com/engine/install/ubuntu/)
 
-#### Debian
+#### Debianの場合
 ```
 sudo apt-get update &&
 sudo apt-get install --no-install-recommends -y ca-certificates curl &&
@@ -94,13 +102,13 @@ sudo apt-get install --no-install-recommends -y docker-ce docker-ce-cli containe
 - [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)
 
 ## Rootless DockerおよびDocker Composeをインストール・実行
-### uidmapをインストール（管理者）
+### uidmapをインストール（管理者・マシン全体）
 ```
 sudo apt-get install --no-install-recommends -y uidmap
 ```
 - [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
-### Rootless Dockerをインストール（ユーザー）
+### Rootless Dockerをインストール（各ユーザー）
 ```
 dockerd-rootless-setuptool.sh install &&
 cat << EOS >> "$HOME/.bashrc"
@@ -114,19 +122,20 @@ EOS
 ```
 - [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
-### Rootless Dockerをアンインストール（ユーザー）
+### Rootless Dockerをアンインストール（各ユーザー）
 ```
 dockerd-rootless-setuptool.sh uninstall
 ```
 
-### Docker Composeをインストール（ユーザー）
+### Docker Composeをインストール（各ユーザー）
 ```
 mkdir -p "$HOME/.docker/cli-plugins" &&
 wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
-## Portainer CEをインストール（管理者）
+## Portainer CEをインストール（管理者・マシン全体）
+Portainerは、RootfulとRootlessでインストール方法は変わらず共通である。
 ```
 sudo docker volume create portainer_data &&
 sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \

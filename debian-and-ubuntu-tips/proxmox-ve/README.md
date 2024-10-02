@@ -68,7 +68,7 @@ virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
 ```
 
 ### テンプレートの作成
-適宜変更して使用する。
+適宜変更して使用する。特にメモリーが2GiB、ディスクが3.5GiBしかないことに注意。
 
 #### Ubuntuの場合
 ```
@@ -79,7 +79,7 @@ KEY_URI=https://github.com/<name>.keys &&
 KEY_FILE="$(mktemp)" && wget -O "$KEY_FILE" "$KEY_URI" &&
 qm create "$VMID" \
   --name ubuntu-23.10-minimal-custom \
-  --virtio0 local-zfs:0,import-from=/var/lib/vz/template/iso/ubuntu-23.10-minimal-cloudimg-amd64-custom.img \
+  --virtio0 local-zfs:0,size=3584M,import-from=/var/lib/vz/template/iso/ubuntu-23.10-minimal-cloudimg-amd64-custom.img \
   --memory 2048 \
   --cores 2 \
   --cpu x86-64-v3 \
@@ -109,7 +109,7 @@ KEY_URI=https://github.com/<name>.keys &&
 KEY_FILE="$(mktemp)" && wget -O "$KEY_FILE" "$KEY_URI" &&
 qm create "$VMID" \
   --name debian-12-minimal \
-  --virtio0 local-zfs:0,import-from=/var/lib/vz/template/iso/debian-12-backports-genericcloud-amd64.img \
+  --virtio0 local-zfs:0,size=3584M,import-from=/var/lib/vz/template/iso/debian-12-backports-genericcloud-amd64.img \
   --memory 2048 \
   --cores 2 \
   --cpu x86-64-v3 \

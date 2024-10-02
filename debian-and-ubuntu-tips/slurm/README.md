@@ -1,6 +1,6 @@
 # Slurm
 ## データベースのインストール・設定
-slurmdbdを使う場合のみ。
+データベースデーモン（slurmdbd）を使う場合のみ。
 ```
 sudo apt-get install -y mariadb-server
 
@@ -23,13 +23,18 @@ quit;
 
 ## 管理ノードへのインストール
 ```
-sudo apt-get install -y slurm-client slurmctld slurmdbd
+sudo apt-get install -y slurmctld slurmdbd
 ```
-slurmdbdはオプション。
+データベースデーモン（slurmdbd）はオプション。
+
+## 管理ノード・計算ノードへのインストール
+```
+sudo apt-get install -y slurm-client
+```
 
 ## 計算ノードへのインストール
 ```
-sudo apt-get install -y slurm-client slurmd
+sudo apt-get install -y slurmd
 ```
 
 ## 設定の下準備として変数を設定
@@ -72,7 +77,7 @@ EOS
 sudo systemd-tmpfiles --create /etc/tmpfiles.d/slurm.conf
 ```
 
-## PIDファイルの場所をsystemdに伝える（Ubuntu 20.04以前）
+## PIDファイルの場所をsystemdに伝える（Ubuntu 20.04以前だけ）
 ```
 sudo mkdir -p /etc/systemd/system/slurmdbd.service.d &&
 sudo mkdir -p /etc/systemd/system/slurmctld.service.d &&
@@ -92,7 +97,8 @@ EOS
 sudo systemctl daemon-reload
 ```
 
-### SlurmDBDの設定ファイルを設置
+### データベースデーモンの設定ファイルを設置
+データベースデーモンを使う場合のみ。
 ```
 sudo tee "$ETC_PATH/slurmdbd.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurmdbd.conf.example
@@ -136,7 +142,8 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
 ### Slurmの設定ファイルを設置
-AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。
+AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
+
 ```
 sudo tee "$ETC_PATH/cgroup.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/cgroup.conf.example
@@ -314,7 +321,8 @@ sudo chmod 644 "$ETC_PATH/slurm.conf" &&
 sudo chown slurm:slurm "$ETC_PATH/slurm.conf"
 ```
 
-## SlurmDBDの起動
+## データベースデーモンの起動
+データベースデーモンを使う場合のみ。
 ```
 sudo systemctl stop slurmdbd.service &&
 sudo systemctl enable --now slurmdbd.service &&
@@ -345,3 +353,4 @@ EOS
 chmod 775 hello-world.sh &&
 sbatch hello-world.sh
 ```
+通常は`slurm-1.out`に結果（標準出力）が保存される。

@@ -60,7 +60,7 @@ sudo snapper -c root list
 ```
 sudo apt-get install --no-install-recommends -y gawk inotify-tools git make bzip2 &&
 cd ~/ &&
-git clone https://github.com/Antynea/grub-btrfs.git &&
+git clone --depth=1 https://github.com/Antynea/grub-btrfs.git &&
 cd grub-btrfs && # git checkout xxxxxxx
 sudo make install &&
 sudo update-grub &&
