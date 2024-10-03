@@ -16,14 +16,37 @@
 1. DNS server addressは任意の値
 
 ## リポジトリを無料のものにする
+### Deb822-style Format
+新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
 ```
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
-tee /etc/apt/sources.list.d/pve-no-subscription.list << 'EOF' >/dev/null &&
-deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '"')" &&
+tee "/etc/apt/sources.list.d/pve-no-subscription.sources" <<- EOS > /dev/null &&
+Types: deb
+URIs: http://download.proxmox.com/debian/pve
+Suites: $VERSION_CODENAME
+Components: pve-no-subscription
+EOS
+tee "/etc/apt/sources.list.d/ceph.sources" <<- EOS > /dev/null
+Types: deb
+URIs: http://download.proxmox.com/debian/ceph-reef
+Suites: $VERSION_CODENAME
+Components: no-subscription
+EOS
+```
+
+### One-Line-Style Format
+新しいDeb822-style Formatに対応していない場合。
+```
+mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
+mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
+VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '"')" &&
+tee /etc/apt/sources.list.d/pve-no-subscription.list << EOF >/dev/null &&
+deb http://download.proxmox.com/debian/pve $VERSION_CODENAME pve-no-subscription
 EOF
-tee /etc/apt/sources.list.d/ceph.list << 'EOF' >/dev/null
-deb http://download.proxmox.com/debian/ceph-reef bookworm no-subscription
+tee /etc/apt/sources.list.d/ceph.list << EOF >/dev/null
+deb http://download.proxmox.com/debian/ceph-reef $VERSION_CODENAME no-subscription
 EOF
 ```
 
@@ -133,6 +156,11 @@ qm template "$VMID"
 ## ノード削除
 Proxmox VE Administration Guide
 https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_remove_a_cluster_node
+
+加えてcorosync.confから削除したノードの情報を削除する。
+```
+nano /etc/pve/corosync.conf
+```
 
 ## CT作成（UbuntuまたはDebian）
 ### 一般

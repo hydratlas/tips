@@ -1,7 +1,7 @@
 # aptのソースを設定する（すべて管理者）
 ## Ubuntu
 ### Deb822-style Format
-新しいDeb822-style Formatに対応している場合。
+新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
 ```
 sudo tee "/etc/apt/sources.list.d/ubuntu.sources" <<- EOS > /dev/null &&
 Types: deb
@@ -50,7 +50,7 @@ sudo apt-get update
 
 ## Debian
 ### Deb822-style Format
-新しいDeb822-style Formatに対応している場合。
+新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
 ```
 sudo tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
 Types: deb
