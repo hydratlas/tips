@@ -25,7 +25,7 @@ sudo systemctl status btrfs-scrub.timer
 ```
 
 ## Snapperのインストールと設定・確認
-定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。
+定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。この場合は`/.snapshots`にスナップショットが保存される。
 ```
 sudo apt-get install --no-install-recommends -y snapper &&
 sudo umount /.snapshots &&
@@ -39,7 +39,7 @@ sudo systemctl enable --now snapper-timeline.timer &&
 sudo systemctl enable --now snapper-cleanup.timer
 ```
 
-/homeディレクトリーでもスナップショットを保存する場合の追加設定。
+/homeディレクトリーでもスナップショットを保存する場合の追加設定。この場合は`/home/.snapshots`にスナップショットが保存される。
 ```
 sudo snapper -c home create-config /home &&
 sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/home
