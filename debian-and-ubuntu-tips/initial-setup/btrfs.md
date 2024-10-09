@@ -1,10 +1,8 @@
 # Btrfs関係（すべて管理者）
-## スクラブ・バランスタイマーの設定・確認
-設定。
+## スクラブ・バランスのタイマーの設定・確認
+スクラブはデータの整合性をチェックする。バランスはデータの再配置を行う。ともに定期的に実行すべきもののため、Systemdのタイマーを設定する。
 ```
 sudo apt-get install --no-install-recommends -y btrfsmaintenance &&
-
-
 sudo mkdir -p /etc/systemd/system/btrfs-balance.timer.d &&
 sudo mkdir -p /etc/systemd/system/btrfs-scrub.timer.d &&
 sudo tee "/etc/systemd/system/btrfs-balance.timer.d/schedule.conf" << EOS > /dev/null &&
@@ -27,7 +25,7 @@ sudo systemctl status btrfs-scrub.timer
 ```
 
 ## Snapperのインストールと設定・確認
-インストールと設定。
+定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。
 ```
 sudo apt-get install --no-install-recommends -y snapper &&
 sudo umount /.snapshots &&
@@ -40,6 +38,7 @@ sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /
 sudo systemctl enable --now snapper-timeline.timer &&
 sudo systemctl enable --now snapper-cleanup.timer
 ```
+
 /homeディレクトリーでもスナップショットを保存する場合の追加設定。
 ```
 sudo snapper -c home create-config /home &&
@@ -56,7 +55,7 @@ sudo snapper -c root list
 ```
 
 ## grub-btrfsのインストールと設定
-インストールと設定。
+スナップショットから起動できるようにする。なんらかの理由で起動ができなくなったとき、助かる可能性が上がる。
 ```
 sudo apt-get install --no-install-recommends -y gawk inotify-tools git make bzip2 &&
 cd ~/ &&

@@ -21,7 +21,7 @@
 ```
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
-VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '"')" &&
+VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
 tee "/etc/apt/sources.list.d/pve-no-subscription.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: http://download.proxmox.com/debian/pve
@@ -41,7 +41,7 @@ EOS
 ```
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
-VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '"')" &&
+VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
 tee /etc/apt/sources.list.d/pve-no-subscription.list << EOF >/dev/null &&
 deb http://download.proxmox.com/debian/pve $VERSION_CODENAME pve-no-subscription
 EOF

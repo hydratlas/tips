@@ -142,7 +142,7 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
 ### Slurmの設定ファイルを設置
-AccountingStorageType=accounting_storage/noneのためSlurmDBDは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
+AccountingStorageType=accounting_storage/noneのためデータベースデーモンは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
 
 ```
 sudo tee "$ETC_PATH/cgroup.conf" << EOS > /dev/null &&

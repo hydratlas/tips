@@ -1,5 +1,10 @@
 # 初期設定
-## GRUBの待ち時間をなくす
+## 次回起動時にUEFI設定画面を表示する（管理者）
+```
+sudo systemctl reboot --firmware-setup
+```
+
+## GRUBの待ち時間をなくす（管理者）
 ```
 sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null
 ```
@@ -71,7 +76,7 @@ sudo tee "/etc/default/locale" <<< "LANG=C.UTF-8" > /dev/null
 cat "/etc/default/locale" # confirmation
 ```
 
-## ロケールをログインしているユーザー個別でja_JP.UTF-8に設定する（ユーザー）
+## ロケールをログインしているユーザー個別でja_JP.UTF-8に設定する（各ユーザー）
 ```
 tee -a "~/.bashrc" << "export LANG=ja_JP.UTF-8" > /dev/null &&
 source ~/.bashrc
@@ -105,18 +110,19 @@ sudo debconf-set-selections <<< "tzdata tzdata/Zones/Asia select Tokyo"
 systemctl status systemd-timesyncd.service
 ```
 
-### NTPサーバーを最適化する（一般）
+### NTPサーバーを最適化する
 ```
 sudo perl -p -i -e 's/^NTP=.+$/NTP=time.cloudflare.com ntp.jst.mfeed.ad.jp time.windows.com/g' '/etc/systemd/timesyncd.conf'
 ```
 
-### systemd-timesyncdを無効にする（仮想マシンゲスト）
+### systemd-timesyncdを無効にする
+仮想マシンのゲストの場合は、ホストで時計合わせをするため無効にする。
 ```
 sudo systemctl disable --now systemd-timesyncd.service
 ```
 
 ## QEMUゲストエージェントをインストールする（管理者）
-QEMU＝仮想マシン。
+QEMU＝仮想マシンで、仮想マシンのゲストの場合にはインストールする。
 ```
 sudo apt-get install --no-install-recommends -y qemu-guest-agent
 ```
@@ -132,7 +138,7 @@ sudo apt-get install --no-install-recommends -y nano
 sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 ```
 
-## SSHキーを生成（ユーザー）
+## SSHキーを生成（各ユーザー）
 ```
 ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa" &&
 ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa" &&
@@ -144,7 +150,7 @@ ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
 sudo apt-get install --no-install-recommends -y flatpak
 ```
 
-## Flatpakでアプリケーションをインストール（ユーザー）
+## Flatpakでアプリケーションをインストール（各ユーザー）
 ```
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
