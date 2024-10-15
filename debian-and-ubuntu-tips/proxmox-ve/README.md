@@ -172,9 +172,8 @@ Debianの場合、IPv6は「静的」を選ばないとコンソール画面が�
 ```
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
-apt-get update &&
-apt-get dist-upgrade -y &&
-apt-get install --no-install-recommends -y avahi-daemon libnss-mdns lsb-release &&
+systemctl disable --now systemd-timesyncd.service &&
+apt-get install --no-install-recommends -y lsb-release &&
 tee "/etc/apt/sources.list.d/ubuntu.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/ubuntu-mirrors.txt
@@ -199,16 +198,16 @@ if [ -f "/etc/apt/sources.list" ]; then
   rm -f "/etc/apt/sources.list"
 fi &&
 apt-get update &&
-systemctl disable --now systemd-timesyncd.service
+apt-get dist-upgrade -y &&
+apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ### 初期設定（Debian 12）
 ```
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
-apt-get update &&
-apt-get dist-upgrade -y &&
-apt-get install --no-install-recommends -y avahi-daemon libnss-mdns lsb-release &&
+systemctl disable --now systemd-timesyncd.service &&
+apt-get install --no-install-recommends -y lsb-release &&
 tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/debian-mirrors.txt
@@ -231,7 +230,8 @@ if [ -f "/etc/apt/sources.list" ]; then
   rm -f "/etc/apt/sources.list"
 fi &&
 apt-get update &&
-systemctl disable --now systemd-timesyncd.service
+apt-get dist-upgrade -y &&
+apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ### 初期設定（Alpine Linux）
