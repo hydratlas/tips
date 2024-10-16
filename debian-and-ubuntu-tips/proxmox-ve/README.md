@@ -164,7 +164,7 @@ nano /etc/pve/corosync.conf
 
 ## CT作成（UbuntuまたはDebian）
 ### 一般
-Proxmox VEのストレージ（local）画面で、CTテンプレートの「テンプレート」ボタンからダウンロード。バージョン違いは[http://download.proxmox.com/images/system/](http://download.proxmox.com/images/system/)にある。
+Proxmox VEのストレージ（local）画面で、CTテンプレートの「テンプレート」ボタンからダウンロードする。さらに多くのバージョンのテンプレートが[http://download.proxmox.com/images/system/](http://download.proxmox.com/images/system/)にあり、ここで任意のtar.xzやtar.zstで終わるURLをコピーした上で、「URLからダウンロード」ボタンからダウンロードできる。
 
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
