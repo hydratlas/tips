@@ -11,6 +11,7 @@ sudo systemctl enable --now nginx.service
 ```
 
 ## Minicondaのインストール
+Minicondaのすべてのバージョンは[https://repo.anaconda.com/miniconda/]()にある。Ubuntu 24.04のPythonは3.12であるため、`Miniconda3-py312_`で始まるものを選ぶとよい。
 ```sh
 sudo apt-get install -y --no-install-recommends wget ca-certificates &&
 wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Linux-x86_64.sh &&
@@ -77,7 +78,7 @@ conda activate "$HOME/miniconda3/envs/myproject" &&
 cd "$HOME/myproject" &&
 uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 ```
-http://your_server_ip:5000
+http://your_server_ip:5000にアクセスする。
 
 ```sh
 conda deactivate
@@ -126,10 +127,10 @@ ExecStart=$HOME/miniconda3/envs/myproject/bin/uwsgi --ini myproject.ini
 [Install]
 WantedBy=multi-user.target
 EOS
-chgrp www-data "$HOME" &&
+sudo chgrp www-data "$HOME" &&
 chmod g+rx "$HOME" &&
 sudo systemctl enable --now myproject &&
-tee "/etc/nginx/sites-available/myproject.conf" <<- EOS > /dev/null &&
+sudo tee "/etc/nginx/sites-available/myproject.conf" <<- EOS > /dev/null &&
 server {
   listen 80;
   server_name example.com;
