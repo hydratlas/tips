@@ -77,6 +77,7 @@ fi
 # 既存の@サブボリュームの退避
 if [ -e @ ]; then
   btrfs subvolume snapshot @ "@snapshots/$(date --iso-8601="seconds")"
+  btrfs subvolume set-default .
   btrfs subvolume delete @
 fi
 
@@ -88,13 +89,13 @@ btrfs subvolume delete "/target/$SNAPSHOT_NAME"
 btrfs subvolume snapshot "$SNAPSHOT_NAME" @
 btrfs subvolume delete "$SNAPSHOT_NAME"
 
-# アンマウント
-umount -R /target
-
 # 新しい@サブボリュームから既存の@配下のサブボリュームと重複するファイルを削除または移動
 find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+
+# アンマウント
+umount -R /target
 
 # 以下既存のコードとまったく同じ
 
