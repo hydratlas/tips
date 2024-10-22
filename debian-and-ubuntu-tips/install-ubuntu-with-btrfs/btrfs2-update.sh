@@ -76,7 +76,8 @@ fi
 
 # 既存の@サブボリュームの退避
 if [ -e @ ]; then
-  mv @ "@snapshots/$(date --iso-8601="seconds")"
+  btrfs subvolume snapshot @ "@snapshots/$(date --iso-8601="seconds")"
+  btrfs subvolume delete @
 fi
 
 # 新しい@サブボリュームをコピー
