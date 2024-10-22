@@ -1,3 +1,3 @@
-# Ubuntu 23.10またはUbuntu Server 23.10をBtrfs (RAID 1)でセットアップ
-- [Ubuntu 23.10](desktop.md)
-- [Ubuntu Server 23.10](server.md)
+# Ubuntu 24.04またはUbuntu Server 24.04をBtrfs (RAID 1)でセットアップ
+- [Ubuntu 24.04](desktop.md)
+- [Ubuntu Server 24.04](server.md)
