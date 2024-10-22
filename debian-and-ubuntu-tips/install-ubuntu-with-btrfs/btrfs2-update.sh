@@ -84,7 +84,8 @@ SNAPSHOT_NAME="$(date --iso-8601="seconds")"
 btrfs subvolume snapshot -r /target "/target/$SNAPSHOT_NAME"
 btrfs send "/target/$SNAPSHOT_NAME" | btrfs receive .
 btrfs subvolume delete "/target/$SNAPSHOT_NAME"
-mv "$SNAPSHOT_NAME" @
+btrfs subvolume snapshot "$SNAPSHOT_NAME" @
+btrfs subvolume delete "$SNAPSHOT_NAME"
 
 # アンマウント
 umount -R /target
