@@ -1,4 +1,9 @@
 #!/bin/bash -eu
+# 例:
+# /dev/sda -> 既存のRAID1
+# /dev/sdb -> 既存のRAID1
+# /dev/sdc = /target -> 今回新しくインストール
+# btrfs2-update.sh sda sdb
 
 # ディスク
 DISK1="/dev/${1}"
@@ -57,45 +62,28 @@ if [ -e "${DISK2}" ]; then
   SWAP2_UUID="$(lsblk -dno UUID ${SWAP2_PART})"
 fi
 
-# アンマウント
-umount -R /target
+# 以上既存のコードとまったく同じ
 
 # マウント
 MOUNT_POINT="/mnt"
 mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 
-# 圧縮
-btrfs filesystem defragment -r -czstd .
+# 既存のサブボリュームの退避
+mv @ @2
 
-# @サブボリュームを作成
-btrfs subvolume snapshot . @
+# 新しいサブボリュームをコピー
+btrfs send /target | btrfs receive @
 
-# @配下のサブボリュームを作成
-btrfs subvolume create @home
-btrfs subvolume create @root
-btrfs subvolume create @var_log
-btrfs subvolume create @snapshots
+# アンマウント
+umount -R /target
 
-# @サブボリュームから@配下のサブボリュームにファイルをコピー
-cp -RT --reflink=always home/ @home/
-cp -RT --reflink=always root/ @root/
-cp -RT --reflink=always var/log/ @var_log/
-
-# ルートボリュームからファイルを削除
-find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
-
-# @サブボリュームから@配下のサブボリュームと重複するファイルを削除
-find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+# @サブボリュームから@配下のサブボリュームと重複するファイルを削除または移動
+mv @/home @/home2
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
-# RAID1化
-if [ -e "${DISK2}" ]; then
-  btrfs device add -f "${ROOTFS2_PART}" .
-  btrfs balance start -mconvert=raid1 -dconvert=raid1 .
-fi
-#btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / # 1台で運用した後に修復する場合
+# 以下既存のコードとまったく同じ
 
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
 btrfs subvolume set-default @
