@@ -8,8 +8,6 @@
 ## 前提
 UEFIブートの必要があります。
 
-スクリプトが設定する、fstabにおけるBtrfsのマウントオプションはSSD向けに最適化されています(noatime)。ただし、ssdマウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。
-
 ## 解説
 ### 新規インストール時
 btrfs1.shはインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約256MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
@@ -48,6 +46,8 @@ btrfs2.shの処理が完了すると、ルートファイルシステムは次�
   - /mnt/@home (Mount point after reboot: /home)
   - /mnt/@var_log (Mount point after reboot: /var/log)
   - /mnt/@snapshots (Mount point after reboot: /.snapshots)
+
+スクリプトが設定する、`/etc/fstab`におけるBtrfsのマウントオプションはSSD向けに最適化されています(noatime)。ただし、ssdおよびdiscard=asyncマウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。ssdマウントオプションは`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。btrfs2.shの処理後に`/etc/fstab`を手動で編集することによってカスタマイズすることができます。
 
 ### 上書きインストール時
 基本的には新規インストール時と同じです。相違がある部分について解説します。上書きインストールというのは、既存のルート(/)をスナップショットに保存した上で、一時的なストレージに新しくインストールしたルートに差し替えることを指します。
