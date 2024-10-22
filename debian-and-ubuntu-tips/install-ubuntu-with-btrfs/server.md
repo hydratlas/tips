@@ -46,32 +46,9 @@ sudo bash -x btrfs1.sh sdX
 sudo bash -x btrfs1.sh sdX
 ```
 
-最後に再起動する。
-```bash
-sudo reboot
-```
+最後に、Ctrl + Alt + F1キーを押下して、インストーラー画面に戻る。
 
 ## インストール
-### GNU GRUB画面
-![](server/01_grub.png)
-
-「Try or Install Ubuntu Server」を選択して、Enterキーを押下する。
-
-### Welcome!画面
-![](server/02_welcome.png)
-
-「English」を選択して、Enterキーを押下する。
-
-### Installer update available画面
-![](server/03_installer_update_available.png)
-
-「Update to the new installer」を選択して、Enterキーを押下する。
-
-### Keyboard configuration画面
-![](server/04_keyboard_configuration.png)
-
-Layoutは「Japanese」、Variantは「Japanese - Japanese (OADG 109A)」を選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
-
 ### Choose the type of installation画面
 ![](server/05_choose_the_type_of_installation.png)
 
@@ -180,13 +157,6 @@ Doneにフォーカスを当ててEnterキーを押下する。
 インストールが終わったら、Ctrl + Alt + F2キーを押下して、コンソール画面に入る。
 
 ### コンソール画面
-まず、スクリプトをダウンロードして、そのディレクトリーに移動する。
-```bash
-sudo apt install -y git
-git clone --depth=1 https://github.com/hydratlas/tips
-cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
-```
-
 lsblkコマンドでインストール先のストレージの名前（sdX）を確認する。
 ```bash
 lsblk -f -e 7

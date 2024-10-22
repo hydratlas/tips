@@ -66,19 +66,24 @@ fi
 
 # マウント
 MOUNT_POINT="/mnt"
-mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
+mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "subvol=/,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 
-# 既存のサブボリュームの退避
-mv @ @2
+# @snapshotsサブボリュームがない場合は作成
+if [ ! -e @snapshots ]; then
+  btrfs subvolume create @snapshots
+fi
 
-# 新しいサブボリュームをコピー
+# 既存の@サブボリュームの退避
+mv @ "@snapshots/$(date --iso-8601="seconds")"
+
+# 新しい@サブボリュームをコピー
 btrfs send /target | btrfs receive @
 
 # アンマウント
 umount -R /target
 
-# @サブボリュームから@配下のサブボリュームと重複するファイルを削除または移動
+# 新しい@サブボリュームから既存の@配下のサブボリュームと重複するファイルを削除または移動
 rm -dr @/home
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
