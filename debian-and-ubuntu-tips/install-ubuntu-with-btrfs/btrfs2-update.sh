@@ -83,14 +83,14 @@ fi
 SNAPSHOT_NAME="$(date --iso-8601="seconds")"
 btrfs subvolume snapshot -r /target "/target/$SNAPSHOT_NAME"
 btrfs send "/target/$SNAPSHOT_NAME" | btrfs receive .
-rm -dr "/target/$SNAPSHOT_NAME"
+btrfs subvolume delete "/target/$SNAPSHOT_NAME"
 mv "$SNAPSHOT_NAME" @
 
 # アンマウント
 umount -R /target
 
 # 新しい@サブボリュームから既存の@配下のサブボリュームと重複するファイルを削除または移動
-rm -dr @/home
+find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
