@@ -1,9 +1,4 @@
 #!/bin/bash -eu
-# 例:
-# /dev/sda -> 既存のRAID1
-# /dev/sdb -> 既存のRAID1
-# /dev/sdc = /target -> 今回新しくインストール
-# btrfs2-update.sh sda sdb
 
 # ディスク
 DISK1="/dev/${1}"
@@ -14,7 +9,7 @@ else
 fi
 
 # Btrfsオプション
-BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
+BTRFS_OPTIONS="noatime,compress=zstd:1,degraded"
 
 # パーティション
 if [ -e "${DISK1}p1" ]; then

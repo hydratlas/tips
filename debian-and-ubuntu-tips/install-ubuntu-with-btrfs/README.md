@@ -1,11 +1,18 @@
 # Ubuntu 24.04またはUbuntu Server 24.04をBtrfs (RAID 1)でセットアップ
+手順および補助スクリプトです。
+
 ## 手順
 - [Ubuntu 24.04](desktop.md)
 - [Ubuntu Server 24.04](server.md)
 
+## 前提
+UEFIブートの必要があります。
+
+スクリプトが設定する、fstabにおけるBtrfsのマウントオプションはSSD向けに最適化されています(noatime)。ただし、ssdマウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。
+
 ## 解説
 ### 新規インストール時
-btrfs1.shはインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。
+btrfs1.shはインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約256MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
 
 btrfs1.shのコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
 ```bash
@@ -43,7 +50,7 @@ btrfs2.shの処理が完了すると、ルートファイルシステムは次�
   - /mnt/@snapshots (Mount point after reboot: /.snapshots)
 
 ### 上書きインストール時
-基本的には新規インストール時と同じです。相違がある部分について解説します。
+基本的には新規インストール時と同じです。相違がある部分について解説します。上書きインストールというのは、既存のルート(/)をスナップショットに保存した上で、一時的なストレージに新しくインストールしたルートに差し替えることを指します。
 
 btrfs1.shによって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
 - 1台目のSSD（既存の物）
@@ -54,7 +61,7 @@ btrfs1.shによって作るパーティションの構成と、各パーティ�
   - /dev/sdb1 (FAT)
   - /dev/sdb2 (Swap)
   - /dev/sdb3 (Btrfs)
-- USBメモリ（一時的に使う物）
+- 3台目のSSDまたはUSBメモリ（一時的に使う物）
   - /dev/sdc1 (FAT | Formatting with btrfs1.sh)
   - /dev/sdc2 (Swap | Formatting with btrfs1.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)

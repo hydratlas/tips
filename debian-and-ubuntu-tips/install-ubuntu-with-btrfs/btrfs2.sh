@@ -9,7 +9,7 @@ else
 fi
 
 # Btrfsオプション
-BTRFS_OPTIONS="ssd,noatime,space_cache=v2,discard=async,compress=zstd:1,degraded"
+BTRFS_OPTIONS="noatime,compress=zstd:1,degraded"
 
 # パーティション
 if [ -e "${DISK1}p1" ]; then
