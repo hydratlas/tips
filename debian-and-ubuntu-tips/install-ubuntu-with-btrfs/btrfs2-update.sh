@@ -79,7 +79,7 @@ btrfs send /target | btrfs receive @
 umount -R /target
 
 # @サブボリュームから@配下のサブボリュームと重複するファイルを削除または移動
-mv @/home @/home2
+rm -dr @/home
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 

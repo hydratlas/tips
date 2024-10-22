@@ -13,7 +13,7 @@
 ### Installer update available画面
 ![](server/03_installer_update_available.png)
 
-「Update to the new installer」を選択して、Enterキーを押下する。
+「Update to the new installer」を選択して、Enterキーを押下する。なお、インストーラーのアップデートが存在しない場合、この画面はスキップされる。
 
 ### Keyboard configuration画面
 ![](server/04_keyboard_configuration.png)
