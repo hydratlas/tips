@@ -323,4 +323,8 @@ rm alvistack_key
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 
 noVNCが開かないとき
+```bash
 /usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
+```
+
+LinuxのデスクトップOSはディスプレイをVirtIO-GPUにする。

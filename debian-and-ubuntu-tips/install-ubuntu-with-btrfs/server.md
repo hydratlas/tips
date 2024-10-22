@@ -18,7 +18,7 @@
 ### Keyboard configuration画面
 ![](server/04_keyboard_configuration.png)
 
-Layoutは「Japanese」、Variantは「Japanese - Japanese (OADG 109A)」を選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
+Layoutは「Japanese」、Variantは「Japanese」を選択したうえで、Doneにフォーカスを当ててEnterキーを押下する。
 
 ### Choose the type of installation画面
 ![](server/05_choose_the_type_of_installation.png)
