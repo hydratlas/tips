@@ -80,10 +80,11 @@ if [ -e @ ]; then
 fi
 
 # 新しい@サブボリュームをコピー
-SNAPSHOT_NAME="/target/$(date --iso-8601="seconds")"
-btrfs subvolume snapshot /target "/target/$SNAPSHOT_NAME"
-btrfs send "/target/$SNAPSHOT_NAME" | btrfs receive ./@
+SNAPSHOT_NAME="$(date --iso-8601="seconds")"
+btrfs subvolume snapshot -r /target "/target/$SNAPSHOT_NAME"
+btrfs send "/target/$SNAPSHOT_NAME" | btrfs receive .
 rm -dr "/target/$SNAPSHOT_NAME"
+mv "$SNAPSHOT_NAME" @
 
 # アンマウント
 umount -R /target
