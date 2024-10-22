@@ -75,7 +75,9 @@ if [ ! -e @snapshots ]; then
 fi
 
 # 既存の@サブボリュームの退避
-mv @ "@snapshots/$(date --iso-8601="seconds")"
+if [ ! -e @ ]; then
+  mv @ "@snapshots/$(date --iso-8601="seconds")"
+fi
 
 # 新しい@サブボリュームをコピー
 SNAPSHOT_NAME="/target/$(date --iso-8601="seconds")"
