@@ -36,7 +36,7 @@ btrfs2.shはインストールの後段階で使用します。Ubuntuがイン�
 
 btrfs2.shのコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
 ```bash
-sudo bash -x btrfs2.sh sda sdb
+sudo bash -eux btrfs2.sh sda sdb
 ```
 
 btrfs2.shの処理が完了すると、ルートファイルシステムは次のようになります。
@@ -74,7 +74,7 @@ btrfs2-update.shはUbuntuがインストールされた新しいBtrfsをRAID 1�
 
 btrfs2-update.shのコマンド例は次のとおりです。新しくインストールしたsdc3から、既存のRAID 1構成のsda3およびsdb3にデータを差し替えます。sdc3は/targetにマウントされていることを前提にしているため、引数で指定する必要はありません。
 ```bash
-sudo bash -x btrfs2.sh sda sdb
+sudo bash -eux btrfs2-update.sh sda sdb
 ```
 
 btrfs2-update.shの処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したらsdcは不要になります。

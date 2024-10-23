@@ -70,24 +70,52 @@ if [ ! -e @snapshots ]; then
 fi
 
 # 既存の@サブボリュームの退避
+OLD_SNAPSHOT_NAME=''
 if [ -e @ ]; then
-  btrfs subvolume snapshot @ "@snapshots/$(date --iso-8601="seconds")"
+  OLD_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')"
+  btrfs subvolume snapshot @ "@snapshots/$OLD_SNAPSHOT_NAME"
   btrfs subvolume set-default .
   btrfs subvolume delete @
 fi
 
 # 新しい@サブボリュームをコピー
-SNAPSHOT_NAME="$(date --iso-8601="seconds")"
-btrfs subvolume snapshot -r /target "/target/$SNAPSHOT_NAME"
-btrfs send "/target/$SNAPSHOT_NAME" | btrfs receive .
-btrfs subvolume delete "/target/$SNAPSHOT_NAME"
-btrfs subvolume snapshot "$SNAPSHOT_NAME" @
-btrfs subvolume delete "$SNAPSHOT_NAME"
+NEW_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')"
+btrfs subvolume snapshot -r /target "/target/$NEW_SNAPSHOT_NAME"
+btrfs send "/target/$NEW_SNAPSHOT_NAME" | btrfs receive .
+btrfs subvolume delete "/target/$NEW_SNAPSHOT_NAME"
+btrfs subvolume snapshot "$NEW_SNAPSHOT_NAME" @
+btrfs subvolume delete "$NEW_SNAPSHOT_NAME"
 
 # 新しい@サブボリュームから既存の@配下のサブボリュームと重複するファイルを削除または移動
 find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+
+# 退避した既存の@サブボリュームから起動できるようにする
+## fstabの修正
+if [ -n "$OLD_SNAPSHOT_NAME" ]; then
+  sed -i "s|subvol=@,|subvol=@snapshots/${OLD_SNAPSHOT_NAME},|g" @snapshots/${OLD_SNAPSHOT_NAME}/etc/fstab
+fi
+
+## GRUBメニューエントリーの作成
+if [ -n "$OLD_SNAPSHOT_NAME" ]; then
+  OLD_DISTRIBUTOR="$(grep -oP '(?<=^PRETTY_NAME=").+(?="$)' @snapshots/${OLD_SNAPSHOT_NAME}/etc/os-release)"
+
+  tee @/etc/grub.d/18_old_linux << EOF > /dev/null
+#!/bin/sh
+. "\$pkgdatadir/grub-mkconfig_lib"
+TITLE="\$(echo "${OLD_DISTRIBUTOR} (snapshot: ${OLD_SNAPSHOT_NAME})" | grub_quote)"
+cat << EOS
+menuentry '\$TITLE' {
+  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
+  linux /@snapshots/${OLD_SNAPSHOT_NAME}/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@snapshots/${OLD_SNAPSHOT_NAME} \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+  initrd /@snapshots/${OLD_SNAPSHOT_NAME}/boot/initrd.img
+}
+EOS
+EOF
+
+  chmod a+x @/etc/grub.d/18_old_linux
+fi
 
 # アンマウント
 umount -R /target
