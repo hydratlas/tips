@@ -3,7 +3,7 @@ debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.img�
 
 ## ツールのセットアップ
 ### ダウンロード
-```
+```bash
 DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y git &&
 cd ~/ &&
 if [ -d ./tips ]; then
@@ -15,7 +15,7 @@ cd tips/debian-and-ubuntu-tips/debootstrap
 
 ### ハッシュ化されたパスワードの生成
 デフォルトでは「newuser」となっている。変更する場合は以下のようにハッシュ化されたパスワードの生成する。そして、設定ファイルに書き込む。
-```
+```bash
 openssl passwd -6 "newuser"
 ```
 
@@ -23,13 +23,13 @@ openssl passwd -6 "newuser"
 デフォルトではDebianの場合「linux-image-amd64」、ubuntuの場合「linux-generic」となっている。UbuntuではHWE（Hardware Enablement）カーネルを選ぶことができる。また、debian、Ubuntuともに、仮想マシンのゲストで動かすときに限ったハードウェアをサポートする、軽量なカーネルが用意されている。
 
 まず、使えるカーネルイメージを一覧表示する。
-```
+```bash
 apt-cache search --names-only ^linux-image- | grep -v -E "[0-9]+\.[0-9]+\.[0-9]+" | sort
 ```
 これらの中から任意のカーネルイメージを選ぶ。Dabianの場合はそれを設定ファイルに書き込む。Debian 12の場合にはlinux-image-amd64、linux-image-cloud-amd64またはlinux-image-rt-amd64になる。
 
 Ubuntuの場合は、選んだカーネルイメージの名前から「image」を抜いた名前がimageとheadersをセットにしたメタパッケージの名前になっていることを確認する。そのうえでそのメタパッケージの名前を設定ファイルに書き込む。
-```
+```bash
 apt-cache depends linux-generic
 
 apt-cache depends linux-generic-hwe-22.04
@@ -40,66 +40,66 @@ apt-cache depends linux-kvm
 さらに、仮想マシンのゲストではfirmwareとmicrocodeは不要であり、設定ファイルから削除することができる。ただし、その場合、ディスプレーは既定ではなくSPICE (qxl)またはVirtIO-GPUを選ばないと画面が表示されない（Proxmox VEのとき）。
 
 ### 設定の変更
-```
+```bash
 nano install-config.sh
 ```
 
 ## インストール
 ### インストールするストレージの特定
-```
+```bash
 lsblk -f -e 7
 ```
 
 ### インストール
 「lsblk」によって、インストール先のsdXを確認し、次のコマンドの1個目および2個目の引数に指定する。
-```
+```bash
 sudo bash -eux install1.sh <config-path> <hostname> <sdX> <sdX>
 sudo bash -eux install2.sh <config-path> <hostname> <sdX> <sdX>
 ```
 
 ## トラブルシューティング
 ### インストールされたパッケージの確認
-```
+```bash
 sudo arch-chroot /mnt dpkg --get-selections | grep -v deinstall | awk '{print$1}'
 ```
 - less: 入れないと、nmcliコマンドの色を正しく表示できない
 - libpam-systemd: 入れないと、SSH切断時にクライアント側がフリーズする
 
 ### パッケージの検索
-```
+```bash
 apt-cache search --names-only linux-image
 ```
 
 ### パッケージの依存関係の確認
-```
+```bash
 sudo arch-chroot /mnt apt-cache depends <name>
 sudo arch-chroot /mnt apt-cache rdepends <name>
 ```
 
 ### debconfの確認
-```
+```bash
 cat /mnt/var/cache/debconf/config.dat
 ```
 
 ### EFIシステムパーティションの確認
-```
+```bash
 ls -la /mnt/boot/efi/EFI
 ls -la /mnt/boot/efi2/EFI
 ```
 efi2/EFIはdebianの場合は空である。
 
 ### NVRAMに保存されたブートエントリーの確認
-```
+```bash
 sudo efibootmgr -v
 ```
 
 ### NVRAMに保存されたブートエントリーを削除
-```
+```bash
 sudo efibootmgr --bootnum 1234 --delete-bootnum
 ```
 
 ### debootstrap実行直後に戻す（Btrfsの場合のみ）
-```
+```bash
 sudo umount -R /mnt
 
 sudo mount -o subvolid=5 /dev/<sdXY> /mnt &&
@@ -114,24 +114,24 @@ sudo bash -eux install-mount.sh sdX sdX
 
 ## 後処理
 ### debootstrap実行直後のスナップショットを削除（Btrfsの場合のみ）
-```
+```bash
 sudo btrfs subvolume delete /mnt/.snapshots/after-installation
 ```
 
 ### アンマウント
 再起動するなら飛ばしてよい。
-```
+```bash
 cd ~/ &&
 sudo umount -R /mnt
 ```
 
 ### 再起動
-```
+```bash
 sudo poweroff
 ```
 
 ### 再起動後に再度マウント
-```
+```bash
 cd tips/debian-and-ubuntu-tips/debootstrap &&
 sudo bash -eux install-mount.sh <config-path> <sdX> <sdX>
 ```
@@ -139,23 +139,23 @@ sudo bash -eux install-mount.sh <config-path> <sdX> <sdX>
 ## その他、起動後の追加設定（オプション）
 ### console-setup.serviceがエラーになっているときの対処
 確認。
-```
+```bash
 systemctl status console-setup.service
 ```
 
 再起動。
-```
+```bash
 sudo systemctl restart console-setup.service
 ```
 
 ### パッケージのアップデート通知（Ubuntu）
 SSHログイン時のメッセージ(MOTD)でパッケージのアップデート通知を表示する。MOTDの仕組み上、システム全体のロケールでメッセージが生成されるようである。これをインストールすると依存関係でubuntu-advantage-toolsもインストールされる。ubuntu-advantage-toolsはUbuntu Proを導入する際には必要であるが、導入しない際には広告としての側面が目障りである。
-```
+```bash
 sudo apt-get install --no-install-recommends -y update-notifier-common
 ```
 
 ### 各種ツールのインストール
-```
+```bash
 sudo apt-get install --no-install-recommends -y \
   bzip2 curl gdisk git make rsync wget \
   htop psmisc time
@@ -164,7 +164,7 @@ sudo apt-get install --no-install-recommends -y \
 - psmisc: killall
 - time: time
 
-```
+```bash
 sudo apt-get install --no-install-recommends -y \
   lshw lsof mc moreutils
 ```
@@ -175,7 +175,7 @@ sudo apt-get install --no-install-recommends -y \
 
 ### NetworkManager関係（Debian）
 #### NetworkManagerに切り替える
-```
+```bash
 sudo apt-get install --no-install-recommends -y network-manager &&
 sudo nmcli connection modify "Wired connection 1" connection.autoconnect "yes" &&
 ls -alF /etc/NetworkManager/system-connections && # confirmation
@@ -186,7 +186,7 @@ sudo systemctl enable --now NetworkManager.service
 ```
 
 #### NetworkManagerでmDNSを使う
-```
+```bash
 nmcli connection show
 nmcli connection show "Wired connection 1"
 sudo nmcli connection modify "Wired connection 1" connection.mdns 2
@@ -195,7 +195,7 @@ sudo nmcli connection up "Wired connection 1"
 
 ### 2つ目のEFIシステムパーティションにブートローダー（rEFInd）をインストール（Debian）（未検証）
 KVM上でなぜかブートせず、動作を検証できていない。
-```
+```bash
 EFI_PATH="/boot/efi2" &&
 DISTRIBUTOR="$(lsb_release -i -s 2> /dev/null || echo Debian)" &&
 ROOT_UUID="$(findmnt --target / --output UUID --noheadings)" &&

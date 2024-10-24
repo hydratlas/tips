@@ -18,7 +18,7 @@
 ## リポジトリを無料のものにする
 ### Deb822-style Format
 新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
-```
+```bash
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
 VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
@@ -38,7 +38,7 @@ EOS
 
 ### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
-```
+```bash
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
 VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
@@ -51,14 +51,24 @@ EOF
 ```
 
 ## サブスクリプションの広告を削除
-```
+```bash
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
 ```
 
 ## VM/CTの名前を後から変更
-```
+```bash
 qm set <vmid> --name <name>
 ```
+
+## その他
+追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
+
+noVNCが開かないとき
+```bash
+/usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
+```
+
+LinuxのデスクトップOSはディスプレイをVirtIO-GPUにする。
 
 ## VM作成
 ### イメージをダウンロード
@@ -72,7 +82,7 @@ Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images
 適宜変更して使用する。
 
 #### Ubuntu 23.10の場合
-```
+```bash
 BASE_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64.img" &&
 CUSTOM_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64-custom.img" &&
 apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
@@ -94,7 +104,7 @@ virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
 適宜変更して使用する。特にメモリーが2GiB、ディスクが3.5GiBしかないことに注意。
 
 #### Ubuntuの場合
-```
+```bash
 VMID=<num> &&
 UESR=<name> &&
 PASSWORD="$(openssl passwd -6 "<password>")" &&
@@ -124,7 +134,7 @@ qm template "$VMID"
 ```
 
 #### Debianの場合
-```
+```bash
 VMID=<num> &&
 UESR=<name> &&
 PASSWORD="$(openssl passwd -6 "<password>")" &&
@@ -158,7 +168,7 @@ Proxmox VE Administration Guide
 https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_remove_a_cluster_node
 
 加えてcorosync.confから削除したノードの情報を削除する。
-```
+```bash
 nano /etc/pve/corosync.conf
 ```
 
@@ -169,7 +179,7 @@ Proxmox VEのストレージ（local）画面で、CTテンプレートの「テ
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
 ### 初期設定（Ubuntu）
-```
+```bash
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&
@@ -203,7 +213,7 @@ apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ### 初期設定（Debian 12）
-```
+```bash
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&
@@ -235,20 +245,20 @@ apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ### 初期設定（Alpine Linux）
-```
+```bash
 apk update &&
 apk upgrade &&
 setup-timezone -z Asia/Tokyo
 ```
 
 ### Podmanをインストール（Ubuntu・Debian）
-```
+```bash
 apt-get install -y podman &&
 apt-get install --no-install-recommends -y podman-docker
 ```
 
 ### Podmanをインストール（Alpine Linux）
-```
+```bash
 apk add podman podman-bash-completion podman-docker fuse-overlayfs &&
 sed -i 's/^#*rc_cgroup_mode=.*/rc_cgroup_mode="unified"/' /etc/rc.conf &&
 rc-update add cgroups &&
@@ -257,7 +267,7 @@ rc-service cgroups start
 未検証。
 
 ### Podmanを設定
-```
+```bash
 sed -i 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
 touch /etc/containers/nodocker &&
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
@@ -284,47 +294,6 @@ reboot
 - [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 
 ### Podmanをテスト実行
-```
+```bash
 docker run hello-world
 ```
-
-### PodmanにPortainerをインストール
-```
-docker volume create portainer_data &&
-docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce:latest
-
-# https://localhost:9443
-```
-
-### PodmanにPortainer Agentをインストール
-```
-docker run -d \
-  -p 9001:9001 \
-  --name portainer_agent \
-  --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
-  portainer/agent
-```
-
-### 新しいPodmanを使う（うまく動かない）
-```
-apt-get install --no-install-recommends -y gpg &&
-source /etc/os-release &&
-wget http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_$VERSION_ID/Release.key -O alvistack_key &&
-cat alvistack_key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/alvistack.gpg  >/dev/null &&
-echo "deb http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_$VERSION_ID/ /" | tee /etc/apt/sources.list.d/alvistack.list &&
-rm alvistack_key
-```
-
-## その他
-追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
-
-noVNCが開かないとき
-```bash
-/usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
-```
-
-LinuxのデスクトップOSはディスプレイをVirtIO-GPUにする。
