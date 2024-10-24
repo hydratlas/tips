@@ -39,7 +39,7 @@ sudo apt install -y gnome-boxes swtpm-tools
 
 ## 仮想マシン起動後の後処理
 ### Windowsゲストにドライバーなどをインストール
-[windows-guest.md]()を参照。
+[windows-guest.md](./windows-guest.md)を参照。
 
 ### Trimを有効化
 仮想マシンをシャットダウンしてから、仮想マシンの設定画面の「設定を編集」からXMLファイルを編集する。\<devices>タグと\</devices>タグの内側にSCSIコントローラーの要素を追加する。
