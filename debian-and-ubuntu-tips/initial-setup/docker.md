@@ -1,8 +1,6 @@
 # Docker関係
 DockerのコンテナエンジンはDockerとその互換エンジンであるPodmanがある。大きな違いはないがPodmanはデフォルトでRootlessであり、Rootlessで使う場合にはスムーズである。
 
-また、コンテナを管理するGUIツールがDockerの場合はPortainerまたはDockge、Podmanの場合はPortainerまたはCockpitであるという違いもある。PortainerはDockerやKubernetesといったコンテナ環境の管理に特化したもので、Cockpitはサーバー全体の管理ができるものである。
-
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者・マシン全体）
 #### Podman本体をインストール
@@ -80,56 +78,38 @@ EOF
 docker-compose up
 ```
 
-### CockpitでPodmanコンテナを管理する（管理者・マシン全体）
-Cockpitを使う場合のみ。
-#### Cockpit通常版をインストール（バーションが古い）
-```bash
-sudo apt-get install --no-install-recommends -y cockpit-podman
-```
-
-#### Cockpitバックポート版をインストール（バーションが新しい）
-```bash
-sudo apt-get install --no-install-recommends -y \
-  -t "$(lsb_release --short --codename)-backports" cockpit-podman
-```
-
-### Portainer CEでPodmanコンテナを管理する（各ユーザー）
-#### Portainer CEをインストール
-```bash
-docker volume create portainer_data &&
-docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce:latest
-
-# https://localhost:9443
-```
-
-#### Portainer Agentをインストール
-```bash
-docker run -d \
-  -p 9001:9001 \
-  --name portainer_agent \
-  --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
-  portainer/agent
-```
-
 ## DockerおよびDocker Composeをインストール・実行
-Dockerの場合には、RootfulとRootlessでインストール方法が分かれる。
-
-### Rootful DockerおよびDocker Composeをインストール（管理者・マシン全体）
+### リポジトリーを設定（管理者・マシン全体）
 #### Ubuntuの場合
 ```bash
 sudo apt-get update &&
-sudo apt-get install --no-install-recommends -y ca-certificates curl gnupg &&
+sudo apt-get install -y ca-certificates curl &&
 sudo install -m 0755 -d /etc/apt/keyrings &&
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc &&
-sudo chmod a+r /etc/apt/keyrings/docker.gpg &&
+sudo chmod a+r /etc/apt/keyrings/docker.asc &&
 echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+#### Debianの場合
+```bash
+sudo apt-get update &&
+sudo apt-get install -y ca-certificates curl &&
+sudo install -m 0755 -d /etc/apt/keyrings &&
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
+sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+### Rootful DockerおよびDocker Composeをインストール（管理者・マシン全体）
+Dockerの場合には、RootfulとRootlessでインストール方法が分かれる。
+#### Ubuntuの場合
+```bash
 sudo apt-get update &&
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
@@ -138,24 +118,16 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 #### Debianの場合
 ```bash
 sudo apt-get update &&
-sudo apt-get install --no-install-recommends -y ca-certificates curl &&
-sudo install -m 0755 -d /etc/apt/keyrings &&
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
-sudo chmod a+r /etc/apt/keyrings/docker.asc &&
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null &&
-sudo apt-get update &&
-sudo apt-get install --no-install-recommends -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 - [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)
 
 ### Rootless DockerおよびDocker Composeをインストール・実行
-#### uidmapをインストール（管理者・マシン全体）
+#### docker-ce-rootless-extrasおよびuidmapをインストール（管理者・マシン全体）
 ```bash
-sudo apt-get install --no-install-recommends -y uidmap
+sudo apt-get update &&
+sudo apt-get install -y uidmap iptables docker-ce docker-ce-rootless-extras
+sudo systemctl disable --now docker.service docker.socket
 ```
 - [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
@@ -185,28 +157,58 @@ wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/co
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
-### Portainer CEをインストール（管理者・マシン全体）
-Portainerは、RootfulとRootlessでインストール方法は変わらず共通である。
+### Dockerをテスト実行（管理者または各ユーザー）
 ```bash
-sudo docker volume create portainer_data &&
-sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
+docker run hello-world
+```
+
+## 管理ツール
+コンテナを管理するGUIツールがDockerの場合はPortainerまたはDockge、Podmanの場合はPortainerまたはCockpitであるという違いもある。PortainerはDockerやKubernetesといったコンテナ環境の管理に特化したもので、Cockpitはサーバー全体の管理ができるものである。
+
+### CockpitでPodmanコンテナを管理する（管理者・マシン全体）
+Cockpitを使う場合のみ。
+#### Cockpit通常版をインストール（バーションが古い）
+```bash
+sudo apt-get install --no-install-recommends -y cockpit-podman
+```
+
+#### Cockpitバックポート版をインストール（バーションが新しい）
+```bash
+sudo apt-get install --no-install-recommends -y \
+  -t "$(lsb_release --short --codename)-backports" cockpit-podman
+```
+
+### Portainer CEでPodmanまたはDockerコンテナを管理する（各ユーザー）
+#### Portainer CEをインストール
+```bash
+docker volume create portainer_data &&
+docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v portainer_data:/data portainer/portainer-ce:latest
 
 # https://localhost:9443
 ```
 
-### DockgeでRootful Dockerコンテナを管理する（管理者・マシン全体）
+#### Portainer Agentをインストール
+```bash
+docker run -d \
+  -p 9001:9001 \
+  --name portainer_agent \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
+  portainer/agent
+```
+
+### DockgeでRootful Dockerコンテナを管理する（管理者）
 ```bash
 sudo mkdir -p /opt/stacks /opt/dockge &&
-sudo chmod g+rwx /opt/stacks /opt/dockge &&
-sudo usermod -aG root "$USER" &&
 cd /opt/dockge &&
 sudo curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml &&
 if type docker-compose >/dev/null 2>&1; then
-  docker-compose up -d
+  sudo docker-compose up -d
 else
-  docker compose up -d
+  sudo docker compose up -d
 fi
 ```
 ポート5001にアクセスするとウェブユーザーインターフェースが表示される。
