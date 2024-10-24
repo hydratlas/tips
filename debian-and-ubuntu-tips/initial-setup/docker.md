@@ -81,6 +81,20 @@ docker run -d \
   portainer/agent
 ```
 
+### DockgeでPodmanコンテナを管理する（管理者・マシン全体）
+```bash
+sudo mkdir -p /opt/stacks /opt/dockge
+cd /opt/dockge
+
+sudo curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml
+
+if type docker-compose >/dev/null 2>&1; then
+  sudo docker-compose up -d
+else
+  sudo docker compose up -d
+fi
+```
+
 ### Docker Composeをインストール（各ユーザー）
 #### Docker Composeをインストール
 Docker Composeを使わない場合には必要ない。

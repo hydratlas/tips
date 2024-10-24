@@ -81,10 +81,10 @@ Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images
 ### イメージのカスタマイズ
 適宜変更して使用する。
 
-#### Ubuntu 23.10の場合
+#### Ubuntu 24.04の場合
 ```bash
-BASE_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64.img" &&
-CUSTOM_IMAGE="ubuntu-23.10-minimal-cloudimg-amd64-custom.img" &&
+BASE_IMAGE="ubuntu-24.04-minimal-cloudimg-amd64.img" &&
+CUSTOM_IMAGE="ubuntu-24.04-minimal-cloudimg-amd64-custom.img" &&
 apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
 cd /var/lib/vz/template/iso &&
 cp "${BASE_IMAGE}" "${CUSTOM_IMAGE}" &&
@@ -111,8 +111,8 @@ PASSWORD="$(openssl passwd -6 "<password>")" &&
 KEY_URI=https://github.com/<name>.keys &&
 KEY_FILE="$(mktemp)" && wget -O "$KEY_FILE" "$KEY_URI" &&
 qm create "$VMID" \
-  --name ubuntu-23.10-minimal-custom \
-  --virtio0 local-zfs:0,size=3584M,import-from=/var/lib/vz/template/iso/ubuntu-23.10-minimal-cloudimg-amd64-custom.img \
+  --name ubuntu-24.04-minimal-custom \
+  --virtio0 local-zfs:0,size=3584M,import-from=/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64-custom.img \
   --memory 2048 \
   --cores 2 \
   --cpu x86-64-v3 \
