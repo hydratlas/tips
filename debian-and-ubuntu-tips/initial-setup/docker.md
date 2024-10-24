@@ -1,7 +1,7 @@
 # Docker関係
 DockerのコンテナエンジンはDockerとその互換エンジンであるPodmanがある。大きな違いはないがPodmanはデフォルトでRootlessであり、Rootlessで使う場合にはスムーズである。
 
-また、コンテナを管理するGUIツールがDockerの場合はPortainer、Podmanの場合はPortainerまたはCockpitであるという違いもある。PortainerはDockerやKubernetesといったコンテナ環境の管理に特化したもので、Cockpitはサーバー全体の管理ができるものである。
+また、コンテナを管理するGUIツールがDockerの場合はPortainerまたはDockge、Podmanの場合はPortainerまたはCockpitであるという違いもある。PortainerはDockerやKubernetesといったコンテナ環境の管理に特化したもので、Cockpitはサーバー全体の管理ができるものである。
 
 ## PodmanおよびDocker Composeをインストール・実行
 ### Podmanをインストール（管理者・マシン全体）
@@ -46,6 +46,40 @@ reboot
 docker run hello-world
 ```
 
+### Docker Composeをインストール（各ユーザー）
+#### Docker Composeをインストール
+Docker Composeを使わない場合には必要ない。
+```bash
+mkdir -p "$HOME/.local/bin" &&
+wget -O "$HOME/.local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
+chmod a+x "$HOME/.local/bin/docker-compose" &&
+systemctl --user daemon-reload &&
+systemctl --user enable --now podman.socket &&
+cat << EOS >> "$HOME/.bashrc" &&
+
+# Podman
+if [ -e "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
+  export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+fi
+
+PATH="$HOME/.local/bin:$PATH"
+EOS
+. "$HOME/.bashrc" &&
+docker-compose --version
+```
+
+#### Docker Composeを実行
+```bash
+cd "$HOME" &&
+tee docker-compose.yml << 'EOF' >/dev/null &&
+version: "3"
+services:
+  hello:
+    image: hello-world
+EOF
+docker-compose up
+```
+
 ### CockpitでPodmanコンテナを管理する（管理者・マシン全体）
 Cockpitを使う場合のみ。
 #### Cockpit通常版をインストール（バーションが古い）
@@ -79,55 +113,6 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /var/lib/containers/storage/volumes:/var/lib/docker/volumes \
   portainer/agent
-```
-
-### DockgeでPodmanコンテナを管理する（管理者・マシン全体）
-```bash
-sudo mkdir -p /opt/stacks /opt/dockge
-cd /opt/dockge
-
-sudo curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml
-
-if type docker-compose >/dev/null 2>&1; then
-  sudo docker-compose up -d
-else
-  sudo docker compose up -d
-fi
-```
-
-### Docker Composeをインストール（各ユーザー）
-#### Docker Composeをインストール
-Docker Composeを使わない場合には必要ない。
-```bash
-mkdir -p "$HOME/.local/bin" &&
-wget -O "$HOME/.local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
-chmod a+x "$HOME/.local/bin/docker-compose" &&
-systemctl --user daemon-reload &&
-systemctl --user enable --now podman.socket &&
-cat << EOS >> "$HOME/.bashrc" &&
-
-# Podman
-if [ -e "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
-  export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
-fi
-
-PATH="$HOME/.local/bin:$PATH"
-EOS
-. "$HOME/.bashrc"
-
-docker-compose --version
-```
-
-#### Docker Composeを実行
-```bash
-cd "$HOME" &&
-tee docker-compose.yml << 'EOF' >/dev/null &&
-version: "3"
-services:
-  hello:
-    image: hello-world
-EOF
-docker-compose up
 ```
 
 ## DockerおよびDocker Composeをインストール・実行
@@ -210,3 +195,18 @@ sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
 
 # https://localhost:9443
 ```
+
+### DockgeでRootful Dockerコンテナを管理する（管理者・マシン全体）
+```bash
+sudo mkdir -p /opt/stacks /opt/dockge &&
+sudo chmod g+rwx /opt/stacks /opt/dockge &&
+sudo usermod -aG root "$USER" &&
+cd /opt/dockge &&
+sudo curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml &&
+if type docker-compose >/dev/null 2>&1; then
+  docker-compose up -d
+else
+  docker compose up -d
+fi
+```
+ポート5001にアクセスするとウェブユーザーインターフェースが表示される。
