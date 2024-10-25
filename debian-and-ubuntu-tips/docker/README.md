@@ -1,0 +1,1 @@
+DockerのコンテナエンジンはDockerとその互換エンジンであるPodmanがある。大きな違いはないがPodmanはデフォルトでRootlessであり、Rootlessで使う場合にはスムーズである。

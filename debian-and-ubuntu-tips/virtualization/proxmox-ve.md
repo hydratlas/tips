@@ -101,7 +101,7 @@ virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
 ```
 
 ### テンプレートの作成
-適宜変更して使用する。特にメモリーが2GiB、ディスクが3.5GiBしかないことに注意。
+適宜変更して使用する。特にメモリーが8GiB、ディスクが8GiBしかないことに注意。
 
 #### Ubuntuの場合
 ```bash
@@ -112,9 +112,9 @@ KEY_URI=https://github.com/<name>.keys &&
 KEY_FILE="$(mktemp)" && wget -O "$KEY_FILE" "$KEY_URI" &&
 qm create "$VMID" \
   --name ubuntu-24.04-minimal-custom \
-  --virtio0 local-zfs:0,size=3584M,import-from=/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64-custom.img \
+  --virtio0 local-zfs:0,size=8192M,import-from=/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64-custom.img \
   --memory 8192 \
-  --cores 2 \
+  --cores 4 \
   --cpu x86-64-v3 \
   --bios seabios \
   --vga serial0 \
