@@ -104,6 +104,26 @@ sudo debconf-set-selections <<< "tzdata tzdata/Zones/Asia select Tokyo"
 ```
 このうち、「dpkg-reconfigure tzdata」の実行時に参照されているのは「/etc/localtime」だけである。そして、「timedatectl set-timezone」は「/etc/localtime」を書き換える。その上で「dpkg-reconfigure tzdata」を実行すれば、「/etc/timezone」を書き換えてくれる。
 
+## 管理者ユーザーを追加
+```bash
+sudo useradd -u <uid> -U -G adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,root \
+  -p "$(openssl passwd -6 "<password>")" -s /bin/bash -m <username>
+```
+
+## ユーザーに`authorized_keys`を作成または追記
+```bash
+USER_NAME=<username> &&
+KEYS=$(cat << EOS
+ssh-ed25519 xxxxx
+ssh-ed25519 xxxxx
+EOS
+) &&
+USER_HOME="$(grep "$USER_NAME" /etc/passwd | cut -d: -f6)" &&
+sudo -u "$USER_NAME" mkdir -p "$USER_HOME/.ssh" &&
+sudo -u "$USER_NAME" tee -a "$USER_HOME/.ssh/authorized_keys" <<< "$KEYS" > /dev/null &&
+sudo chmod u=rw,g=,o= "$USER_HOME/.ssh/authorized_keys"
+```
+
 ## systemd-timesyncdによるNTP (Network Time Protocol)の設定（管理者）
 ### 状況確認
 ```bash

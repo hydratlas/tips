@@ -79,7 +79,6 @@ sudo systemctl enable --now docker.service docker.socket
 
 ### docker-ce-rootless-extrasなどをインストール（対象：全ユーザー）
 ```bash
-sudo apt-get update &&
 sudo apt-get install -y uidmap iptables docker-ce-rootless-extras
 ```
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
