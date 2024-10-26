@@ -1,26 +1,37 @@
 
 # DockerまたはPodmanコンテナエンジンの管理ツール
-## Rootful Cockpitのインストール・実行（要sudo／マシン全体）
-Podmanのみに対応。サーバー全体をウェブインターフェースで管理するCockpitの本体が入っていることを前提として、プラグインをインストールする。
+lazydockerが機能は少ないものの、独立したユーザー管理が不要で運用コストが低い。
 
-### Cockpit通常版をインストールする場合
+## lazydockerのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
+
+PodmanとDockerの両対応。また、Rootful DockerとRootless Dockerの両対応。
+
+### インストール
+Podmanの場合には、前提として、ソケットを有効化しておく必要がある。
 ```bash
-sudo apt-get install --no-install-recommends -y cockpit-podman
+wget -q -O- https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | env DIR=/usr/local/bin sudo -E bash -x
+```
+アップデートも同様の手順。
+
+### 実行（root）
+```bash
+sudo lazydocker
 ```
 
-### Cockpitバックポート版をインストールする場合
-通常版よりバージョンが新しい。
+### 実行（非root）
 ```bash
-sudo apt-get install --no-install-recommends -y \
-  -t "$(lsb_release --short --codename)-backports" cockpit-podman
+lazydocker
 ```
 
-## Rootful Portainer CEのインストール・実行（要sudo／マシン全体）
-PodmanおよびDockerに対応。
+## Rootful Portainer CEのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
+
+PodmanとDockerの両対応。
 
 ### Podmanの場合
+前提として、ソケットを有効化しておく必要がある。
 ```bash
-sudo systemctl enable --now podman.socket &&
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer.container << EOS > /dev/null &&
 [Container]
@@ -78,11 +89,15 @@ sudo docker update --restart=no portainer &&
 sudo docker rm portainer
 ```
 
-## Rootless Portainer CEのインストール・実行（要sudo／ユーザー別）
+## Rootless Portainer CEのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
+
+PodmanとDockerの両対応。
+
 ### Podmanの場合
+前提として、ソケットを有効化しておく必要がある。
 ```bash
 sudo loginctl enable-linger "$USER" &&
-systemctl --user enable --now podman.socket &&
 mkdir -p "$HOME/.config/containers/systemd" &&
 tee "$HOME/.config/containers/systemd/portainer.container" << EOS > /dev/null &&
 [Container]
@@ -141,10 +156,14 @@ docker stop portainer &&
 docker rm portainer
 ```
 
-## Rootful Portainer Agentのインストール・実行（要sudo／マシン全体）
+## Rootful Portainer Agentのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
+
+PodmanとDockerの両対応。
+
 ### Podmanの場合
+前提として、ソケットを有効化しておく必要がある。
 ```bash
-sudo systemctl enable --now podman.socket &&
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer-agent.container << EOS > /dev/null &&
 [Container]
@@ -180,12 +199,37 @@ sudo rm /etc/containers/systemd/portainer-agent.container &&
 sudo systemctl daemon-reload
 ```
 
-## Rootful Dockgeのインストール・実行（要sudo／マシン全体）
-### Dockerの場合
+## Cockpitのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
+
+Podmanのみに対応。サーバー全体をウェブインターフェースで管理するCockpitの本体が入っていることを前提として、プラグインをインストールする。
+
+### 通常版をインストールする場合
+```bash
+sudo apt-get install --no-install-recommends -y cockpit-podman
+```
+
+### バックポート版をインストールする場合
+通常版よりバージョンが新しい。
+```bash
+sudo apt-get install --no-install-recommends -y \
+  -t "$(lsb_release --short --codename)-backports" cockpit-podman
+```
+
+## Dockgeのインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
+
+Rootful Dockerのみ対応。
+
+### インストール
 ```bash
 sudo mkdir -p /opt/stacks /opt/dockge &&
-cd /opt/dockge &&
-sudo curl https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml --output compose.yaml &&
+sudo wget -O /opt/dockge/compose.yaml https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml
+```
+
+### 実行（root）
+```bash
+cd /opt/dockge
 if type docker-compose >/dev/null 2>&1; then
   sudo docker-compose up -d
 else

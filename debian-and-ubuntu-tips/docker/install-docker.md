@@ -1,5 +1,6 @@
 # Docker周りのインストール
-## リポジトリーの設定（要sudo／マシン全体）
+## リポジトリーの設定
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 ```bash
 DISTRIBUTION_ID="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
 DISTRIBUTION_NAME="" &&
@@ -21,8 +22,10 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
 
-## 【選択肢1】Rootful DockerおよびDocker Composeをインストール
-### パッケージをインストール（要sudo／マシン全体）
+## Rootful DockerおよびDocker Composeをインストール
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：特定のユーザー
+
+### パッケージをインストール（対象：全ユーザー）
 ```bash
 sudo apt-get update &&
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -30,7 +33,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 - [Install Docker Engine on Ubuntu | Docker Docs](https://docs.docker.com/engine/install/ubuntu/)
 - [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)
 
-### 特定のユーザーにDockerの実行を許可（要sudo／ユーザー別）
+### Dockerの実行を許可（対象：特定のユーザー）
 #### 現在ログインしているユーザーにDockerの実行を許可する場合
 ```bash
 if ! getent group docker >/dev/null; then
@@ -46,23 +49,45 @@ sudo groupadd docker &&
 sudo usermod -aG docker "<username>"
 ```
 
-### 確認（ユーザー別）
+### 確認
 ```bash
 docker version
 ```
 
-## 【選択肢2】Rootless DockerおよびDocker Composeをインストール・実行
-### docker-ce-rootless-extrasなどをインストール（要sudo／マシン全体）
+## Rootless DockerおよびDocker Composeをインストール・実行
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
+
+### 最低限のRootful Dockerをインストール（対象：全ユーザー）
+システムでもDockerを使うことは多いが、その場合は最低限ではない通常のRootful Dockerをインストールして構わない。最低限といっても、実際には`docker-ce`に設定されている依存関係により`docker-ce-cli`、`containerd.io`、`docker-buildx-plugin`および`docker-compose-plugin`が同時にインストールされる模様。
 ```bash
 sudo apt-get update &&
-sudo apt-get install -y uidmap iptables docker-ce docker-ce-rootless-extras
-sudo systemctl disable --now docker.service
+sudo apt-get install -y docker-ce
 ```
-- [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
-### Rootless Dockerをインストール（ユーザー別）
+### 【オプション】Rootful Dockerを無効化（対象：全ユーザー）
+Rootless DockerとRootful Dockerは併用できるが、一方でRootful Dockerを無効にすることもできる。
+```bash
+sudo systemctl disable --now docker.service docker.socket
+sudo rm /var/run/docker.sock
+```
+
+### 【オプション】Rootful Dockerを有効化（対象：全ユーザー）
+再度、Rootful Dockerを有効にすることもできる。`/var/run/docker.sock`は自動的に生成される。
+```bash
+sudo systemctl enable --now docker.service docker.socket
+```
+
+### docker-ce-rootless-extrasなどをインストール（対象：全ユーザー）
+```bash
+sudo apt-get update &&
+sudo apt-get install -y uidmap iptables docker-ce-rootless-extras
+```
+参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
+
+### Rootless Dockerをインストール（対象：各ユーザー）
 ```bash
 dockerd-rootless-setuptool.sh install &&
+docker version &&
 cat << EOS >> "$HOME/.bashrc" &&
 
 # Docker
@@ -71,17 +96,16 @@ if [ -e "$XDG_RUNTIME_DIR/docker.sock" ]; then
   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/docker.sock"
 fi
 EOS
-. "$HOME/.bashrc" &&
-docker version
+. "$HOME/.bashrc"
 ```
-- [Run the Docker daemon as a non-root user (Rootless mode) | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
-### 【デバッグ用】Rootless Dockerをアンインストール（ユーザー別）
+### 【デバッグ用】Rootless Dockerをアンインストール（対象：各ユーザー）
 ```bash
 dockerd-rootless-setuptool.sh uninstall
 ```
 
-### Docker Composeプラグインをインストール（ユーザー別）
+### Docker Composeプラグインをインストール（対象：各ユーザー）
+Rootful Docker側で`docker-compose-plugin`をインストールしている場合は不要。
 ```bash
 mkdir -p "$HOME/.docker/cli-plugins" &&
 wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&

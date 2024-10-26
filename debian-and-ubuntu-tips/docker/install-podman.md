@@ -1,20 +1,20 @@
 # Podman周りのインストール
 ## Podmanをインストール
-### パッケージをインストール・確認（要sudo／マシン全体）
+### パッケージをインストール・確認
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
 ```bash
 sudo apt-get install -y podman &&
 sudo apt-get install --no-install-recommends -y podman-docker &&
-sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
+sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g' /etc/containers/registries.conf &&
 sudo touch /etc/containers/nodocker &&
-sudo systemctl enable --now podman.socket &&
 docker version
 ```
 
-### ZFSおよびLXC上の場合の追加設定（rootユーザー／マシン全体）
-ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。
+### ZFSおよびLXC上の場合の追加設定
+実行：rootユーザー／権限：rootユーザー／対象：rootユーザー（sudoを含む）
+
+ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。これはLXCのrootユーザー用である。
 ```bash
-sed -i 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g;' /etc/containers/registries.conf &&
-touch /etc/containers/nodocker &&
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
 #!/bin/sh
 exec /bin/mount -t overlay overlay "\$@"
@@ -39,19 +39,21 @@ EOS
 ```bash
 reboot
 ```
-
 - [storage.conf mishandling with zfs storage driver · Issue #20324 · containers/podman](https://github.com/containers/podman/issues/20324)
 - [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 
-## Docker Composeをインストール
-Docker Composeを使わない場合には必要ない。
+## Podmanのソケットを有効化
+ソケットが必要なアプリケーションを使う場合に実行する。ソケットはユーザーごとに別個であるため、使うユーザー用のソケットをおのおの有効化する。
 
-### バイナリーをインストール・確認（ユーザー別）
+### rootユーザー用
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 ```bash
-mkdir -p "$HOME/.local/bin" &&
-wget -O "$HOME/.local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
-chmod a+x "$HOME/.local/bin/docker-compose" &&
-systemctl --user daemon-reload &&
+sudo systemctl enable --now podman.socket
+```
+
+### 非rootユーザー用
+実行：任意のユーザー／権限：一般ユーザー／対象：各ユーザー
+```bash
 systemctl --user enable --now podman.socket &&
 cat << EOS >> "$HOME/.bashrc" &&
 
@@ -62,6 +64,17 @@ fi
 
 PATH="$HOME/.local/bin:$PATH"
 EOS
-. "$HOME/.bashrc" &&
+. "$HOME/.bashrc"
+```
+
+## Docker Composeをインストール
+Docker Composeを使わない場合には必要ない。
+
+### バイナリーをインストール・確認
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
+```bash
+sudo wget -O "/usr/local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
+sudo chmod a+x "/usr/local/bin/docker-compose" &&
 docker-compose --version
 ```
+実際に使う前に、ソケットを有効化しておく必要がある。
