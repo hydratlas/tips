@@ -39,6 +39,6 @@ wsman put http://intel.com/wbem/wscim/1/ips-schema/1/IPS_KVMRedirectionSettingDa
 wsman invoke -a RequestStateChange http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_KVMRedirectionSAP -h "${AMT_IP}" -P 16992 -u "${AMT_USER}" -p "${AMT_PASSWORD}" -k RequestedState=2
 echo "VNC Paswword: $VNC_PASSWORD"
 EOS
-chmod +x kvm.sh
+chmod +x kvm.sh &&
 ./kvm.sh
 ```
