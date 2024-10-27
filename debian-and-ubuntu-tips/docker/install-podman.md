@@ -1,5 +1,5 @@
 # Podman周りのインストール
-## Podmanをインストール
+## Podmanのインストール
 ### パッケージをインストール・確認
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
 ```bash
@@ -43,6 +43,18 @@ reboot
 - [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 - [\[FIX\] podman lxc is working on zfs with this fix · tteck/Proxmox · Discussion #3531](https://github.com/tteck/Proxmox/discussions/3531)
 
+## Docker Composeのインストール
+Docker Composeを使わない場合には必要ない。
+
+### バイナリーをインストール・確認
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
+```bash
+sudo wget -O "/usr/local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
+sudo chmod a+x "/usr/local/bin/docker-compose" &&
+docker-compose --version
+```
+実際に使う前に、ソケットを有効化しておく必要がある。
+
 ## Podmanのソケットを有効化
 ソケットが必要なアプリケーションを使う場合に実行する。ソケットはユーザーごとに別個であるため、使うユーザー用のソケットをおのおの有効化する。
 
@@ -68,14 +80,10 @@ EOS
 . "$HOME/.bashrc"
 ```
 
-## Docker Composeをインストール
-Docker Composeを使わない場合には必要ない。
+## 非rootユーザーのlinger（居残り）を有効化
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
 
-### バイナリーをインストール・確認
-実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
+非rootユーザーの場合、デフォルトではログインしているときしかコンテナを起動させておけない。コンテナを常時起動させられるようにするには、systemdのlinger（居残り）を有効化する。
 ```bash
-sudo wget -O "/usr/local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
-sudo chmod a+x "/usr/local/bin/docker-compose" &&
-docker-compose --version
+sudo loginctl enable-linger "$USER"
 ```
-実際に使う前に、ソケットを有効化しておく必要がある。

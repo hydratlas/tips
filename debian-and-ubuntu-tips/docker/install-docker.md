@@ -98,12 +98,20 @@ EOS
 . "$HOME/.bashrc"
 ```
 
+### 非rootユーザーのlinger（居残り）を有効化（対象：各ユーザー）
+実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
+
+非rootユーザーの場合、デフォルトではログインしているときしかコンテナを起動させておけない。コンテナを常時起動させられるようにするには、systemdのlinger（居残り）を有効化する。
+```bash
+sudo loginctl enable-linger "$USER"
+```
+
 ### 【デバッグ用】Rootless Dockerをアンインストール（対象：各ユーザー）
 ```bash
 dockerd-rootless-setuptool.sh uninstall
 ```
 
-### Docker Composeプラグインをインストール（対象：各ユーザー）
+### 【オプション】Docker Composeプラグインをインストール（対象：各ユーザー）
 Rootful Docker側で`docker-compose-plugin`をインストールしている場合は不要。
 ```bash
 mkdir -p "$HOME/.docker/cli-plugins" &&

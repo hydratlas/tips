@@ -24,13 +24,14 @@ sudo lazydocker
 lazydocker
 ```
 
-## Rootful Portainer CEのインストール・実行
+## Rootful Portainer CE Serverのインストール・実行
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 
-PodmanとDockerの両対応。
+PodmanとDockerの両対応。Porttainer ServerとともにPorttainer Agentがインストールされる。
 
 ### Podmanの場合
-前提として、ソケットを有効化しておく必要がある。
+- 前提
+  - ソケットの有効化
 ```bash
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer.container << EOS > /dev/null &&
@@ -41,7 +42,6 @@ AutoUpdate=registry
 LogDriver=journald
 
 PublishPort=9443:9443
-PublishPort=8000:8000
 Volume=/run/podman/podman.sock:/var/run/docker.sock:Z
 Volume=portainer_data:/data:Z
 
@@ -95,9 +95,10 @@ sudo docker rm portainer
 PodmanとDockerの両対応。
 
 ### Podmanの場合
-前提として、ソケットを有効化しておく必要がある。
+- 前提
+  - ソケットの有効化（ユーザーごとの設定）
+  - linger（居残り）の有効化（ユーザーごとの設定）
 ```bash
-sudo loginctl enable-linger "$USER" &&
 mkdir -p "$HOME/.config/containers/systemd" &&
 tee "$HOME/.config/containers/systemd/portainer.container" << EOS > /dev/null &&
 [Container]
@@ -108,7 +109,6 @@ LogDriver=journald
 SecurityLabelDisable=true
 
 PublishPort=9443:9443
-PublishPort=8000:8000
 Volume=${XDG_RUNTIME_DIR}/podman/podman.sock:/var/run/docker.sock:Z
 Volume=portainer_data:/data:Z
 
@@ -136,8 +136,9 @@ systemctl --user daemon-reload
 ```
 
 ### Dockerの場合
+- 前提
+  - linger（居残り）の有効化（ユーザーごとの設定）
 ```bash
-sudo loginctl enable-linger "$USER" &&
 docker run \
   --detach \
   -p 9443:9443 \
@@ -159,7 +160,7 @@ docker rm portainer
 ## Rootful Portainer Agentのインストール・実行
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 
-PodmanとDockerの両対応。
+PodmanとDockerの両対応。Porttainer Agentのみインストールされる。
 
 ### Podmanの場合
 前提として、ソケットを有効化しておく必要がある。
@@ -199,7 +200,7 @@ sudo rm /etc/containers/systemd/portainer-agent.container &&
 sudo systemctl daemon-reload
 ```
 
-## Cockpitのインストール・実行
+## Cockpit-Podmanのインストール・実行
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 
 Podmanのみに対応。サーバー全体をウェブインターフェースで管理するCockpitの本体が入っていることを前提として、プラグインをインストールする。
@@ -219,7 +220,7 @@ sudo apt-get install --no-install-recommends -y \
 ## Dockgeのインストール・実行
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
 
-Rootful Dockerのみ対応。
+ひとまずRootful Dockerのみ対応。
 
 ### インストール
 ```bash
