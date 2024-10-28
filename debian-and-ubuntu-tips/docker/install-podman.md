@@ -87,3 +87,18 @@ EOS
 ```bash
 sudo loginctl enable-linger "$USER"
 ```
+
+## Quadlet周り
+### オプションのドキュメント
+`[Container]`に設定するオプションは[podman-systemd.unit — Podman documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)を参照。
+
+### テストとエラーの表示
+#### rootのサービス
+```bash
+sudo /usr/libexec/podman/quadlet -dryrun
+```
+
+#### 非rootのサービス
+```bash
+/usr/libexec/podman/quadlet -dryrun
+```

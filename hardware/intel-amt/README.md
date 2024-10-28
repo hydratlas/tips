@@ -24,6 +24,7 @@ HP EliteDesk 800 G4 DMで確認したもの。
   - ポート5900によるVNCはサポートされなくなったらしく、Intel Manageability Commanderからでも、wsmanによる方法からでも設定できない
   - [VNC not supported anymore in newer Intel AMT versions. Giving Error "Error 400, unable to set values." · Issue #98 · Ylianst/MeshCommander](https://github.com/Ylianst/MeshCommander/issues/98)
 
+wsmanによる方法を以下に示す。
 ```bash
 sudo apt install -y wsmancli &&
 tee kvm.sh << 'EOS' > /dev/null &&

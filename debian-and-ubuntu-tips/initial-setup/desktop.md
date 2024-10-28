@@ -3,7 +3,7 @@
 ```bash
 sudo apt install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk &&
 sudo apt install -y libreoffice libreoffice-l10n-ja &&
-sudo snap install chromium scantailor-advanced gimp discord &&
+sudo snap install chromium gimp discord &&
 sudo snap install codium --classic
 ```
 
