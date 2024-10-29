@@ -1,7 +1,6 @@
 # Podman周りのインストール
 ## Podmanのインストール
 ### パッケージをインストール・確認
-実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
 ```sh
 sudo apt-get install -y podman &&
 sudo apt-get install --no-install-recommends -y podman-docker &&
@@ -11,9 +10,7 @@ docker version
 ```
 
 ### ZFSおよびLXC上の場合の追加設定
-実行：rootユーザー／権限：rootユーザー／対象：rootユーザー（sudoを含む）
-
-ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。これはLXCのrootユーザー用である。
+ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。rootユーザー用である。
 ```sh
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
 #!/bin/sh
@@ -43,29 +40,43 @@ reboot
 - [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 - [\[FIX\] podman lxc is working on zfs with this fix · tteck/Proxmox · Discussion #3531](https://github.com/tteck/Proxmox/discussions/3531)
 
-## Docker Composeのインストール
+## 【オプション】Docker Composeのインストール
 Docker Composeを使わない場合には必要ない。
 
 ### バイナリーをインストール・確認
-実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
 ```sh
-sudo wget -O "/usr/local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
-sudo chmod a+x "/usr/local/bin/docker-compose" &&
+sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
+sudo chmod a+x /usr/local/bin/docker-compose &&
 docker-compose --version
 ```
 実際に使う前に、ソケットを有効化しておく必要がある。
 
-## Podmanのソケットを有効化
+### 【元に戻す】アンインストール
+```sh
+sudo rm /usr/local/bin/docker-compose
+```
+
+## 【オプション】Podmanのソケットを有効化（各ユーザー）
 ソケットが必要なアプリケーションを使う場合に実行する。ソケットはユーザーごとに別個であるため、使うユーザー用のソケットをおのおの有効化する。
 
 ### rootユーザー用
-実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
+#### 有効化
 ```sh
-sudo systemctl enable --now podman.socket
+sudo systemctl enable --now podman.socket &&
+if [ ! -e /var/run/docker.sock ]; then
+  sudo ln -s /run/podman/podman.sock /var/run/docker.sock
+fi
+```
+
+#### 【元に戻す】無効化
+```sh
+sudo systemctl disable --now podman.socket &&
+sudo rm /run/podman/podman.sock &&
+sudo unlink /var/run/docker.sock
 ```
 
 ### 非rootユーザー用
-実行：任意のユーザー／権限：一般ユーザー／対象：各ユーザー
+#### 有効化
 ```sh
 systemctl --user enable --now podman.socket &&
 cat << EOS >> "$HOME/.bashrc" &&
@@ -74,19 +85,21 @@ cat << EOS >> "$HOME/.bashrc" &&
 if [ -e "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
 fi
-
-PATH="$HOME/.local/bin:$PATH"
 EOS
 . "$HOME/.bashrc"
 ```
 
-## 非rootユーザーのlinger（居残り）を有効化
-実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
-
-非rootユーザーの場合、デフォルトではログインしているときしかコンテナを起動させておけない。コンテナを常時起動させられるようにするには、systemdのlinger（居残り）を有効化する。
+#### 【元に戻す】無効化
 ```sh
-sudo loginctl enable-linger "$USER"
+systemctl --user disable --now podman.socket &&
+rm "$XDG_RUNTIME_DIR/podman/podman.sock"
 ```
+加えて`nano "$HOME/.bashrc"`コマンドを実行し、手動で削除する（削除しなくても問題はない）。
+
+## 【オプション】linger（居残り）を有効化（各ユーザー）
+非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
+
+コマンドは[enable-linger.md]()を参照。
 
 ## Quadlet周り
 ### オプションのドキュメント

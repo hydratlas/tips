@@ -2,7 +2,7 @@
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
 ## 通常のDockerをインストール
-[install-docker.md](install-docker.md)に従って、通常のDockerをインストールする。
+[install-docker.md]()に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
 ```sh
@@ -66,7 +66,7 @@ EOS
 ```
 
 ### 【元に戻す】設定を解除
-`nano "$HOME/.bashrc"`から手動で削除した上で、次のコマンドを実行する。
+`nano "$HOME/.bashrc"`から手動で削除した上で、次のコマンドを実行する（削除および実行しなくても問題はない）。
 ```sh
 export DOCKER_HOST=""
 ```
@@ -74,22 +74,7 @@ export DOCKER_HOST=""
 ## 【オプション】linger（居残り）を有効化（各ユーザー）
 非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
 
-### 有効化
-```sh
-sudo loginctl enable-linger "$USER"
-```
-
-### 確認
-```sh
-loginctl user-status "$USER" | grep Linger:
-
-ls /var/lib/systemd/linger
-```
-
-### 【元に戻す】無効化
-```sh
-sudo loginctl disable-linger "$USER"
-```
+コマンドは[enable-linger.md]()を参照。
 
 ## 【オプション】Docker Composeプラグインをインストール（各ユーザー）
 システムに`docker-compose-plugin`がインストールされておらず、なおかつシステム管理者にインストールしてもらえない場合にのみ必要。

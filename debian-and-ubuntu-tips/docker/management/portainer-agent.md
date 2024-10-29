@@ -92,12 +92,15 @@ systemctl --user daemon-reload
 ## Docker・Podmanの場合
 ### rootユーザーで実行する場合（sudoを含む）
 #### インストール・自動再起動の有効化・実行
+- 前提
+  - DockerまたはPodmanのインストール
+  - ソケットの有効化（Podmanの場合のみ）（Dockerはデフォルトで有効）
 ```sh
 sudo docker run \
   --detach \
   -p 9001:9001 \
   --name portainer_agent \
-  --restart=always \
+  --restart always \
   --volume /var/run/docker.sock:/var/run/docker.sock:Z \
   --volume /var/lib/docker/volumes:/var/lib/docker/volumes:Z
   --volume /:/host \
@@ -113,13 +116,15 @@ sudo docker rm portainer_agent
 
 ### 非rootユーザーで実行する場合（Rootful）
 #### インストール・自動再起動の有効化・実行
+- 前提
+  - Dockerのインストール（Podmanは非rootユーザーかつRootfulで実行できない）
 ```sh
 docker run \
   --detach \
   -p 9001:9001 \
   --privileged \
   --name portainer_agent \
-  --restart=always \
+  --restart always \
   --volume /var/run/docker.sock:/var/run/docker.sock:Z \
   --volume /var/lib/docker/volumes:/var/lib/docker/volumes:Z
   --volume /:/host \
@@ -136,13 +141,15 @@ docker rm portainer_agent
 ### 非rootユーザーで実行する場合（Rootless）
 #### インストール・自動再起動の有効化・実行
 - 前提
+  - DockerまたはPodmanのインストール
+  - ソケットの有効化（ユーザーごとの設定）（Podmanの場合のみ）（Dockerはデフォルトで有効）
   - linger（居残り）の有効化（ユーザーごとの設定）
 ```sh
 docker run \
   --detach \
   -p 9001:9001 \
   --name portainer_agent \
-  --restart=always \
+  --restart always \
   --security-opt label=disable \
   --volume ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock:Z \
   --volume /var/lib/docker/volumes:/var/lib/docker/volumes:Z

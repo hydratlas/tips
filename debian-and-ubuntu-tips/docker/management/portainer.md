@@ -92,13 +92,16 @@ systemctl --user daemon-reload
 ## Docker・Podmanの場合
 ### rootユーザーで実行する場合（sudoを含む）
 #### インストール・自動再起動の有効化・実行
+- 前提
+  - DockerまたはPodmanのインストール
+  - ソケットの有効化（Podmanの場合のみ）（Dockerはデフォルトで有効）
 ```sh
 sudo docker run \
   --detach \
   -p 9443:9443 \
   --privileged \
   --name portainer \
-  --restart=always \
+  --restart always \
   --volume /var/run/docker.sock:/var/run/docker.sock:Z \
   --volume portainer_data:/data:Z \
   docker.io/portainer/portainer-ce:latest
@@ -113,13 +116,15 @@ sudo docker rm portainer
 
 ### 非rootユーザーで実行する場合（Rootful）
 #### インストール・自動再起動の有効化・実行
+- 前提
+  - Dockerのインストール（Podmanは非rootユーザーかつRootfulで実行できない）
 ```sh
 docker run \
   --detach \
   -p 9443:9443 \
   --privileged \
   --name portainer \
-  --restart=always \
+  --restart always \
   --volume /var/run/docker.sock:/var/run/docker.sock:Z \
   --volume portainer_data:/data:Z \
   docker.io/portainer/portainer-ce:latest
@@ -135,13 +140,15 @@ docker rm portainer
 ### 非rootユーザーで実行する場合（Rootless）
 #### インストール・自動再起動の有効化・実行
 - 前提
+  - DockerまたはPodmanのインストール
+  - ソケットの有効化（ユーザーごとの設定）（Podmanの場合のみ）（Dockerはデフォルトで有効）
   - linger（居残り）の有効化（ユーザーごとの設定）
 ```sh
 docker run \
   --detach \
   -p 9443:9443 \
   --name portainer \
-  --restart=always \
+  --restart always \
   --security-opt label=disable \
   --volume ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock:Z \
   --volume portainer_data:/data:Z \
