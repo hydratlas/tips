@@ -109,7 +109,7 @@ rm "$HOME/.docker/cli-plugins/docker-compose"
 ## Rootful Dockerに切り替える（各ユーザー）
 DockerのエンドポイントはRootfulでは`unix:///var/run/docker.sock`、Rootlessでは`unix:///run/user/<uid>/docker.sock`であり、これを切り替える。
 
-`DOCKER_HOST`環境変数が設定されていると、それが優先されて切り替えられないことに注意。
+`DOCKER_HOST`環境変数が設定されていると、それが優先されて切り替えられないことに注意。また、ユーザーがdockerグループに所属していることによって、Rootful Dockerが使えるにようになっていないと、切り替えても実際には実行できない。
 
 ### 切り替え
 ```sh
