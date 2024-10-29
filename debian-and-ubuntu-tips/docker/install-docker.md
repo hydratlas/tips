@@ -57,7 +57,7 @@ fi &&
 sudo usermod -aG docker "<username>"
 ```
 
-### 【デバッグ用】許可を取り消す
+### 【元に戻す】許可を取り消す
 #### 現在ログインしているユーザー用
 ```bash
 sudo gpasswd -d "$USER" docker

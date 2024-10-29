@@ -45,6 +45,9 @@ https://linux.yz.yamagata-u.ac.jp/ubuntu	priority:2
 http://jp.archive.ubuntu.com/ubuntu
 EOS
 cat "/etc/apt/mirrors.txt" && # confirmation
+if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ]; then
+  sudo rm -f "/etc/apt/sources.list.d/ubuntu.sources"
+fi &&
 sudo apt-get update
 ```
 
@@ -94,5 +97,8 @@ https://debian-mirror.sakura.ne.jp/debian	priority:2
 http://cdn.debian.or.jp/debian
 EOS
 cat "/etc/apt/mirrors.txt" && # confirmation
+if [ -f "/etc/apt/sources.list.d/debian.sources" ]; then
+  sudo rm -f "/etc/apt/sources.list.d/debian.sources"
+fi &&
 sudo apt-get update
 ```

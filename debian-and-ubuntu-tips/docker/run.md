@@ -1,10 +1,10 @@
 # 実行
-## Dockerコンテナをテスト実行（ユーザー別）
+## Dockerコンテナをテスト実行
 ```bash
 docker run hello-world
 ```
 
-## Docker Composeをテスト実行（ユーザー別）
+## Docker Composeをテスト実行
 ```bash
 cd "$HOME" &&
 tee docker-compose.yml << 'EOF' >/dev/null &&

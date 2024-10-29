@@ -2,7 +2,7 @@
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
 ## 通常のDockerをインストール
-[./install-docker.md]()に従って、通常のDockerをインストールする。
+[install-docker.md](debian-and-ubuntu-tips/docker/install-docker.md)に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
 ```bash
@@ -26,7 +26,7 @@ sudo rm /var/run/docker.sock
 sudo systemctl status docker.service
 ```
 
-### 再度、有効化
+### 【元に戻す】有効化
 ```bash
 sudo systemctl enable --now docker.service docker.socket
 ```
@@ -38,7 +38,7 @@ sudo systemctl enable --now docker.service docker.socket
 dockerd-rootless-setuptool.sh install
 ```
 
-### 【デバッグ用】アンインストール
+### 【元に戻す】アンインストール
 ```bash
 dockerd-rootless-setuptool.sh uninstall
 ```
@@ -65,7 +65,7 @@ EOS
 . "$HOME/.bashrc"
 ```
 
-### 設定を解除
+### 【元に戻す】設定を解除
 `nano "$HOME/.bashrc"`から手動で削除した上で、次のコマンドを実行する。
 ```bash
 export DOCKER_HOST=""
@@ -86,17 +86,24 @@ loginctl user-status "$USER" | grep Linger:
 ls /var/lib/systemd/linger
 ```
 
-### 無効化
+### 【元に戻す】無効化
 ```bash
 sudo loginctl disable-linger "$USER"
 ```
 
 ## 【オプション】Docker Composeプラグインをインストール（各ユーザー）
 システムに`docker-compose-plugin`がインストールされておらず、なおかつシステム管理者にインストールしてもらえない場合にのみ必要。
+
+### インストール
 ```bash
 mkdir -p "$HOME/.docker/cli-plugins" &&
 wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
+```
+
+### 【元に戻す】アンインストール
+```bash
+rm "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
 ## Rootful Dockerに切り替える（各ユーザー）
@@ -115,7 +122,7 @@ docker context ls
 ```
 default（DOCKER ENDPOINTは`unix:///var/run/docker.sock`）に*マークが付いていればRootful Dockerに切り替わっている。
 
-### 再度、Rootless Dockerに切り替える
+### 【元に戻す】Rootless Dockerに切り替える
 ```bash
 docker context use rootless
 ```

@@ -1,11 +1,11 @@
-# ネットワーク周り
-## mDNSのインストール（管理者）
+# ネットワーク周り（すべて管理者）
+## mDNSのインストール
 LAN内にDNSサーバーがない場合、mDNSをインストールすると「ホスト名.local」でSSH接続できるようになる。mDNSがインストールされていない場合は以下でインストールできる。
 ```bash
 sudo apt-get install --no-install-recommends -y avahi-daemon
 ```
 
-## systemd-timesyncdによるNTP (Network Time Protocol)の設定（管理者）
+## systemd-timesyncdによるNTP (Network Time Protocol)の設定
 ### 状況確認
 ```bash
 systemctl status systemd-timesyncd.service

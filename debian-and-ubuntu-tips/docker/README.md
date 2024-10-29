@@ -4,12 +4,13 @@ DockerのコンテナエンジンはDockerとその互換エンジンであるPo
 
 - Podmanの利点：
   - rootlessはセキュリティーが高いが、Podmanはデフォルトでrootlessであり、rootlessで使う場合にインストールが簡単
-  - Quadletによって、Dockerのような独自の仕組みではなくsystemdサービスとしてコンテナを常時起動させられる
+  - Quadletによって、Dockerのような独自の仕組みを使わなくても、systemdにフィットした形でsystemdサービスとしてコンテナを常時起動させられる
   - Kubernetesと類似性が高い
-  - Singularityコンテナを実行できる
+  - Singularityコンテナを実行できる使える
   - Docker Composeを使うこともできる
 - Dockerの利点：
   - Docker Composeによって簡便な方法でコンテナを常時起動させられる
+  - Dockerの独自リポジトリーがあるため、ディストリビューションのバージョンにかかわらず最新版を使える
   - Swarm ModeによってKubernetesに比べてシンプルにクラスター化できる
 
 近年はホームユースでもPodmanが使われることが多い。Swarm Modeを使わないのであればPodmanのほうが利点が多いと思われる。

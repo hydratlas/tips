@@ -8,7 +8,7 @@ PasswordAuthentication no
 PermitRootLogin no
 EOS
 ```
-パスワードによるログイン、rootユーザーでのログインを禁止する設定。
+パスワードによるログイン、rootユーザーでのログインを禁止する設定にしている。
 
 ## SSHサーバーの古い方式の禁止（管理者）
 Includeで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認。
@@ -50,6 +50,7 @@ sudo chmod u=rw,g=,o= "$USER_HOME/.ssh/authorized_keys"
 
 ## SSHキーを生成（各ユーザー）
 ```bash
+mkdir -p "$HOME/.ssh" &&
 ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa" &&
 ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa" &&
 ssh-keygen -t ed25519       -N '' -C '' -f "$HOME/.ssh/id_ed25519"
