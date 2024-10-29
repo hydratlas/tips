@@ -1,3 +1,5 @@
+# Docker
+## DockerとPodman
 DockerのコンテナエンジンはDockerとその互換エンジンであるPodmanがある。
 
 互換性があるため大きな違いはないが、Dockerが開発しているDockerは比較的ホームユース寄りで、Red Hatが開発しているPodmanは比較的エンタープライズユース寄りである。
@@ -21,3 +23,14 @@ DockerのコンテナエンジンはDockerとその互換エンジンであるPo
 - 参考になりそうな本
   - [Podmanイン・アクション](https://www.amazon.co.jp/dp/4798070203)
   - [systemdの思想と機能](https://www.amazon.co.jp/dp/429713893X)
+
+## 使用していないDockerオブジェクトの削除
+停止しているコンテナ、コンテナによって使用されていないネットワーク、コンテナに関連付けられていないイメージをすべて削除。ボリュームは削除されない。
+```sh
+docker system prune --force
+```
+
+コンテナで使用されていないボリュームをすべて削除。
+```sh
+docker volume prune --force
+```
