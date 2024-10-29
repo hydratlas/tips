@@ -8,7 +8,7 @@ Node Exporter + VictoriaMetrics (Single version) + Grafanaという構成で、�
 ここでは、監視対象の各マシンにはDockerが入らない可能性があるため、Node Exporterは手動でバイナリーをインストールする。VictoriaMetricsおよびGrafanaはDocker(Podman)でインストールする。
 
 ## Node Exporter
-監視対象のそれぞれのマシンにインストールする。[node-exporter.md](debian-and-ubuntu-tips/monitoring/node-exporter.md)を参照。
+監視対象のそれぞれのマシンにインストールする。[node-exporter.md](node-exporter.md)を参照。
 
 ## VictoriaMetrics (Single version)およびGrafana
 1台のマシンにインストールする。Podman Quadletを使用しているため、Podman 4.6以上のインストールが必要。Ubuntu LTSなら24.04以上。

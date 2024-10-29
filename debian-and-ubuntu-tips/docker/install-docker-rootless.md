@@ -2,7 +2,7 @@
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
 ## 通常のDockerをインストール
-[install-docker.md](debian-and-ubuntu-tips/docker/install-docker.md)に従って、通常のDockerをインストールする。
+[install-docker.md](install-docker.md)に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
 ```bash
