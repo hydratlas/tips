@@ -99,7 +99,7 @@ rm "$XDG_RUNTIME_DIR/podman/podman.sock"
 ## 【オプション】linger（居残り）を有効化（各ユーザー）
 非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
 
-コマンドは[enable-linger.md]()を参照。
+コマンドは[enable-linger.md](enable-linger.md)を参照。
 
 ## Quadlet周り
 ### オプションのドキュメント

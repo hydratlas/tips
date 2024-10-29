@@ -2,7 +2,7 @@
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
 ## 通常のDockerをインストール
-[install-docker.md]()に従って、通常のDockerをインストールする。
+[install-docker.md](install-docker.md)に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
 ```sh
@@ -74,7 +74,7 @@ export DOCKER_HOST=""
 ## 【オプション】linger（居残り）を有効化（各ユーザー）
 非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
 
-コマンドは[enable-linger.md]()を参照。
+コマンドは[enable-linger.md](enable-linger.md)を参照。
 
 ## 【オプション】Docker Composeプラグインをインストール（各ユーザー）
 システムに`docker-compose-plugin`がインストールされておらず、なおかつシステム管理者にインストールしてもらえない場合にのみ必要。
