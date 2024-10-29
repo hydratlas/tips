@@ -1,6 +1,6 @@
 # Dockerのインストール
 ## リポジトリーの設定
-```bash
+```sh
 DISTRIBUTION_ID="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
 DISTRIBUTION_NAME="" &&
 if [ "${DISTRIBUTION_ID}" = "ubuntu" ]; then
@@ -24,7 +24,7 @@ echo \
 
 ## DockerおよびDocker Composeのインストール
 ### パッケージをインストール
-```bash
+```sh
 sudo apt-get update &&
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
@@ -32,7 +32,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 - [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)
 
 ### 確認
-```bash
+```sh
 sudo systemctl status docker.service
 
 sudo docker version
@@ -41,7 +41,7 @@ sudo docker version
 ## root以外のユーザーにDockerの実行を許可（Rootful Docker）
 ### 許可する
 #### 現在ログインしているユーザー用
-```bash
+```sh
 if ! getent group docker >/dev/null; then
   sudo groupadd docker
 fi &&
@@ -50,7 +50,7 @@ newgrp docker
 ```
 
 #### 現在ログインしていない任意のユーザー用
-```bash
+```sh
 if ! getent group docker >/dev/null; then
   sudo groupadd docker
 fi &&
@@ -59,13 +59,13 @@ sudo usermod -aG docker "<username>"
 
 ### 【元に戻す】許可を取り消す
 #### 現在ログインしているユーザー用
-```bash
+```sh
 sudo gpasswd -d "$USER" docker
 ```
 再度ログインした後に反映される。
 
 #### 現在ログインしていない任意のユーザー用
-```bash
+```sh
 sudo gpasswd -d "<username>" docker
 ```
 再度ログインした後に反映される。

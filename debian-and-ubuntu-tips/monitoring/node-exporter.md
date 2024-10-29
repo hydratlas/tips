@@ -3,7 +3,7 @@
 公式サイトは[node-exporter-textfile-collector-scripts/ipmitool at master · prometheus-community/node-exporter-textfile-collector-scripts](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)。
 
 ### 必要なパッケージのインストール
-```bash
+```sh
 # Debian系の場合
 sudo apt-get install -y moreutils python3-apt python3-prometheus-client ipmitool jq nvme-cli smartmontools rsync
 
@@ -12,7 +12,7 @@ sudo yum install -y epel-release moreutils
 ```
 
 ### 本体のインストールおよびサービスの設定
-```bash
+```sh
 cd "$HOME" &&
 mkdir -p prometheus-node-exporter-collectors &&
 wget -O - https://github.com/prometheus-community/node-exporter-textfile-collector-scripts/archive/refs/heads/master.tar.gz | tar xvfz - -C prometheus-node-exporter-collectors --strip-components 1 &&
@@ -57,7 +57,7 @@ sudo systemctl start prometheus-node-exporter-collectors.service
 ```
 
 ### 確認
-```bash
+```sh
 sudo systemctl status prometheus-node-exporter-collectors.service
 ```
 
@@ -66,7 +66,7 @@ sudo systemctl status prometheus-node-exporter-collectors.service
 
 ### インストール
 `VERSION`変数はそのときの最新バージョンに合わせて適切に書き換える。
-```bash
+```sh
 VERSION="1.8.2" &&
 ARCH="$(dpkg --print-architecture)" &&
 cd "$HOME" &&
@@ -78,7 +78,7 @@ rm -dr node_exporter
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 
 ### 設定・起動・常時起動化
-```bash
+```sh
 getent group node-exporter 2>&1 > /dev/null || sudo groupadd -r node-exporter &&
 getent passwd node-exporter 2>&1 > /dev/null || sudo useradd -r -g node-exporter -s /usr/sbin/nologin node-exporter &&
 sudo tee "/etc/systemd/system/node_exporter.service" <<'EOF' >/dev/null &&
@@ -101,7 +101,7 @@ sudo systemctl enable --now node_exporter.service
 ```
 
 ### 確認
-```bash
+```sh
 sudo systemctl status node_exporter.service
 
 node_exporter --version

@@ -2,7 +2,7 @@
 ## Podmanのインストール
 ### パッケージをインストール・確認
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
-```bash
+```sh
 sudo apt-get install -y podman &&
 sudo apt-get install --no-install-recommends -y podman-docker &&
 sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g' /etc/containers/registries.conf &&
@@ -14,7 +14,7 @@ docker version
 実行：rootユーザー／権限：rootユーザー／対象：rootユーザー（sudoを含む）
 
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。これはLXCのrootユーザー用である。
-```bash
+```sh
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
 #!/bin/sh
 exec /bin/mount -t overlay overlay "\$@"
@@ -36,7 +36,7 @@ EOS
 ```
 
 再起動して反映させる。
-```bash
+```sh
 reboot
 ```
 - [storage.conf mishandling with zfs storage driver · Issue #20324 · containers/podman](https://github.com/containers/podman/issues/20324)
@@ -48,7 +48,7 @@ Docker Composeを使わない場合には必要ない。
 
 ### バイナリーをインストール・確認
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：全ユーザー
-```bash
+```sh
 sudo wget -O "/usr/local/bin/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 sudo chmod a+x "/usr/local/bin/docker-compose" &&
 docker-compose --version
@@ -60,13 +60,13 @@ docker-compose --version
 
 ### rootユーザー用
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：rootユーザー（sudoを含む）
-```bash
+```sh
 sudo systemctl enable --now podman.socket
 ```
 
 ### 非rootユーザー用
 実行：任意のユーザー／権限：一般ユーザー／対象：各ユーザー
-```bash
+```sh
 systemctl --user enable --now podman.socket &&
 cat << EOS >> "$HOME/.bashrc" &&
 
@@ -84,7 +84,7 @@ EOS
 実行：任意のユーザー／権限：sudo可能ユーザー／対象：各ユーザー
 
 非rootユーザーの場合、デフォルトではログインしているときしかコンテナを起動させておけない。コンテナを常時起動させられるようにするには、systemdのlinger（居残り）を有効化する。
-```bash
+```sh
 sudo loginctl enable-linger "$USER"
 ```
 
@@ -94,11 +94,11 @@ sudo loginctl enable-linger "$USER"
 
 ### テストとエラーの表示
 #### rootのサービス
-```bash
+```sh
 sudo /usr/libexec/podman/quadlet -dryrun
 ```
 
 #### 非rootのサービス
-```bash
+```sh
 /usr/libexec/podman/quadlet -dryrun
 ```

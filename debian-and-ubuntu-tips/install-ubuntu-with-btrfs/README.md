@@ -13,7 +13,7 @@ UEFIブートの必要があります。
 `btrfs1.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約256MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
 
 `btrfs1.sh`のコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
-```bash
+```sh
 sudo bash -x btrfs1.sh sda
 sudo bash -x btrfs1.sh sdb
 ```
@@ -35,7 +35,7 @@ Ubuntuのインストーラーを使って、`sda3`にBtrfsでUbuntuをインス
 `btrfs2.sh`はインストールの後段階で使用します。UbuntuがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
 
 `btrfs2.sh`のコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
-```bash
+```sh
 sudo bash -eux btrfs2.sh sda sdb
 ```
 
@@ -75,7 +75,7 @@ Ubuntuのインストーラーを使って、`sdc3`にBtrfsでUbuntuをインス
 `btrfs2-update.sh`はUbuntuがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
 
 `btrfs2-update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。`sdc3`は`/target`にマウントされていることを前提にしているため、引数で指定する必要はありません。
-```bash
+```sh
 sudo bash -eux btrfs2-update.sh sda sdb
 ```
 
@@ -94,7 +94,7 @@ sudo bash -eux btrfs2-update.sh sda sdb
 
 破壊された場合でも、`rootflags=degraded`オプション付きのメニューエントリーは起動先のパスが`@`固定になっているため、そこから`@`にある新しいUbuntuを起動できます。起動後に以下のコマンドを実行すると、新しいUbuntuのメニューエントリーを復元できます。
 
-```bash
+```sh
 sudo update-grub
 sudo dpkg-reconfigure shim-signed
 ```

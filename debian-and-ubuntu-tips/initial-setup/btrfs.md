@@ -1,12 +1,12 @@
 # Btrfs関係（すべて管理者）
 ## 状況確認
-```bash
+```sh
 btrfs filesystem usage /
 ```
 
 ## スクラブ・バランスのタイマーの設定・確認
 スクラブはデータの整合性をチェックする。バランスはデータの再配置を行う。ともに定期的に実行すべきもののため、Systemdのタイマーを設定する。
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y btrfsmaintenance &&
 sudo mkdir -p /etc/systemd/system/btrfs-balance.timer.d &&
 sudo mkdir -p /etc/systemd/system/btrfs-scrub.timer.d &&
@@ -24,14 +24,14 @@ sudo systemctl enable --now btrfs-scrub.timer
 ```
 
 確認。
-```bash
+```sh
 sudo systemctl status btrfs-balance.timer
 sudo systemctl status btrfs-scrub.timer
 ```
 
 ## Snapperのインストールと設定・確認
 定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。この場合は`/.snapshots`にスナップショットが保存される。この場合`@snapshots`サブボリュームがすでにあることを前提にしている。
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y snapper &&
 sudo umount /.snapshots &&
 sudo rm -d /.snapshots &&
@@ -45,13 +45,13 @@ sudo systemctl enable --now snapper-cleanup.timer
 ```
 
 /homeディレクトリーでもスナップショットを保存する場合の追加設定。この場合は`/home/.snapshots`にスナップショットが保存される。
-```bash
+```sh
 sudo snapper -c home create-config /home &&
 sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/home
 ```
 
 確認。
-```bash
+```sh
 sudo systemctl status snapper-timeline.timer
 sudo systemctl status snapper-cleanup.timer
 
@@ -60,18 +60,18 @@ sudo snapper -c root list
 ```
 
 スナップショットの削除に向けて、スナップショットの番号だけ表示する。
-```bash
+```sh
 sudo snapper -c root --no-headers --csvout list --columns number
 ```
 
 スナップショットの削除。この場合、#65と#70が削除される。
-```bash
+```sh
 sudo snapper -c root delete 65 70
 ```
 
 ## grub-btrfsのインストールと設定
 スナップショットから起動できるようにする。なんらかの理由で起動ができなくなったとき、助かる可能性が上がる。
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y gawk inotify-tools git make bzip2 &&
 cd ~/ &&
 git clone --depth=1 https://github.com/Antynea/grub-btrfs.git &&
@@ -85,7 +85,7 @@ sudo systemctl enable --now grub-btrfsd.service
 最新版で不具合がある場合は、git checkout xxxxxxxを挿入する。
 
 確認。
-```bash
+```sh
 sudo systemctl status grub-btrfsd.service
 ```
 
@@ -93,11 +93,11 @@ sudo systemctl status grub-btrfsd.service
 Btrfsの圧縮機能でどの程度ファイルが圧縮されたのかを表示する。
 
 インストール。
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y btrfs-compsize
 ```
 
 表示。
-```bash
+```sh
 sudo compsize -x /
 ```

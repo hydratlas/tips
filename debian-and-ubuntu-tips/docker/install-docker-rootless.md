@@ -5,7 +5,7 @@
 [install-docker.md](install-docker.md)に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
-```bash
+```sh
 if ! type slirp4netns >/dev/null 2>&1; then
   sudo apt-get install -y slirp4netns
 fi &&
@@ -16,37 +16,37 @@ sudo apt-get install -y uidmap iptables docker-ce-rootless-extras
 Rootless Dockerと通常のDockerは併用できるが、一方で通常のDockerを無効にすることもできる。
 
 ### 無効化
-```bash
+```sh
 sudo systemctl disable --now docker.service docker.socket
 sudo rm /var/run/docker.sock
 ```
 
 ### 確認
-```bash
+```sh
 sudo systemctl status docker.service
 ```
 
 ### 【元に戻す】有効化
-```bash
+```sh
 sudo systemctl enable --now docker.service docker.socket
 ```
 `/var/run/docker.sock`は自動的に生成される。
 
 ## Rootless Dockerをインストール（各ユーザー）
 ### インストール
-```bash
+```sh
 dockerd-rootless-setuptool.sh install
 ```
 
 ### 【元に戻す】アンインストール
-```bash
+```sh
 dockerd-rootless-setuptool.sh uninstall
 ```
 
 `DOCKER_HOST`環境変数や、linger（居残り）は別途、解除する。
 
 データも削除する場合は次のコマンドを実行する。
-```bash
+```sh
 rootlesskit rm -rf "$HOME/.local/share/docker"
 ```
 
@@ -54,7 +54,7 @@ rootlesskit rm -rf "$HOME/.local/share/docker"
 一部のアプリケーションに必要。これを設定すると、コンテキストの切り替えができなくなることに注意。
 
 ### 設定
-```bash
+```sh
 tee -a "$HOME/.bashrc" << EOS > /dev/null &&
 
 # Docker
@@ -67,7 +67,7 @@ EOS
 
 ### 【元に戻す】設定を解除
 `nano "$HOME/.bashrc"`から手動で削除した上で、次のコマンドを実行する。
-```bash
+```sh
 export DOCKER_HOST=""
 ```
 
@@ -75,19 +75,19 @@ export DOCKER_HOST=""
 非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
 
 ### 有効化
-```bash
+```sh
 sudo loginctl enable-linger "$USER"
 ```
 
 ### 確認
-```bash
+```sh
 loginctl user-status "$USER" | grep Linger:
 
 ls /var/lib/systemd/linger
 ```
 
 ### 【元に戻す】無効化
-```bash
+```sh
 sudo loginctl disable-linger "$USER"
 ```
 
@@ -95,14 +95,14 @@ sudo loginctl disable-linger "$USER"
 システムに`docker-compose-plugin`がインストールされておらず、なおかつシステム管理者にインストールしてもらえない場合にのみ必要。
 
 ### インストール
-```bash
+```sh
 mkdir -p "$HOME/.docker/cli-plugins" &&
 wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
 ### 【元に戻す】アンインストール
-```bash
+```sh
 rm "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
@@ -112,17 +112,17 @@ DockerのエンドポイントはRootfulでは`unix:///var/run/docker.sock`、Ro
 `DOCKER_HOST`環境変数が設定されていると、それが優先されて切り替えられないことに注意。
 
 ### 切り替え
-```bash
+```sh
 docker context use default
 ```
 
 ### 確認
-```bash
+```sh
 docker context ls
 ```
 default（DOCKER ENDPOINTは`unix:///var/run/docker.sock`）に*マークが付いていればRootful Dockerに切り替わっている。
 
 ### 【元に戻す】Rootless Dockerに切り替える
-```bash
+```sh
 docker context use rootless
 ```

@@ -15,7 +15,7 @@ Node Exporter + VictoriaMetrics (Single version) + Grafanaという構成で、�
 
 ### VictoriaMetrics (Single version)
 #### インストール
-```bash
+```sh
 sudo mkdir -p /etc/prometheus &&
 sudo touch /etc/prometheus/prometheus.yml &&
 sudo mkdir -p /var/lib/victoria-metrics-data &&
@@ -73,17 +73,17 @@ scrape_configs:
 参考：[Prometheusでinstance名をホスト名にしたい #prometheus - Qiita](https://qiita.com/fkshom/items/bafb2160e2c9ca8ded38)
 
 #### 確認
-```bash
+```sh
 sudo systemctl status victoria-metrics.service
 ```
 
 #### 【デバッグ用】再起動
-```bash
+```sh
 sudo systemctl restart victoria-metrics.service
 ```
 
 #### 【デバッグ用】停止・削除
-```bash
+```sh
 sudo systemctl stop victoria-metrics.service &&
 sudo rm /etc/containers/systemd/victoria-metrics.container &&
 sudo systemctl daemon-reload
@@ -92,7 +92,7 @@ sudo systemctl daemon-reload
 
 ### Grafana
 #### インストール
-```bash
+```sh
 sudo mkdir -p /var/lib/grafana &&
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/grafana.container << EOS > /dev/null &&
@@ -124,7 +124,7 @@ sudo systemctl start grafana.service
   - [Run Grafana Docker image | Grafana documentation](https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/)
 
 #### 確認
-```bash
+```sh
 sudo systemctl status grafana.service
 ```
 
@@ -138,12 +138,12 @@ sudo systemctl status grafana.service
   - [Node Exporter Full | Grafana Labs](https://grafana.com/ja/grafana/dashboards/1860-node-exporter-full/)
 
 #### 【デバッグ用】再起動
-```bash
+```sh
 sudo systemctl restart grafana.service
 ```
 
 #### 【デバッグ用】停止・削除
-```bash
+```sh
 sudo systemctl stop grafana.service &&
 sudo rm /etc/containers/systemd/grafana.container &&
 sudo systemctl daemon-reload

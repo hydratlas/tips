@@ -9,18 +9,18 @@ PodmanとDockerの両対応。また、Rootful DockerとRootless Dockerの両対
 
 ### インストール
 Podmanの場合には、前提として、ソケットを有効化しておく必要がある。
-```bash
+```sh
 wget -q -O- https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | env DIR=/usr/local/bin sudo -E bash -x
 ```
 アップデートも同様の手順。
 
 ### 実行（root）
-```bash
+```sh
 sudo lazydocker
 ```
 
 ### 実行（非root）
-```bash
+```sh
 lazydocker
 ```
 
@@ -32,7 +32,7 @@ PodmanとDockerの両対応。Porttainer ServerとともにPorttainer Agentが�
 ### Podmanの場合
 - 前提
   - ソケットの有効化
-```bash
+```sh
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer.container << EOS > /dev/null &&
 [Container]
@@ -57,19 +57,19 @@ sudo systemctl start portainer.service
 `systemctl enable`は使えないと[podman-systemd.unit — Podman documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)でされている。
 
 確認するとき。
-```bash
+```sh
 sudo systemctl status portainer.service
 ```
 
 停止・削除するとき。
-```bash
+```sh
 sudo systemctl stop portainer.service &&
 sudo rm /etc/containers/systemd/portainer.container &&
 sudo systemctl daemon-reload
 ```
 
 ### Dockerの場合
-```bash
+```sh
 sudo docker run \
   --detach \
   -p 9443:9443 \
@@ -83,7 +83,7 @@ sudo docker run \
 ```
 
 停止・自動再起動の無効化・削除するとき。
-```bash
+```sh
 sudo docker stop portainer &&
 sudo docker update --restart=no portainer &&
 sudo docker rm portainer
@@ -98,7 +98,7 @@ PodmanとDockerの両対応。
 - 前提
   - ソケットの有効化（ユーザーごとの設定）
   - linger（居残り）の有効化（ユーザーごとの設定）
-```bash
+```sh
 mkdir -p "$HOME/.config/containers/systemd" &&
 tee "$HOME/.config/containers/systemd/portainer.container" << EOS > /dev/null &&
 [Container]
@@ -124,12 +124,12 @@ systemctl --user start portainer.service
 `systemctl enable`は使えないと[podman-systemd.unit — Podman documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)でされている。
 
 確認するとき。
-```bash
+```sh
 systemctl --user status portainer.service
 ```
 
 停止・削除するとき。
-```bash
+```sh
 systemctl --user stop portainer.service &&
 rm "$HOME/.config/containers/systemd/portainer.container" &&
 systemctl --user daemon-reload
@@ -138,7 +138,7 @@ systemctl --user daemon-reload
 ### Dockerの場合
 - 前提
   - linger（居残り）の有効化（ユーザーごとの設定）
-```bash
+```sh
 docker run \
   --detach \
   -p 9443:9443 \
@@ -152,7 +152,7 @@ docker run \
 ```
 
 停止・削除するとき。
-```bash
+```sh
 docker stop portainer &&
 docker rm portainer
 ```
@@ -164,7 +164,7 @@ PodmanとDockerの両対応。Porttainer Agentのみインストールされる�
 
 ### Podmanの場合
 前提として、ソケットを有効化しておく必要がある。
-```bash
+```sh
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer-agent.container << EOS > /dev/null &&
 [Container]
@@ -189,12 +189,12 @@ sudo systemctl start portainer-agent.service
 ```
 
 確認するとき。
-```bash
+```sh
 sudo systemctl status portainer-agent.service
 ```
 
 停止・削除するとき。
-```bash
+```sh
 sudo systemctl stop portainer-agent.service &&
 sudo rm /etc/containers/systemd/portainer-agent.container &&
 sudo systemctl daemon-reload
@@ -206,13 +206,13 @@ sudo systemctl daemon-reload
 Podmanのみに対応。サーバー全体をウェブインターフェースで管理するCockpitの本体が入っていることを前提として、プラグインをインストールする。
 
 ### 通常版をインストールする場合
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y cockpit-podman
 ```
 
 ### バックポート版をインストールする場合
 通常版よりバージョンが新しい。
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y \
   -t "$(lsb_release --short --codename)-backports" cockpit-podman
 ```
@@ -223,13 +223,13 @@ sudo apt-get install --no-install-recommends -y \
 ひとまずRootful Dockerのみ対応。
 
 ### インストール
-```bash
+```sh
 sudo mkdir -p /opt/stacks /opt/dockge &&
 sudo wget -O /opt/dockge/compose.yaml https://raw.githubusercontent.com/louislam/dockge/master/compose.yaml
 ```
 
 ### 実行（root）
-```bash
+```sh
 cd /opt/dockge
 if type docker-compose >/dev/null 2>&1; then
   sudo docker-compose up -d

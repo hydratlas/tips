@@ -3,7 +3,7 @@
 ### Btrfs使用時にディスクイメージ保存先を分離する
 GNOME Boxesはユーザーのホームディレクトリー配下の`~/.local/share/gnome-boxes/images`にディスクイメージを保存する。ユーザーのホームディレクトリーにBtrfsを使用しているときは、このディレクトリーをサブボリュームに分離する。そうすることで、ホームディレクトリーのスナップショットを保存した際に、ディスクイメージがそのスナップショットの対象外になる。ディスクイメージは容量が大きいため、スナップショットに含めないほうが使い勝手がよい。
 
-```bash
+```sh
 BTRFS_OPTIONS="noatime,compress=zstd:1,degraded" &&
 FS_UUID="$(findmnt --noheadings --output UUID /)" &&
 sudo mount -o "noatime,subvol=/" "/dev/disk/by-uuid/${FS_UUID}" /mnt &&
@@ -22,7 +22,7 @@ sudo mount "${HOME}/.local/share/gnome-boxes/images"
 ```
 
 ### パッケージをインストール
-```bash
+```sh
 sudo apt install -y gnome-boxes swtpm-tools
 ```
 
@@ -70,19 +70,19 @@ sudo apt install -y gnome-boxes swtpm-tools
 
 ### ディスクイメージをTrimによって縮小する
 まず、仮想マシン上でTrimを実行する。次に仮想マシンをシャットダウンしてから、ホスト上でディスクイメージのファイル名を確認する。
-```bash
+```sh
 cd "$HOME/.local/share/gnome-boxes/images" &&
 ls -la
 ```
 
 ファイル名を指定して、ディスクイメージを縮小する。
-```bash
+```sh
 FILENAME="<filename>" &&
 mv "${FILENAME}" "${FILENAME}_backup" &&
 qemu-img convert -O qcow2 "${FILENAME}_backup" "${FILENAME}"
 ```
 
 バックアップファイルを削除する。
-```bash
+```sh
 rm "${FILENAME}_backup"
 ```

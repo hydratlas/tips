@@ -18,7 +18,7 @@
 ## リポジトリを無料のものにする
 ### Deb822-style Format
 新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
-```bash
+```sh
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
 VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
@@ -38,7 +38,7 @@ EOS
 
 ### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
-```bash
+```sh
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
 VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
@@ -51,12 +51,12 @@ EOF
 ```
 
 ## サブスクリプションの広告を削除
-```bash
+```sh
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
 ```
 
 ## VM/CTの名前を後から変更
-```bash
+```sh
 qm set <vmid> --name <name>
 ```
 
@@ -64,7 +64,7 @@ qm set <vmid> --name <name>
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 
 noVNCが開かないとき
-```bash
+```sh
 /usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
 ```
 
@@ -82,7 +82,7 @@ Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images
 適宜変更して使用する。
 
 #### Ubuntu 24.04の場合
-```bash
+```sh
 BASE_IMAGE="ubuntu-24.04-minimal-cloudimg-amd64.img" &&
 CUSTOM_IMAGE="ubuntu-24.04-minimal-cloudimg-amd64-custom.img" &&
 apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
@@ -104,7 +104,7 @@ virt-sysprep -a "${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys
 適宜変更して使用する。特にメモリーが8GiB、ディスクが8GiBしかないことに注意。
 
 #### Ubuntuの場合
-```bash
+```sh
 VMID=<num> &&
 UESR=<name> &&
 PASSWORD="$(openssl passwd -6 "<password>")" &&
@@ -134,7 +134,7 @@ qm template "$VMID"
 ```
 
 #### Debianの場合
-```bash
+```sh
 VMID=<num> &&
 UESR=<name> &&
 PASSWORD="$(openssl passwd -6 "<password>")" &&
@@ -168,7 +168,7 @@ Proxmox VE Administration Guide
 https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_remove_a_cluster_node
 
 加えてcorosync.confから削除したノードの情報を削除する。
-```bash
+```sh
 nano /etc/pve/corosync.conf
 ```
 
@@ -179,7 +179,7 @@ Proxmox VEのストレージ（local）画面で、CTテンプレートの「テ
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
 ### 初期設定（Ubuntu）
-```bash
+```sh
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&
@@ -213,7 +213,7 @@ apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ### 初期設定（Debian 12）
-```bash
+```sh
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&

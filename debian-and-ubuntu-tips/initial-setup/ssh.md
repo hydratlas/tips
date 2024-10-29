@@ -1,6 +1,6 @@
 # SSH周り
 ## SSHサーバーのインストールと設定（管理者）
-```bash
+```sh
 sudo apt-get install --no-install-recommends -y openssh-server &&
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null
@@ -12,16 +12,16 @@ EOS
 
 ## SSHサーバーの古い方式の禁止（管理者）
 Includeで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認。
-```bash
+```sh
 grep -i Include /etc/ssh/sshd_config
 ```
 
 読み込まれていないなら読み込むように追記。
-```bash
+```sh
 sudo tee -a "/etc/ssh/sshd_config" <<< "Include /etc/ssh/sshd_config.d/*.conf" > /dev/null
 ```
 
-```bash
+```sh
 sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null
 Ciphers -*-cbc
 KexAlgorithms -*-sha1
@@ -35,7 +35,7 @@ sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcc
 古いタイプの方式を禁止する設定。PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が変わっている。Ubuntu 20.04は8.2、22.04は8.9。OpenSSH 8.5以降でもPubkeyAcceptedKeyTypesによる禁止設定は効果がある。
 
 ## ユーザーにauthorized_keysを作成または追記（各ユーザー）
-```bash
+```sh
 USER_NAME=<username> &&
 KEYS=$(cat << EOS
 ssh-ed25519 xxxxx
@@ -49,7 +49,7 @@ sudo chmod u=rw,g=,o= "$USER_HOME/.ssh/authorized_keys"
 ```
 
 ## SSHキーを生成（各ユーザー）
-```bash
+```sh
 mkdir -p "$HOME/.ssh" &&
 ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa" &&
 ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa" &&

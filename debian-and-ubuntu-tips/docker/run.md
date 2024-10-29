@@ -1,11 +1,11 @@
 # 実行
 ## Dockerコンテナをテスト実行
-```bash
+```sh
 docker run hello-world
 ```
 
 ## Docker Composeをテスト実行
-```bash
+```sh
 cd "$HOME" &&
 tee docker-compose.yml << 'EOF' >/dev/null &&
 services:
