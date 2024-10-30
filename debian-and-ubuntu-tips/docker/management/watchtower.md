@@ -18,7 +18,9 @@ sudo docker run \
 ### 停止・自動再起動の無効化・削除
 ```sh
 sudo docker stop watchtower &&
-sudo docker update --restart=no watchtower &&
+if ! type podman >/dev/null 2>&1; then
+  sudo docker update --restart=no watchtower
+fi &&
 sudo docker rm watchtower
 ```
 
@@ -38,7 +40,9 @@ docker run \
 ### 停止・自動再起動の無効化・削除
 ```sh
 docker stop watchtower &&
-docker update --restart=no watchtower &&
+if ! type podman >/dev/null 2>&1; then
+  docker update --restart=no watchtower
+fi &&
 docker rm watchtower
 ```
 
@@ -60,6 +64,8 @@ docker run \
 ### 停止・削除
 ```sh
 docker stop watchtower &&
-docker update --restart=no watchtower &&
+if ! type podman >/dev/null 2>&1; then
+  docker update --restart=no watchtower
+fi &&
 docker rm watchtower
 ```

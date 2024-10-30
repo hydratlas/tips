@@ -110,7 +110,9 @@ sudo docker run \
 #### 停止・自動再起動の無効化・削除
 ```sh
 sudo docker stop portainer &&
-sudo docker update --restart=no portainer &&
+if ! type podman >/dev/null 2>&1; then
+  sudo docker update --restart=no portainer
+fi &&
 sudo docker rm portainer
 ```
 
@@ -133,7 +135,9 @@ docker run \
 #### 停止・自動再起動の無効化・削除
 ```sh
 docker stop portainer &&
-docker update --restart=no portainer &&
+if ! type podman >/dev/null 2>&1; then
+  docker update --restart=no portainer
+fi &&
 docker rm portainer
 ```
 
@@ -158,6 +162,8 @@ docker run \
 #### 停止・削除
 ```sh
 docker stop portainer &&
-docker update --restart=no portainer &&
+if ! type podman >/dev/null 2>&1; then
+  docker update --restart=no portainer
+fi &&
 docker rm portainer
 ```
