@@ -4,22 +4,17 @@ Ubuntu 24.04を前提とする。頻出する`my_project`は仮の値。
   - [UbuntuにAnaconda+Flask環境を作成する #Python - Qiita](https://qiita.com/katsujitakeda/items/b8e0cdc04611e3645f76#nginx%E3%81%AE%E8%A8%AD%E5%AE%9A)
   - [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 22.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04#step-6-configuring-nginx-to-proxy-requests)
 
-## Minicondaのインストール
-Minicondaのすべてのバージョンは[https://repo.anaconda.com/miniconda/]()にある。Ubuntu 24.04のPythonは3.12であるため、`Miniconda3-py312_`で始まるものを選ぶとよい。
+## Miniforgeのインストール
 ```sh
 sudo apt-get install -y --no-install-recommends wget ca-certificates &&
-wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py312_24.9.2-0-Linux-x86_64.sh &&
-bash miniconda.sh -b -p "$HOME/miniconda3" &&
-rm miniconda.sh &&
-"$HOME/miniconda3/bin/conda" init &&
-rm "$HOME/miniconda3/.condarc" &&
-conda config --add channels conda-forge &&
-tee -a "$HOME/.bashrc" <<- EOS > /dev/null &&
-export PATH=$HOME/miniconda3/bin:\$PATH
-EOS
-source "$HOME/.bashrc" &&
+wget --quiet -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" &&
+bash Miniforge3.sh -b -p "${HOME}/conda" &&
+rm Miniforge3.sh &&
+"$HOME/conda/bin/conda" init &&
+. "$HOME/.bashrc" &&
 conda -V
 ```
+- [conda-forge/miniforge: A conda-forge distribution.](https://github.com/conda-forge/miniforge)
 
 ## 仮想環境の作成とFlaskおよびuWSGIのインストール
 ```sh
@@ -67,18 +62,25 @@ uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 ```
 http://your_server_ip:5000/にアクセスする。アクセスできたらCtrl + Cで終了する。
 
-## 【デバッグ用】仮想環境の削除
+## 【元に戻す】仮想環境の削除
 ```sh
 PROJECT_NAME="my_project" &&
 conda deactivate &&
-conda remove -n $PROJECT_NAME --all
+conda remove -n $PROJECT_NAME --all -y
 ```
 
-## 【デバッグ用】Minicondaのアンインストール
+## 【元に戻す】Minicondaのアンインストール
 ```sh
-conda init --reverse --all &&
-rm -rf "$HOME/miniconda3" &&
-source "$HOME/.bashrc"
+conda init --reverse &&
+CONDA_BASE_ENVIRONMENT=$(conda info --base) &&
+rm -rf ${CONDA_BASE_ENVIRONMENT} &&
+if [ -e "${HOME}/.condarc" ]; then
+  rm -f "${HOME}/.condarc"
+fi &&
+if [ -e "${HOME}/.conda" ]; then
+  rm -fr "${HOME}/.conda"
+fi &&
+. "$HOME/.bashrc"
 ```
 
 ## nginxのインストール・構成
@@ -109,15 +111,14 @@ After=network.target
 User=$USER
 Group=www-data
 WorkingDirectory=$HOME/$PROJECT_NAME
-Environment="PATH=$HOME/miniconda3/envs/$PROJECT_NAME/bin"
-ExecStart=$HOME/miniconda3/envs/$PROJECT_NAME/bin/uwsgi --ini uwsgi.ini
+Environment="PATH=$HOME/conda/envs/$PROJECT_NAME/bin"
+ExecStart=$HOME/conda/envs/$PROJECT_NAME/bin/uwsgi --ini uwsgi.ini
 
 [Install]
 WantedBy=multi-user.target
 EOS
 sudo chgrp www-data "$HOME" &&
 chmod g+rx "$HOME" &&
-sudo systemctl enable --now $PROJECT_NAME &&
 sudo tee "/etc/nginx/sites-available/$PROJECT_NAME.conf" <<- EOS > /dev/null &&
 server {
   listen 80;
@@ -130,6 +131,8 @@ server {
 EOS
 sudo ln -s /etc/nginx/sites-available/$PROJECT_NAME.conf /etc/nginx/sites-enabled/$PROJECT_NAME.conf &&
 sudo unlink /etc/nginx/sites-enabled/default &&
+sudo systemctl daemon-reload &&
+sudo systemctl enable --now $PROJECT_NAME &&
 sudo systemctl restart nginx.service
 ```
 http://your_server_ip/にアクセスする。
