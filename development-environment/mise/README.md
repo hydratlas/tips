@@ -17,14 +17,14 @@ fi
 EOS
 ) &&
 if ! grep -q "$START_MARKER" "$TARGET_FILE"; then
-  echo -e "$START_MARKER\n$CODE_BLOCK\n$END_MARKER" | tee -a "$TARGET_FILE" > /dev/null &&
-  . "$TARGET_FILE"
+  echo -e "$START_MARKER\n$CODE_BLOCK\n$END_MARKER" | tee -a "$TARGET_FILE" > /dev/null  
 fi &&
+. "$TARGET_FILE" &&
 mise --version
 ```
 - [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 
-## シェル補完の有効化（bashの場合）
+## シェル補完のインストール（bashの場合）
 ```sh
 mise use -g usage &&
 mkdir -p ~/.local/share/bash-completion/completions &&
@@ -39,11 +39,12 @@ mise doctor
 ```
 
 ## 使用
+- [Node.js](nodejs.md)
 - Python
   - Pip
     - [uv](python-uv.md)
   - Conda
-    - [pixi](python-pixi.md): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム
+    - [pixi](python-pixi.md): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
     - [Miniforge](python-miniforge.md): conda-forgeリポジトリで作っているパッケージ管理システム
 
 ## アップデート
@@ -54,7 +55,12 @@ mise upgrade
 ```
 それぞれmise本体、プラグインおよびツールをアップデートする。
 
-## シェル補完の無効化（bashの場合）
+## キャッシュの削除
+```sh
+mise cache clear
+```
+
+## シェル補完のアンインストール（bashの場合）
 ```sh
 if [ -f ~/.local/share/bash-completion/completions/mise ]; then
   rm ~/.local/share/bash-completion/completions/mise
@@ -62,6 +68,12 @@ fi
 ```
 
 ## アンインストール（bashの場合）
+```sh
+mise implode -y
+```
+アンインストール後にシェルに`-bash: /home/<username>/.local/bin/mise: No such file or directory`とエラーメッセージが表示されるようになるが、シェルを開き直せば解消される。
+
+## 各種ツールによるシェル補完のアンインストール（bashの場合）
 ```sh
 TARGET_FILE="$HOME/.bashrc" &&
 START_MARKER="# BEGIN MISE BLOCK" &&
@@ -71,7 +83,11 @@ if grep -q "$START_MARKER" "$TARGET_FILE"; then
 fi &&
 if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
   find "$HOME/.local/share/bash-completion/completions" -type f -iname 'mise-*' -exec rm {} +
-fi &&
-mise implode -y
+fi
 ```
-アンインストール後にシェルに`-bash: /home/<username>/.local/bin/mise: No such file or directory`とエラーメッセージが表示されるようになるが、シェルを開き直せば解消される。
+
+## ユーザーグローバルにインストールしたツールやシステムの再インストール
+設定ファイル(~/.config/mise/config.toml)からユーザーグローバルにインストールしたツールやシステムを再インストールする。プラグインは手動でのインストールが必要になる場合がある。
+```sh
+mise install -y
+```

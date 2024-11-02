@@ -8,16 +8,24 @@ mise settings set pipx_uvx true &&
 ```
 uvのインストールとともに、uvxが存在する場合にはpipxの代わりにuvxを使うようにしている。pipxはPythonでできているコマンドラインツールを個別の環境に分離してインストールするもの。pipでは環境を分離しないため依存関係が破壊される可能性があるが、環境の分離によってそれを防ぐ。pipおよびuvは主に実行したいPythonコードから依存するライブラリーのインストールに使用するが、pipxおよびuvxはコマンドラインツールのインストールに使用する。
 
-### シェル補完の有効化（bashの場合）
+### シェル補完のインストール（bashの場合）
 ```sh
 mkdir -p ~/.local/share/bash-completion/completions &&
-tee ~/.local/share/bash-completion/completions/mise-uv <<< 'eval "$(uv generate-shell-completion bash)"' > /dev/null &&
-tee ~/.local/share/bash-completion/completions/mise-uvx <<< 'eval "$(uvx --generate-shell-completion bash)"' > /dev/null &&
+tee ~/.local/share/bash-completion/completions/mise-uv << EOS > /dev/null &&
+if hash mise 2>/dev/null && mise which uv 2>/dev/null; then
+  eval "\$(uv generate-shell-completion bash)"
+fi
+EOS
+tee ~/.local/share/bash-completion/completions/mise-uvx << EOS > /dev/null &&
+if hash mise 2>/dev/null && mise which uvx 2>/dev/null; then
+  eval "\$(uvx --generate-shell-completion bash)"
+fi
+EOS
 . ~/.local/share/bash-completion/completions/mise-uv &&
 . ~/.local/share/bash-completion/completions/mise-uvx
 ```
 
-### シェル補完の無効化（bashの場合）
+### シェル補完のアンインストール（bashの場合）
 ```sh
 if [ -e ~/.local/share/bash-completion/completions/mise-uv ]; then
   rm ~/.local/share/bash-completion/completions/mise-uv
@@ -58,7 +66,7 @@ uv run cowsay -t "Hello, world!"
 ```
 
 ### 環境の再構築
-別のマシンで環境を再構築する場合。
+設定ファイルから環境を再構築する場合。
 ```sh
 cd ~/uv_test_project &&
 uv sync

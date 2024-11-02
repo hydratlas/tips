@@ -1,7 +1,7 @@
 
 # mise + Miniforge (Python)
 ## ユーザーグローバルでの設定
-### インストール（bashの場合）
+### パッケージ管理ツールおよび環境管理システムのインストール（bashの場合）
 ```sh
 mise use -g -y python@miniforge3-latest &&
 "$(mise which conda)" --version &&
@@ -11,14 +11,14 @@ mise use -g -y python@miniforge3-latest &&
 ```
 上記ではlatestバージョンを指定しており、通常これでよいが、特定のバージョンをインストールしたいときは、`mise ls-remote python miniforge`コマンドでインストール可能なMiniforgeのバージョンがリストアップされる。
 
-### チャンネルの追加
+### パッケージチャンネルの追加
 `conda-forge`以外のチャンネルを追加する。以下では`bioconda`を追加している。
 ```sh
 conda config --append channels bioconda &&
 conda config --set channel_priority strict
 ```
 
-### アンインストール
+### パッケージ管理ツールおよび環境管理システムのアンインストール
 ```sh
 conda init --reverse &&
 mise uninstall python@miniforge3-latest &&
@@ -81,7 +81,7 @@ conda remove --name "$(basename "$(pwd)")" --all -y
 ```
 
 ### 環境の再構築
-別のマシンで環境を再構築する場合。事前にmiseのインストールが必要。
+設定ファイルから環境を再構築する場合。事前にmiseのインストールが必要。
 ```sh
 cd ~/conda_test_project
 conda env create --name "$(basename "$(pwd)")" --file environment.yml -y
