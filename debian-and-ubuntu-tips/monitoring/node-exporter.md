@@ -65,15 +65,27 @@ sudo systemctl status prometheus-node-exporter-collectors.service
 公式サイトは[prometheus/node_exporter: Exporter for machine metrics](https://github.com/prometheus/node_exporter)。
 
 ### インストール
-`VERSION`変数はそのときの最新バージョンに合わせて適切に書き換える。
 ```sh
-VERSION="1.8.2" &&
+OWNER="prometheus" &&
+REPO="node_exporter" &&
+OS="$(uname -s)" &&
+OS="${OS,,}" &&
 ARCH="$(dpkg --print-architecture)" &&
-cd "$HOME" &&
-mkdir -p node_exporter &&
-wget -O - "https://github.com/prometheus/node_exporter/releases/download/v$VERSION/node_exporter-$VERSION.linux-$ARCH.tar.gz" | tar xvfz - -C node_exporter --strip-components 1 &&
-sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
-rm -dr node_exporter
+if [ "$ARCH" = "i386" ]; then
+  ARCH="386"
+fi &&
+LATEST_RELEASE="$(wget -q -O - https://api.github.com/repos/$OWNER/$REPO/releases/latest)" &&
+FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".$OS-$ARCH.tar.gz\")) | .browser_download_url" &&
+DOWNLOAD_URL="$(echo "$LATEST_RELEASE" | jq -r "$FILTER")" &&
+if [ -z "$DOWNLOAD_URL" ]; then
+  echo 'Could not find download URL.' 1>&2
+else
+  cd "$HOME" &&
+  mkdir -p node_exporter &&
+  wget -O - "$DOWNLOAD_URL" | tar xvfz - -C node_exporter --strip-components 1 &&
+  sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
+  rm -dr node_exporter
+fi
 ```
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 

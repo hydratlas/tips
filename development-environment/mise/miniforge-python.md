@@ -1,5 +1,5 @@
 
-# mise + Miniforge (Python)
+# mise & Miniforge (Python)
 ## ユーザーグローバルでの設定
 ### パッケージ管理ツールおよび環境管理システムのインストール（bashの場合）
 ```sh

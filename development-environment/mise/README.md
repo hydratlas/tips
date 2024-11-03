@@ -39,13 +39,45 @@ mise doctor
 ```
 
 ## 使用
-- [Node.js](nodejs.md)
-- Python
-  - Pip
-    - [uv](python-uv.md)
-  - Conda
-    - [pixi](python-pixi.md): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
-    - [Miniforge](python-miniforge.md): conda-forgeリポジトリで作っているパッケージ管理システム
+miseでユーザーグローバルにツールをインストールして、そのツールで各プロジェクトのプログラミング言語のバージョンを管理する場合と、miseで直接各プロジェクトのプログラミング言語のバージョンを管理する場合がある。後者のほうがmise本来の使い方であるが、前者のほうがシェル補完がききやすく、使いやすい。
+
+- ユーザーグローバル
+  - [Node.js & pnpm](pnpm-nodejs.md)
+    - 各プロジェクト
+      - Node.js & pnpm
+  - [uv](uv-python.md)(Pip)
+    - 各プロジェクト
+      - Python
+  - [pixi](pixi-python.md)(Conda): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
+    - 各プロジェクト
+      - Python
+  - Python ([Miniforge](miniforge-python.md)(Conda)): conda-forgeリポジトリで作っているパッケージ管理システム
+    - 各プロジェクト
+      - Python
+- 各プロジェクト
+  - [Node.js](nodejs.md)
+    - Node.js & npm（Node.js付属）
+    - Node.js & Yarn
+    - Node.js & pnpm
+
+### npm（Node.js付属）
+```sh
+npm init -y &&
+npm install cowsay &&
+npm ls
+```
+
+### Yarn
+```sh
+yarn init -y &&
+yarn add cowsay &&
+yarn list
+```
+
+### pnpm
+
+
+
 
 ## アップデート
 ```sh

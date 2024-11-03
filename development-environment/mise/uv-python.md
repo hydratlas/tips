@@ -1,4 +1,4 @@
-# mise + uv + Python
+# mise & uv & Python
 ## ユーザーグローバルでの設定
 ### インストール
 ```sh

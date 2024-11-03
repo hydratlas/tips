@@ -1,4 +1,4 @@
-# mise + Node.js
+# mise & Node.js
 ## プロジェクトディレクトリーの作成
 ```sh
 mkdir ~/nodejs_test_project &&

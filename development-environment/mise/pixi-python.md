@@ -1,4 +1,4 @@
-# mise + Pixi + Python
+# mise & Pixi & Python
 ## ユーザーグローバルでの設定
 ### インストール
 gitが必要。`sudo apt-get install -y git`などのコマンドでインストールしておく。
