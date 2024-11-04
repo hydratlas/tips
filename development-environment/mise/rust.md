@@ -9,12 +9,12 @@ mise use -g -y rust &&
 ### シェル補完のインストール（bashの場合）
 ```sh
 mkdir -p "$HOME/.local/share/bash-completion/completions" &&
-tee "$HOME/.local/share/bash-completion/completions/rustup" <<- EOS > /dev/null &&
+tee "$HOME/.local/share/bash-completion/completions/mise-rustup" <<- EOS > /dev/null &&
 if hash rustup 2>/dev/null; then
   eval "\$(rustup completions bash)"
 fi
 EOS
-. "$HOME/.local/share/bash-completion/completions/rustup"
+. "$HOME/.local/share/bash-completion/completions/mise-rustup"
 CREATE_COMPLETION () {
   tee "$HOME/.local/share/bash-completion/completions/$1" <<- EOS > /dev/null
   if hash rustup 2>/dev/null && hash $1 2>/dev/null; then
@@ -22,9 +22,9 @@ CREATE_COMPLETION () {
   fi
 EOS
 }
-CREATE_COMPLETION "cargo" &&
-CREATE_COMPLETION "rustc" &&
-CREATE_COMPLETION "rustfmt"
+CREATE_COMPLETION "mise-cargo" &&
+CREATE_COMPLETION "mise-rustc" &&
+CREATE_COMPLETION "mise-rustfmt"
 ```
 
 ### シェル補完のアンインストール（bashの場合）
@@ -34,10 +34,10 @@ DELETE_COMPLETION () {
     rm "$HOME/.local/share/bash-completion/completions/$1"
   fi
 }
-DELETE_COMPLETION "rustup" &&
-DELETE_COMPLETION "cargo" &&
-DELETE_COMPLETION "rustc" &&
-DELETE_COMPLETION "rustfmt"
+DELETE_COMPLETION "mise-rustup" &&
+DELETE_COMPLETION "mise-cargo" &&
+DELETE_COMPLETION "mise-rustc" &&
+DELETE_COMPLETION "mise-rustfmt"
 ```
 
 ### アンインストール
