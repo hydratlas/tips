@@ -6,6 +6,8 @@ mise use -g -y uv &&
 mise settings set pipx_uvx true &&
 "$(mise which uv)" --version
 ```
+`mise ls-remote -y uv`コマンドでインストール可能なバージョンがリストアップされ、`mise use -g -y uv@0.4.29`などと指定することができる。
+
 uvのインストールとともに、uvxが存在する場合にはpipxの代わりにuvxを使うようにしている。pipxはPythonでできているコマンドラインツールを個別の環境に分離してインストールするもの。pipでは環境を分離しないため依存関係が破壊される可能性があるが、環境の分離によってそれを防ぐ。pipおよびuvは主に実行したいPythonコードから依存するライブラリーのインストールに使用するが、pipxおよびuvxはコマンドラインツールのインストールに使用する。
 
 ### シェル補完のインストール（bashの場合）
@@ -16,12 +18,12 @@ if hash mise 2>/dev/null && mise which uv 2>/dev/null; then
   eval "\$(uv generate-shell-completion bash)"
 fi
 EOS
+. ~/.local/share/bash-completion/completions/mise-uv &&
 tee ~/.local/share/bash-completion/completions/mise-uvx << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which uvx 2>/dev/null; then
   eval "\$(uvx --generate-shell-completion bash)"
 fi
 EOS
-. ~/.local/share/bash-completion/completions/mise-uv &&
 . ~/.local/share/bash-completion/completions/mise-uvx
 ```
 

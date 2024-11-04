@@ -24,6 +24,11 @@ mise --version
 ```
 - [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 
+## 基本的なツールのインストール
+```sh
+mise use -g jq
+```
+
 ## シェル補完のインストール（bashの場合）
 ```sh
 mise use -g usage &&
@@ -40,44 +45,25 @@ mise doctor
 
 ## 使用
 miseでユーザーグローバルにツールをインストールして、そのツールで各プロジェクトのプログラミング言語のバージョンを管理する場合と、miseで直接各プロジェクトのプログラミング言語のバージョンを管理する場合がある。後者のほうがmise本来の使い方であるが、前者のほうがシェル補完がききやすく、使いやすい。
-
 - ユーザーグローバル
   - [Node.js & pnpm](pnpm-nodejs.md)
-    - 各プロジェクト
-      - Node.js & pnpm
-  - [uv](uv-python.md)(Pip)
-    - 各プロジェクト
-      - Python
-  - [pixi](pixi-python.md)(Conda): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
-    - 各プロジェクト
-      - Python
-  - Python ([Miniforge](miniforge-python.md)(Conda)): conda-forgeリポジトリで作っているパッケージ管理システム
-    - 各プロジェクト
-      - Python
+      - 各プロジェクト
+          - Node.js & pnpm
+  - [uv](uv-python.md) (Pip)
+      - 各プロジェクト
+          - Python
+  - [pixi](pixi-python.md) (Conda): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
+      - 各プロジェクト
+          - Python
+  - Python ([Miniforge](mise/miniforge-python.md) (Conda)): conda-forgeリポジトリで作っているパッケージ管理システム
+      - 各プロジェクト
+          - Python
+  - [Rust & Cargo](rust.md)
 - 各プロジェクト
   - [Node.js](nodejs.md)
-    - Node.js & npm（Node.js付属）
-    - Node.js & Yarn
-    - Node.js & pnpm
-
-### npm（Node.js付属）
-```sh
-npm init -y &&
-npm install cowsay &&
-npm ls
-```
-
-### Yarn
-```sh
-yarn init -y &&
-yarn add cowsay &&
-yarn list
-```
-
-### pnpm
-
-
-
+      - Node.js & npm（Node.js付属）
+      - Node.js & Yarn
+      - Node.js & pnpm
 
 ## アップデート
 ```sh

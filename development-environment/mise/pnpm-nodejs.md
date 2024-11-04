@@ -42,7 +42,7 @@ pnpm init
 ```
 
 ### 指定したバージョンのNode.jsのインストール、およびその使用の強制
-jqが必要。`sudo apt-get install -y jq`などのコマンドでインストールしておく。
+jqが必要。`sudo apt-get install -y jq`または`mise use -g jq`などのコマンドでインストールしておく。
 ```sh
 mv package.json package.json.bak &&
 cat package.json.bak | jq '.pnpm.executionEnv.nodeVersion|="22.11.0"' > package.json &&
