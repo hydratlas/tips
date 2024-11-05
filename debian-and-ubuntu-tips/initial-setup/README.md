@@ -54,6 +54,7 @@ sudo debconf-set-selections <<< "tzdata tzdata/Zones/Asia select Tokyo"
 sudo useradd -u <uid> -U -G adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,root \
   -p "$(openssl passwd -6 "<password>")" -s /bin/bash -m <username>
 ```
+`-u <uid>`オプションは省略可能で、省略すると適当な番号が割り振られる。、また、lpadminおよびsambashareグループは存在せず、そのためにエラーが出る場合があり、その場合は削除して再実行する。
 
 ## ユーザー・グループを削除（管理者）
 ```sh

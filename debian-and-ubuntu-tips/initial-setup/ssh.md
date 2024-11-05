@@ -1,26 +1,56 @@
 # SSH周り
-## SSHサーバーのインストールと設定（管理者）
+## SSHサーバーのインストール（管理者）
+### インストール
 ```sh
-sudo apt-get install --no-install-recommends -y openssh-server &&
+sudo apt-get install --no-install-recommends -y openssh-server
+```
+
+### sshd_config.dディレクトリーの作成・有効化
+```sh
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
+PERL_SCRIPT="s@^#Include /etc/ssh/sshd_config\.d/\*\.conf\$@Include /etc/ssh/sshd_config.d/*.conf@g" &&
+sudo perl -p -i -e "$PERL_SCRIPT" "/etc/ssh/sshd_config" &&
+REGEX='^Include /etc/ssh/sshd_config\.d/\*\.conf$' &&
+if ! grep -qP "$REGEX" "/etc/ssh/sshd_config";then
+  echo -e "Include /etc/ssh/sshd_config.d/*.conf" | sudo tee -a "/etc/ssh/sshd_config" > /dev/null
+fi
+```
+
+### パスワードによるログインおよびrootユーザーでのログインの禁止
+```sh
 sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null
 PasswordAuthentication no
 PermitRootLogin no
 EOS
 ```
-パスワードによるログイン、rootユーザーでのログインを禁止する設定にしている。
 
-## SSHサーバーの古い方式の禁止（管理者）
-Includeで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認。
-```sh
-grep -i Include /etc/ssh/sshd_config
+## SSHサーバーの設定変更（管理者）
+### 共通
+`grep -i Include /etc/ssh/sshd_config`コマンドで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認し、読み込まれていなかったら読み込まれるようにする。
+
+### ポートの追加・変更
+はじめに、`sudo nano /lib/systemd/system/ssh.socket`コマンドでファイルを編集する。以下のように`[Socket]`セクションに`ListenStream`の無指定（リセット用）、使いたいポート（複数行可）を書く。
+```
+[Socket]
+ListenStream=
+ListenStream=22
+ListenStream=10022
 ```
 
-読み込まれていないなら読み込むように追記。
+次に以下のコマンドを実行する。
 ```sh
-sudo tee -a "/etc/ssh/sshd_config" <<< "Include /etc/ssh/sshd_config.d/*.conf" > /dev/null
+sudo tee -a "/etc/ssh/sshd_config.d/92-ports.conf" << EOS > /dev/null &&
+Port 22
+Port 10022
+EOS
+sudo systemctl daemon-reload &&
+sudo systemctl restart ssh.socket &&
+sudo systemctl restart ssh.service &&
+ss -nlt
 ```
+StateがLISTENであるポートが意図したとおりなら完了。`ssh`コマンドに`-p <port>`オプションを追加して接続する。
 
+### SSHサーバーの古い方式の禁止
 ```sh
 sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null
 Ciphers -*-cbc

@@ -135,4 +135,4 @@ sudo systemctl daemon-reload &&
 sudo systemctl enable --now $PROJECT_NAME &&
 sudo systemctl restart nginx.service
 ```
-http://your_server_ip/にアクセスする。
+http://your_server_ip/にアクセスする。nginxのエラーログは`/var/log/nginx/error.log`にある。
