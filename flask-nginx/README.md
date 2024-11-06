@@ -69,20 +69,6 @@ conda deactivate &&
 conda remove -n $PROJECT_NAME --all -y
 ```
 
-## 【元に戻す】Minicondaのアンインストール
-```sh
-conda init --reverse &&
-CONDA_BASE_ENVIRONMENT=$(conda info --base) &&
-rm -rf ${CONDA_BASE_ENVIRONMENT} &&
-if [ -e "${HOME}/.condarc" ]; then
-  rm -f "${HOME}/.condarc"
-fi &&
-if [ -e "${HOME}/.conda" ]; then
-  rm -fr "${HOME}/.conda"
-fi &&
-. "$HOME/.bashrc"
-```
-
 ## nginxのインストール・構成
 `/etc/nginx/sites-available/<project name>.conf`で設定している`server_name`の`example.com`は仮の値であることに注意。
 ```sh
@@ -119,6 +105,7 @@ WantedBy=multi-user.target
 EOS
 sudo chgrp www-data "$HOME" &&
 chmod g+rx "$HOME" &&
+sudo chgrp www-data "$HOME/$PROJECT_NAME/$PROJECT_NAME.sock" &&
 sudo tee "/etc/nginx/sites-available/$PROJECT_NAME.conf" <<- EOS > /dev/null &&
 server {
   listen 80;

@@ -27,11 +27,6 @@ sudo apt-get install -y slurmctld slurmdbd
 ```
 データベースデーモン（slurmdbd）はオプション。
 
-## 管理ノード・計算ノードへのインストール
-```
-sudo apt-get install -y slurm-client
-```
-
 ## 計算ノードへのインストール
 ```
 sudo apt-get install -y slurmd
@@ -97,7 +92,7 @@ EOS
 sudo systemctl daemon-reload
 ```
 
-### データベースデーモンの設定ファイルを設置
+## データベースデーモンの設定ファイルを設置
 データベースデーモンを使う場合のみ。
 ```
 sudo tee "$ETC_PATH/slurmdbd.conf" << EOS > /dev/null &&
@@ -141,7 +136,7 @@ sudo chmod 600 "$ETC_PATH/slurmdbd.conf" &&
 sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ```
 
-### Slurmの設定ファイルを設置
+## Slurmの設定ファイルを設置
 AccountingStorageType=accounting_storage/noneのためデータベースデーモンは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
 
 ```
