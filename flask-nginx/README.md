@@ -4,6 +4,9 @@ Ubuntu 24.04を前提とする。頻出する`my_project`は仮の値。
   - [UbuntuにAnaconda+Flask環境を作成する #Python - Qiita](https://qiita.com/katsujitakeda/items/b8e0cdc04611e3645f76#nginx%E3%81%AE%E8%A8%AD%E5%AE%9A)
   - [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 22.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04#step-6-configuring-nginx-to-proxy-requests)
 
+nginxはDockerに入れられるかもしれない。
+- [Unix Domain SocketによるuWSGIとNginxの通信 #Python - Qiita](https://qiita.com/wf-yamaday/items/735be1da1022e096d6c6)
+
 ## Miniforgeのインストール
 ```sh
 sudo apt-get install -y --no-install-recommends wget ca-certificates &&

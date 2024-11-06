@@ -21,13 +21,19 @@ mariadb -u slurm -h localhost -p
 quit;
 ```
 
-## 管理ノードへのインストール
+## 各種ノードへのインストール
+Slurmの各種ノードは、ログインノード、ヘッドノードおよび計算ノードに分かれる。以下のような構成だと思われるが詳細は未検証。また、すべてインストールすればシングルノード構成にできる。
+- ログインノード（ジョブ投入）：slurm-clientパッケージをインストール。sackdパッケージをインストール（あるいはslurmdパッケージをインストールの上でStateをDownにする）
+- ヘッドノード（ジョブ管理）：slurmctldパッケージをインストール
+- 計算ノード：slurmdパッケージをインストール
+
+### ヘッドノード（ログインノード兼用）へのインストール
 ```
 sudo apt-get install -y slurmctld slurmdbd
 ```
-データベースデーモン（slurmdbd）はオプション。
+データベースデーモン（slurmdbd）はオプション。slurmctldの依存関係でslurm-clientもインストールされる。
 
-## 計算ノードへのインストール
+### 計算ノードへのインストール
 ```
 sudo apt-get install -y slurmd
 ```
