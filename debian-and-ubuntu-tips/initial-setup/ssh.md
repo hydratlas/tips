@@ -59,7 +59,9 @@ ss -nlt
 最後の`ss -nlt`コマンドによる表示で、StateがLISTENであるポートが意図したとおりなら完了。SSHクライアントから、`ssh`コマンドに`-p <port>`オプションを追加して接続する。
 
 ### 古い方式の禁止
-古いタイプの各種方式を禁止する設定。`sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms`コマンドで現在の設定を確認できる。
+古いタイプの各種方式を禁止する設定。新しいUbuntuまたはDebianを使えばこのような設定は不要である。たとえばUbuntu 24.04では以下の設定をしてもしなくても同じ設定になる。
+
+`sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms`コマンドで現在の設定を確認できる。
 ```sh
 sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null &&
 Ciphers -*-cbc

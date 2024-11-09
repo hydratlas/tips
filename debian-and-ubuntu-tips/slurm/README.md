@@ -2,19 +2,19 @@
 ## 【オプション】直接ビルドする場合
 基本的には[Slurm Workload Manager - Quick Start Administrator Guide](https://slurm.schedmd.com/quickstart_admin.html)に従って、ビルドする。
 
-[Download Slurm - SchedMD](https://www.schedmd.com/download-slurm/)でダウンロードしたいバージョンを調べる。バージョンはXX.YY.Z形式をとっている。ダウンロードURLは[https://download.schedmd.com/slurm/slurm-24.05-latest.tar.bz2]()というようにマイナーバージョンにあたるZ部分は「-latest」とすれば最新のマイナーバージョンをダウンロードできる。
+[Download Slurm - SchedMD](https://www.schedmd.com/download-slurm/)でダウンロードしたいバージョンを調べる。バージョンはXX.YY.Z形式をとっている。ダウンロードURLは[https://download.schedmd.com/slurm/slurm-24.05-latest.tar.bz2]()というようにマイナーバージョンにあたるZ部分は`-latest`とすれば最新のマイナーバージョンをダウンロードできる。
 
 具体的なビルド方法は[hydratlas/slurm-building](https://github.com/hydratlas/slurm-building)を参照。
 
-パッケージの対応関係は以下のとおりと思われる。
-| Debian or Ubuntu repository | direct build                            |
-| --------------------------- | --------------------------------------- |
-| slurm-wlm-basic-plugins     | slurm-smd_24.05.4-1_amd64.deb           |
-| slurm-client                | slurm-smd-client_24.05.4-1_amd64.deb    |
-| slurmd                      | slurm-smd-slurmd_24.05.4-1_amd64.deb    |
-| slurmctld                   | slurm-smd-slurmctld_24.05.4-1_amd64.deb |
-| slurmdbd                    | slurm-smd-slurmdbd_24.05.4-1_amd64.deb  |
-| sackd                       | slurm-smd-sackd_24.05.4-1_amd64.deb     |
+パッケージの対応関係は以下のとおりであると推定される。`slurm-wlm-basic-plugins`はほかのパッケージからの依存関係によって自動的にインストールされるが、`slurm-smd`は明示的にインストールする必要があると思われる。
+| Debian or Ubuntu repository | direct build                             |
+| --------------------------- | ---------------------------------------- |
+| slurm-wlm-basic-plugins     | slurm-smd_\<version>_amd64.deb           |
+| slurm-client                | slurm-smd-client_\<version>_amd64.deb    |
+| slurmd                      | slurm-smd-slurmd_\<version>_amd64.deb    |
+| slurmctld                   | slurm-smd-slurmctld_\<version>_amd64.deb |
+| slurmdbd                    | slurm-smd-slurmdbd_\<version>_amd64.deb  |
+| sackd                       | slurm-smd-sackd_\<version>_amd64.deb     |
 
 ## 【オプション】データベースのインストール・設定
 データベースデーモン（slurmdbd）を使う場合のみ。

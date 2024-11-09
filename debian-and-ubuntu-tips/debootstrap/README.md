@@ -1,4 +1,12 @@
 # debootstrapでインストール
+DebinaまたはUbuntuをdebootstrapでカスタムインストールするスクリプト。
+- 最小限のパッケージだけインストール可能
+- Btrfs RAID 1対応（オプションでExt4またはXFS）
+- キーボード、ロケールおよびタイムゾーン設定実施
+- ネットワークはsystemd-networkd（mDNS対応）
+
+ただし、構築が大変であるため、デフォルトのインストーラーでインストールすることをおすすめする。
+
 debootstrapでDebianをインストールすると、vmlinuzおよびinitrd.imgのシンボリックリンクが、/bootではなく/に作られる。
 
 ## ツールのセットアップ
