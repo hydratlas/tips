@@ -30,7 +30,7 @@ sudo systemctl status btrfs-scrub.timer
 ```
 
 ## Snapperのインストールと設定・確認
-定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。この場合は`/.snapshots`にスナップショットが保存される。この場合`@snapshots`サブボリュームがすでにあることを前提にしている。
+定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。この場合は`/.snapshots`ディレクトリーにスナップショットが保存される。`@snapshots`サブボリュームがすでにあることを前提にしている。
 ```sh
 sudo apt-get install --no-install-recommends -y snapper &&
 sudo umount /.snapshots &&

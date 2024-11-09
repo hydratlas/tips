@@ -1,7 +1,24 @@
 # Slurm
-## データベースのインストール・設定
+## 【オプション】直接ビルドする場合
+基本的には[Slurm Workload Manager - Quick Start Administrator Guide](https://slurm.schedmd.com/quickstart_admin.html)に従って、ビルドする。
+
+[Download Slurm - SchedMD](https://www.schedmd.com/download-slurm/)でダウンロードしたいバージョンを調べる。バージョンはXX.YY.Z形式をとっている。ダウンロードURLは[https://download.schedmd.com/slurm/slurm-24.05-latest.tar.bz2]()というようにマイナーバージョンにあたるZ部分は「-latest」とすれば最新のマイナーバージョンをダウンロードできる。
+
+具体的なビルド方法は[hydratlas/slurm-building](https://github.com/hydratlas/slurm-building)を参照。
+
+パッケージの対応関係は以下のとおりと思われる。
+| Debian or Ubuntu repository | direct build                            |
+| --------------------------- | --------------------------------------- |
+| slurm-wlm-basic-plugins     | slurm-smd_24.05.4-1_amd64.deb           |
+| slurm-client                | slurm-smd-client_24.05.4-1_amd64.deb    |
+| slurmd                      | slurm-smd-slurmd_24.05.4-1_amd64.deb    |
+| slurmctld                   | slurm-smd-slurmctld_24.05.4-1_amd64.deb |
+| slurmdbd                    | slurm-smd-slurmdbd_24.05.4-1_amd64.deb  |
+| sackd                       | slurm-smd-sackd_24.05.4-1_amd64.deb     |
+
+## 【オプション】データベースのインストール・設定
 データベースデーモン（slurmdbd）を使う場合のみ。
-```
+```sh
 sudo apt-get install -y mariadb-server
 
 sudo mysql_secure_installation
@@ -28,18 +45,18 @@ Slurmの各種ノードは、ログインノード、ヘッドノードおよび
 - 計算ノード：slurmdパッケージをインストール
 
 ### ヘッドノード（ログインノード兼用）へのインストール
-```
+```sh
 sudo apt-get install -y slurmctld slurmdbd
 ```
 データベースデーモン（slurmdbd）はオプション。slurmctldの依存関係でslurm-clientもインストールされる。
 
 ### 計算ノードへのインストール
-```
+```sh
 sudo apt-get install -y slurmd
 ```
 
 ## 設定の下準備として変数を設定
-```
+```sh
 if [ -e /etc/slurm-llnl ]; then
   ETC_PATH=/etc/slurm-llnl
 elif [ -e /etc/slurm ]; then
@@ -71,7 +88,7 @@ echo "RUN_PATH: $RUN_PATH"
 ```
 
 ## PIDファイルの置き場所を作る
-```
+```sh
 sudo tee "/etc/tmpfiles.d/slurm.conf" << EOS > /dev/null &&
 d $RUN_PATH 0775 slurm slurm -
 EOS
@@ -79,7 +96,7 @@ sudo systemd-tmpfiles --create /etc/tmpfiles.d/slurm.conf
 ```
 
 ## PIDファイルの場所をsystemdに伝える（Ubuntu 20.04以前だけ）
-```
+```sh
 sudo mkdir -p /etc/systemd/system/slurmdbd.service.d &&
 sudo mkdir -p /etc/systemd/system/slurmctld.service.d &&
 sudo mkdir -p /etc/systemd/system/slurmd.service.d &&
@@ -98,9 +115,9 @@ EOS
 sudo systemctl daemon-reload
 ```
 
-## データベースデーモンの設定ファイルを設置
+## 【オプション】データベースデーモンの設定ファイルを設置
 データベースデーモンを使う場合のみ。
-```
+```sh
 sudo tee "$ETC_PATH/slurmdbd.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurmdbd.conf.example
 #
@@ -145,7 +162,7 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ## Slurmの設定ファイルを設置
 AccountingStorageType=accounting_storage/noneのためデータベースデーモンは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
 
-```
+```sh
 sudo tee "$ETC_PATH/cgroup.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/cgroup.conf.example
 ###
@@ -322,30 +339,30 @@ sudo chmod 644 "$ETC_PATH/slurm.conf" &&
 sudo chown slurm:slurm "$ETC_PATH/slurm.conf"
 ```
 
-## データベースデーモンの起動
+## 【オプション】データベースデーモンの起動
 データベースデーモンを使う場合のみ。
-```
+```sh
 sudo systemctl stop slurmdbd.service &&
 sudo systemctl enable --now slurmdbd.service &&
 sudo systemctl status slurmdbd.service
 ```
 
 ## 管理デーモンの起動
-```
+```sh
 sudo systemctl stop slurmctld.service &&
 sudo systemctl enable --now slurmctld.service &&
 sudo systemctl status slurmctld.service
 ```
 
 ## 計算デーモンの起動
-```
+```sh
 sudo systemctl stop slurmd.service &&
 sudo systemctl enable --now slurmd.service &&
 sudo systemctl status slurmd.service
 ```
 
 ## Slurmのテスト実行
-```
+```sh
 cd ~/ &&
 tee hello-world.sh << EOS > /dev/null &&
 #!/bin/bash

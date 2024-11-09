@@ -54,7 +54,7 @@ sudo debconf-set-selections <<< "tzdata tzdata/Zones/Asia select Tokyo"
 sudo useradd -u <uid> -U -G adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,root \
   -p "$(openssl passwd -6 "<password>")" -s /bin/bash -m <username>
 ```
-`-u <uid>`オプションは省略可能で、省略すると適当な番号が割り振られる。、また、lpadminおよびsambashareグループは存在せず、そのためにエラーが出る場合があり、その場合は削除して再実行する。
+`-u <uid>`オプションは省略可能で、省略すると適当な番号が割り振られる。また、lpadminおよびsambashareグループは存在せず、そのためにエラーが出る場合があり、その場合は削除して再実行する。
 
 ## ユーザー・グループを削除（管理者）
 ```sh
@@ -64,9 +64,14 @@ sudo groupdel <username>
 ```
 
 ## sudoをパスワードなしで使えるようにする（管理者）
-テスト機でのみ実施すること。
+この設定にはリスクがある。
 ```sh
 sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
+```
+
+## GRUBの待ち時間をなくす（管理者）
+```sh
+sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null
 ```
 
 ## Nanoをインストールする（管理者）

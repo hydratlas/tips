@@ -1,4 +1,4 @@
-# SSH周り
+# SSH
 ## SSHサーバーのインストール（管理者）
 ### インストール
 ```sh
@@ -6,6 +6,7 @@ sudo apt-get install --no-install-recommends -y openssh-server
 ```
 
 ### sshd_config.dディレクトリーの作成・有効化
+以下のコマンドを実行することによって、`/etc/ssh/sshd_config.d`ディレクトリーを作成するとともに、`/etc/ssh/sshd_config`ファイルで`/etc/ssh/sshd_config.d/*.conf`ファイルを読み込む`Include`行がコメントアウトされていたらコメントアウトを解除し、コメントアウトがなかったら末尾に追記する。
 ```sh
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 PERL_SCRIPT="s@^#Include /etc/ssh/sshd_config\.d/\*\.conf\$@Include /etc/ssh/sshd_config.d/*.conf@g" &&
@@ -17,19 +18,24 @@ fi
 ```
 
 ### パスワードによるログインおよびrootユーザーでのログインの禁止
+`/etc/ssh/sshd_config.d`ディレクトリー下に設定ファイルを追加して、ssh.serviceを再起動する。
 ```sh
-sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null
+sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null &&
 PasswordAuthentication no
 PermitRootLogin no
 EOS
+sudo sshd -t &&
+sudo systemctl restart ssh.service
 ```
+`sudo sshd -T | grep -i -e PasswordAuthentication -e PermitRootLogin`コマンドを実行することによって、設定が反映されていることを確認できる。
 
 ## SSHサーバーの設定変更（管理者）
 ### 共通
-`grep -i Include /etc/ssh/sshd_config`コマンドで/etc/ssh/sshd_config.d/*.confが読み込まれているか確認し、読み込まれていなかったら読み込まれるようにする。
+`grep -i Include /etc/ssh/sshd_config`コマンドで/etc/ssh/sshd_config.d/*.confが読み込まれる設定になっていることを確認し、読み込まれていなかったら上記の手順により読み込まれるようにする。
 
 ### ポートの追加・変更
-はじめに、`sudo nano /lib/systemd/system/ssh.socket`コマンドでファイルを編集する。以下のように`[Socket]`セクションに`ListenStream`の無指定（リセット用）、使いたいポート（複数行可）を書く。
+#### ソケットの編集
+はじめに、`sudo nano /lib/systemd/system/ssh.socket`コマンドでソケットのファイルを編集する。以下のように`[Socket]`セクションに`ListenStream`の無指定（リセット用）、使いたいポート（複数行可）を書く。
 ```
 [Socket]
 ListenStream=
@@ -37,32 +43,33 @@ ListenStream=22
 ListenStream=10022
 ```
 
-次に以下のコマンドを実行する。
+#### 設定の追加・反映・確認
+次に以下のコマンドで`/etc/ssh/sshd_config.d`ディレクトリー下に設定ファイルを追加する。
 ```sh
-sudo tee -a "/etc/ssh/sshd_config.d/92-ports.conf" << EOS > /dev/null &&
+sudo tee -a "/etc/ssh/sshd_config.d/92-port-change.conf" << EOS > /dev/null &&
 Port 22
 Port 10022
 EOS
+sudo sshd -t &&
 sudo systemctl daemon-reload &&
 sudo systemctl restart ssh.socket &&
 sudo systemctl restart ssh.service &&
 ss -nlt
 ```
-StateがLISTENであるポートが意図したとおりなら完了。`ssh`コマンドに`-p <port>`オプションを追加して接続する。
+最後の`ss -nlt`コマンドによる表示で、StateがLISTENであるポートが意図したとおりなら完了。SSHクライアントから、`ssh`コマンドに`-p <port>`オプションを追加して接続する。
 
-### SSHサーバーの古い方式の禁止
+### 古い方式の禁止
+古いタイプの各種方式を禁止する設定。`sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms`コマンドで現在の設定を確認できる。
 ```sh
-sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null
+sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null &&
 Ciphers -*-cbc
 KexAlgorithms -*-sha1
 PubkeyAcceptedKeyTypes -ssh-rsa*,ssh-dss*
 EOS
-
-sudo sshd -T | grep -i -e PasswordAuthentication -e PermitRootLogin
-
-sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms
+sudo sshd -t &&
+sudo systemctl restart ssh.service
 ```
-古いタイプの方式を禁止する設定。PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が変わっている。Ubuntu 20.04は8.2、22.04は8.9。OpenSSH 8.5以降でもPubkeyAcceptedKeyTypesによる禁止設定は効果がある。
+PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が変わっている。Ubuntu 20.04は8.2、22.04は8.9である。しかし、OpenSSH 8.5以降でもPubkeyAcceptedKeyTypesによる禁止設定は効果がある。
 
 ## ユーザーにauthorized_keysを作成または追記（各ユーザー）
 ```sh

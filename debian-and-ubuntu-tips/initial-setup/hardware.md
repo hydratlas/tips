@@ -4,11 +4,6 @@
 sudo systemctl reboot --firmware-setup
 ```
 
-## GRUBの待ち時間をなくす
-```sh
-sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null
-```
-
 ## ノートパソコンのふたをしめてもサスペンドしないようにする
 ```sh
 sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
@@ -16,7 +11,7 @@ sudo systemctl restart systemd-logind.service
 ```
 
 ## QEMUゲストエージェントをインストールする
-QEMU＝仮想マシンで、仮想マシンのゲストの場合にはインストールする。
+QEMU（仮想マシン）で、仮想マシンのゲストの場合にはインストールする。
 ```sh
 sudo apt-get install --no-install-recommends -y qemu-guest-agent
 ```
