@@ -79,22 +79,33 @@ sudo unlink /var/run/docker.sock
 #### 有効化
 ```sh
 systemctl --user enable --now podman.socket &&
-cat << EOS >> "$HOME/.bashrc" &&
-
-# Podman
+TARGET_FILE="$HOME/.bashrc" &&
+START_MARKER="# BEGIN Podman BLOCK" &&
+END_MARKER="# END Podman BLOCK" &&
+CODE_BLOCK=$(cat << EOS
 if [ -e "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
 fi
 EOS
-. "$HOME/.bashrc"
+) &&
+if ! grep -q "$START_MARKER" "$TARGET_FILE"; then
+  echo -e "$START_MARKER\n$CODE_BLOCK\n$END_MARKER" | tee -a "$TARGET_FILE" > /dev/null  
+fi &&
+. "$TARGET_FILE"
 ```
 
 #### 【元に戻す】無効化
 ```sh
 systemctl --user disable --now podman.socket &&
-rm "$XDG_RUNTIME_DIR/podman/podman.sock"
+rm "$XDG_RUNTIME_DIR/podman/podman.sock" &&
+TARGET_FILE="$HOME/.bashrc" &&
+START_MARKER="# BEGIN Podman BLOCK" &&
+END_MARKER="# END Podman BLOCK" &&
+if grep -q "$START_MARKER" "$TARGET_FILE"; then
+  sed -i "/$START_MARKER/,/$END_MARKER/d" "$TARGET_FILE"
+fi &&
+export DOCKER_HOST=""
 ```
-加えて`nano "$HOME/.bashrc"`コマンドを実行し、手動で削除する（削除しなくても問題はない）。
 
 ## 【オプション】linger（居残り）を有効化（各ユーザー）
 非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。

@@ -55,19 +55,29 @@ rootlesskit rm -rf "$HOME/.local/share/docker"
 
 ### 設定
 ```sh
-tee -a "$HOME/.bashrc" << EOS > /dev/null &&
-
-# Docker
+TARGET_FILE="$HOME/.bashrc" &&
+START_MARKER="# BEGIN Rootless Docker BLOCK" &&
+END_MARKER="# END Rootless Docker BLOCK" &&
+CODE_BLOCK=$(cat << EOS
 if [ -e "$XDG_RUNTIME_DIR/docker.sock" ]; then
   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/docker.sock"
 fi
 EOS
-. "$HOME/.bashrc"
+) &&
+if ! grep -q "$START_MARKER" "$TARGET_FILE"; then
+  echo -e "$START_MARKER\n$CODE_BLOCK\n$END_MARKER" | tee -a "$TARGET_FILE" > /dev/null  
+fi &&
+. "$TARGET_FILE"
 ```
 
 ### 【元に戻す】設定を解除
-`nano "$HOME/.bashrc"`から手動で削除した上で、次のコマンドを実行する（削除および実行しなくても問題はない）。
 ```sh
+TARGET_FILE="$HOME/.bashrc" &&
+START_MARKER="# BEGIN Rootless Docker BLOCK" &&
+END_MARKER="# END Rootless Docker BLOCK" &&
+if grep -q "$START_MARKER" "$TARGET_FILE"; then
+  sed -i "/$START_MARKER/,/$END_MARKER/d" "$TARGET_FILE"
+fi &&
 export DOCKER_HOST=""
 ```
 
