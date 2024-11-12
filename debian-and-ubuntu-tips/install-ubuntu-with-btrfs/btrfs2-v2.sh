@@ -58,7 +58,12 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # アンマウント
-umount -R /target
+if mountpoint --quiet --nofollow /target; then
+  umount -R /target
+fi
+if findmnt "${ROOTFS1_PART}" > /dev/null; then
+  umount "${ROOTFS1_PART}"
+fi
 
 # マウント
 MOUNT_POINT="/mnt"
@@ -68,27 +73,49 @@ cd "${MOUNT_POINT}"
 # 圧縮
 btrfs filesystem defragment -r -czstd .
 
-# @サブボリュームを作成
-btrfs subvolume snapshot . @
+# @サブボリュームがなければ
+if [ ! -e @ ]; then
+  # 作成
+  btrfs subvolume snapshot . @
+  # ルートボリュームからファイルを削除
+  find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
+fi
 
-# @配下のサブボリュームを作成
-btrfs subvolume create @home
-btrfs subvolume create @root
-btrfs subvolume create @var_log
-btrfs subvolume create @snapshots
+# @homeサブボリュームがなければ
+if [ ! -e @home ]; then
+  # 作成
+  btrfs subvolume create @home
+  # ファイルコピー
+  cp -RT --reflink=always @/home/ @home/
+  # ファイル削除
+  find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+fi
 
-# @サブボリュームから@配下のサブボリュームにファイルをコピー
-cp -RT --reflink=always home/ @home/
-cp -RT --reflink=always root/ @root/
-cp -RT --reflink=always var/log/ @var_log/
+# @rootサブボリュームがなければ
+if [ ! -e @root ]; then
+  # 作成
+  btrfs subvolume create @root
+  # ファイルコピー
+  cp -RT --reflink=always @/root/ @root/
+  # ファイル削除
+  find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+fi
 
-# ルートボリュームからファイルを削除
-find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
+# @var_logサブボリュームがなければ
+if [ ! -e @root ]; then
+  # 作成
+  btrfs subvolume create @var_log
+  # ファイルコピー
+  cp -RT --reflink=always @/var/log/ @var_log/
+  # ファイル削除
+  find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+fi
 
-# @サブボリュームから@配下のサブボリュームと重複するファイルを削除
-find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+# @snapshotsサブボリュームがなければ
+if [ ! -e @snapshots ]; then
+  # 作成
+  btrfs subvolume create @snapshots
+fi
 
 # RAID1化
 if [ -e "${DISK2}" ]; then
