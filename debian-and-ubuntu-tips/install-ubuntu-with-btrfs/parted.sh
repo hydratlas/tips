@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -eux
 
 # ディスク
 DISK="/dev/$1"
