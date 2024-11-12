@@ -102,7 +102,7 @@ if [ ! -e @root ]; then
 fi
 
 # @var_logサブボリュームがなければ
-if [ ! -e @root ]; then
+if [ ! -e @var_log ]; then
   # 作成
   btrfs subvolume create @var_log
   # ファイルコピー
