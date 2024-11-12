@@ -14,38 +14,52 @@ BTRFS_OPTIONS="noatime,compress=zstd:1,degraded"
 # パーティション
 if [ -e "${DISK1}p1" ]; then
   EFI1_PART="${DISK1}p1"
-else
+elif [ -e "${DISK1}1" ]; then
   EFI1_PART="${DISK1}1"
+else
+  echo "Error: First partition on disk 1 not found." 1>&2
 fi
 
 if [ -e "${DISK1}p2" ]; then
   SWAP1_PART="${DISK1}p2"
-else
+elif [ -e "${DISK1}2" ]; then
   SWAP1_PART="${DISK1}2"
+else
+  echo "Error: Second partition on disk 1 not found." 1>&2
 fi
 
 if [ -e "${DISK1}p3" ]; then
   ROOTFS1_PART="${DISK1}p3"
-else
+elif [ -e "${DISK1}3" ]; then
   ROOTFS1_PART="${DISK1}3"
+else
+  echo "Error: Third partition on disk 1 not found." 1>&2
 fi
 
-if [ -e "${DISK2}p1" ]; then
-  EFI2_PART="${DISK2}p1"
-else
-  EFI2_PART="${DISK2}1"
-fi
+if [ -e "${DISK2}" ]; then
+  if [ -e "${DISK2}p1" ]; then
+    EFI2_PART="${DISK2}p1"
+  elif [ -e "${DISK2}1" ]; then
+    EFI2_PART="${DISK2}1"
+  else
+    echo "Error: First partition on disk 2 not found." 1>&2
+  fi
 
-if [ -e "${DISK2}p2" ]; then
-  SWAP2_PART="${DISK2}p2"
-else
-  SWAP2_PART="${DISK2}2"
-fi
+  if [ -e "${DISK2}p2" ]; then
+    SWAP2_PART="${DISK2}p2"
+  elif [ -e "${DISK2}2" ]; then
+    SWAP2_PART="${DISK2}2"
+  else
+    echo "Error: Second partition on disk 2 not found." 1>&2
+  fi
 
-if [ -e "${DISK2}p3" ]; then
-  ROOTFS2_PART="${DISK2}p3"
-else
-  ROOTFS2_PART="${DISK2}3"
+  if [ -e "${DISK2}p3" ]; then
+    ROOTFS2_PART="${DISK2}p3"
+  elif [ -e "${DISK2}3" ]; then
+    ROOTFS2_PART="${DISK2}3"
+  else
+    echo "Error: Third partition on disk 2 not found." 1>&2
+  fi
 fi
 
 # UUIDを取得
@@ -62,6 +76,8 @@ TARGET="$(find /tmp -maxdepth 1 -type d -iname "calamares-root-*" -print -quit)"
 if [ -z "${TARGET}" ]; then
   if [ -e "/target" ]; then
     TARGET="/target"
+  else
+    echo "Error: The directory where the installer performed the installation cannot be found." 1>&2
   fi
 fi
 
@@ -173,8 +189,8 @@ TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
 cat << EOS
 menuentry '\$TITLE' {
   search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-  linux /@{$VMLINUZ} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-  initrd /@{$INITRD}
+  linux /@${VMLINUZ} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+  initrd /@${INITRD}
 }
 EOS
 EOF
@@ -194,6 +210,7 @@ if [ -e "${DISK2}" ]; then
 fi
 
 # GRUB・ESPを更新
+DISTRIBUTION="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
 if [ "ubuntu" = "${DISTRIBUTION}" ]; then
   if [ -e "${DISK2}" ]; then
     EFI_PARTS="${EFI1_PART} ${EFI2_PART}"
@@ -229,4 +246,6 @@ exit 0
 EOF
     chmod a+x "${MOUNT_POINT}/etc/grub.d/90_copy_to_boot_efi2"
   fi
+else
+  echo "Error: The distribution is neither debian nor ubuntu. DISTRIBUTION=${DISTRIBUTION}" 1>&2
 fi
