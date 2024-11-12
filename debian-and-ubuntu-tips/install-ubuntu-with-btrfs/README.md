@@ -10,15 +10,15 @@ UEFIブートの必要があります。
 
 ## 解説
 ### 新規インストール時
-`btrfs1.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約512MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
+`parted.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約512MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
 
-`btrfs1.sh`のコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
+`parted.sh`のコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
 ```sh
-sudo bash -x btrfs1.sh sda
-sudo bash -x btrfs1.sh sdb
+sudo bash -x parted.sh sda
+sudo bash -x parted.sh sdb
 ```
 
-`btrfs1.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
+`parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
 - 1台目のSSD
   - /dev/sda1 (FAT | Formatting with btrfs1.sh)
   - /dev/sda2 (Swap | Formatting with btrfs1.sh)

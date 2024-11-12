@@ -68,8 +68,8 @@ lsblk -f -e 7
 
 インストール先のストレージを、スクリプトによってフォーマットする。
 ```sh
-sudo bash -x btrfs1.sh sdX
-sudo bash -x btrfs1.sh sdX
+sudo bash -x parted.sh sdX
+sudo bash -x parted.sh sdX
 ```
 
 終わったら、ターミナル画面を閉じる。

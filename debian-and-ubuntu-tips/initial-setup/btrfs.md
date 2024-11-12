@@ -4,6 +4,11 @@
 btrfs filesystem usage /
 ```
 
+## RAID 1の修復
+```sh
+sudo btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg /
+```
+
 ## スクラブ・バランスのタイマーの設定・確認
 スクラブはデータの整合性をチェックする。バランスはデータの再配置を行う。ともに定期的に実行すべきもののため、Systemdのタイマーを設定する。
 ```sh
