@@ -73,18 +73,36 @@ sudo systemctl restart ssh.service
 ```
 PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が変わっている。Ubuntu 20.04は8.2、22.04は8.9である。しかし、OpenSSH 8.5以降でもPubkeyAcceptedKeyTypesによる禁止設定は効果がある。
 
-## ユーザーにauthorized_keysを作成または追記（各ユーザー）
+## ユーザーにauthorized_keysを追記（各ユーザー）
+### ステップ1（変数にキーを格納）
+#### 文字列からの場合
 ```sh
-USER_NAME=<username> &&
 KEYS=$(cat << EOS
 ssh-ed25519 xxxxx
 ssh-ed25519 xxxxx
 EOS
-) &&
+)
+```
+
+#### GitHubからの場合
+```sh
+KEYS="$(wget -qO - https://github.com/<username>.keys)"
+```
+
+### ステップ2（設定）
+#### 現在ログインしているユーザーの場合
+```sh
+mkdir -p "$HOME/.ssh" &&
+tee -a "$HOME/.ssh/authorized_keys" <<< "$KEYS" > /dev/null &&
+chmod u=rw,go= "$HOME/.ssh/authorized_keys"
+```
+
+#### 現在ログインしていないユーザーの場合
+```sh
 USER_HOME="$(grep "$USER_NAME" /etc/passwd | cut -d: -f6)" &&
 sudo -u "$USER_NAME" mkdir -p "$USER_HOME/.ssh" &&
 sudo -u "$USER_NAME" tee -a "$USER_HOME/.ssh/authorized_keys" <<< "$KEYS" > /dev/null &&
-sudo chmod u=rw,g=,o= "$USER_HOME/.ssh/authorized_keys"
+sudo chmod u=rw,go= "$USER_HOME/.ssh/authorized_keys"
 ```
 
 ## SSHキーを生成（各ユーザー）

@@ -33,6 +33,7 @@ sudo systemctl status btrfs-scrub.timer
 定期的にスナップショットを取得して、誤操作などからファイルを復旧できるようにする。この場合は`/.snapshots`ディレクトリーにスナップショットが保存される。`@snapshots`サブボリュームがすでにあることを前提にしている。
 ```sh
 sudo apt-get install --no-install-recommends -y snapper &&
+mountpoint --quiet --nofollow /boot/efi &&
 sudo umount /.snapshots &&
 sudo rm -d /.snapshots &&
 sudo snapper -c root create-config / &&

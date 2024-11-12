@@ -57,70 +57,45 @@ if [ -e "${DISK2}" ]; then
   SWAP2_UUID="$(lsblk -dno UUID ${SWAP2_PART})"
 fi
 
-# 以上既存のコードとまったく同じ
+# アンマウント
+umount -R /target
 
 # マウント
 MOUNT_POINT="/mnt"
-mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "subvol=/,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
+mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 
-# @snapshotsサブボリュームがない場合は作成
-if [ ! -e @snapshots ]; then
-  btrfs subvolume create @snapshots
-fi
+# 圧縮
+btrfs filesystem defragment -r -czstd .
 
-# 既存の@サブボリュームの退避
-OLD_SNAPSHOT_NAME=''
-if [ -e @ ]; then
-  OLD_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')"
-  btrfs subvolume snapshot @ "@snapshots/$OLD_SNAPSHOT_NAME"
-  btrfs subvolume set-default .
-  btrfs subvolume delete @
-fi
+# @サブボリュームを作成
+btrfs subvolume snapshot . @
 
-# 新しい@サブボリュームをコピー
-NEW_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')"
-btrfs subvolume snapshot -r /target "/target/$NEW_SNAPSHOT_NAME"
-btrfs send "/target/$NEW_SNAPSHOT_NAME" | btrfs receive .
-btrfs subvolume delete "/target/$NEW_SNAPSHOT_NAME"
-btrfs subvolume snapshot "$NEW_SNAPSHOT_NAME" @
-btrfs subvolume delete "$NEW_SNAPSHOT_NAME"
+# @配下のサブボリュームを作成
+btrfs subvolume create @home
+btrfs subvolume create @root
+btrfs subvolume create @var_log
+btrfs subvolume create @snapshots
 
-# 新しい@サブボリュームから既存の@配下のサブボリュームと重複するファイルを削除
+# @サブボリュームから@配下のサブボリュームにファイルをコピー
+cp -RT --reflink=always home/ @home/
+cp -RT --reflink=always root/ @root/
+cp -RT --reflink=always var/log/ @var_log/
+
+# ルートボリュームからファイルを削除
+find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "@*" -exec rm -dr "{}" +
+
+# @サブボリュームから@配下のサブボリュームと重複するファイルを削除
 find @/home -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/root -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 find @/var/log -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
-# 退避した既存の@サブボリュームから起動できるようにする
-## fstabの修正
-if [ -n "$OLD_SNAPSHOT_NAME" ]; then
-  sed -i "s|subvol=@,|subvol=@snapshots/${OLD_SNAPSHOT_NAME},|g" @snapshots/${OLD_SNAPSHOT_NAME}/etc/fstab
+# RAID1化
+if [ -e "${DISK2}" ]; then
+  btrfs device add -f "${ROOTFS2_PART}" .
+  btrfs balance start -mconvert=raid1 -dconvert=raid1 .
 fi
-
-## GRUBメニューエントリーの作成
-if [ -n "$OLD_SNAPSHOT_NAME" ]; then
-  OLD_DISTRIBUTOR="$(grep -oP '(?<=^PRETTY_NAME=").+(?="$)' @snapshots/${OLD_SNAPSHOT_NAME}/etc/os-release)"
-
-  tee @/etc/grub.d/18_old_linux << EOF > /dev/null
-#!/bin/sh
-. "\$pkgdatadir/grub-mkconfig_lib"
-TITLE="\$(echo "${OLD_DISTRIBUTOR} (snapshot: ${OLD_SNAPSHOT_NAME})" | grub_quote)"
-cat << EOS
-menuentry '\$TITLE' {
-  search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-  linux /@snapshots/${OLD_SNAPSHOT_NAME}/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@snapshots/${OLD_SNAPSHOT_NAME} \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-  initrd /@snapshots/${OLD_SNAPSHOT_NAME}/boot/initrd.img
-}
-EOS
-EOF
-
-  chmod a+x @/etc/grub.d/18_old_linux
-fi
-
-# アンマウント
-umount -R /target
-
-# 以下既存のコードとまったく同じ
+#btrfs balance start -mconvert=raid1,soft -dconvert=raid1,soft --bg / # 1台で運用した後に修復する場合
 
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
 btrfs subvolume set-default @
@@ -142,6 +117,17 @@ printf -v FSTAB_STR "%s\n" "${FSTAB_ARRAY[@]}"
 tee @/etc/fstab <<< "${FSTAB_STR}" > /dev/null
 
 # GRUB設定の変更
+if [ -e "@/boot/vmlinuz" ]; then
+  VMLINUZ="/boot/vmlinuz"
+else
+  VMLINUZ="/vmlinuz"
+fi
+if [ -e "@/boot/initrd.img" ]; then
+  INITRD="/boot/initrd.img"
+else
+  INITRD="/initrd.img"
+fi
+
 tee @/etc/grub.d/19_linux_rootflags_degraded << EOF > /dev/null
 #!/bin/sh
 . "\$pkgdatadir/grub-mkconfig_lib"
@@ -149,13 +135,13 @@ TITLE="\$(echo "\${GRUB_DISTRIBUTOR} (rootflags=degraded)" | grub_quote)"
 cat << EOS
 menuentry '\$TITLE' {
   search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-  linux /@/boot/vmlinuz root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-  initrd /@/boot/initrd.img
+  linux /@{$VMLINUZ} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=@,degraded \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+  initrd /@{$INITRD}
 }
 EOS
 EOF
-
 chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
+
 
 # いったんアンマウント
 cd /
@@ -166,19 +152,45 @@ mount "${ROOTFS1_PART}" -o "subvol=@,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 mount "${ROOTFS1_PART}" -o "subvol=@var_log,${BTRFS_OPTIONS}" "${MOUNT_POINT}/var/log"
 mount "${EFI1_PART}" "${MOUNT_POINT}/boot/efi"
 if [ -e "${DISK2}" ]; then
-  mkdir "${MOUNT_POINT}/boot/efi2"
+  mkdir -p "${MOUNT_POINT}/boot/efi2"
   mount "${EFI2_PART}" "${MOUNT_POINT}/boot/efi2"
 fi
 
 # GRUB・ESPを更新
-if [ -e "${DISK2}" ]; then
-  EFI_PARTS="${EFI1_PART} ${EFI2_PART}"
-else
-  EFI_PARTS="${EFI1_PART}"
-fi
-DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y arch-install-scripts
-arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
-update-grub
-debconf-set-selections <<< "grub-common grub-efi/install_devices multiselect ${EFI_PARTS}"
-dpkg-reconfigure --frontend noninteractive shim-signed
+if [ "ubuntu" = "${DISTRIBUTION}" ]; then
+  if [ -e "${DISK2}" ]; then
+    EFI_PARTS="${EFI1_PART} ${EFI2_PART}"
+  else
+    EFI_PARTS="${EFI1_PART}"
+  fi
+  DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y arch-install-scripts
+  arch-chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
+  update-grub
+  debconf-set-selections <<< "grub-common grub-efi/install_devices multiselect ${EFI_PARTS}"
+  dpkg-reconfigure --frontend noninteractive shim-signed
 EOS
+elif [ "debian" = "${DISTRIBUTION}" ]; then
+  mount -t proc /proc "${MOUNT_POINT}/proc"
+  mount -t sysfs /sys "${MOUNT_POINT}/sys"
+  mount -o bind /dev "${MOUNT_POINT}/dev"
+  mount -o bind /sys/firmware/efi/efivars "${MOUNT_POINT}/sys/firmware/efi/efivars"
+  chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
+  update-grub
+EOS
+  # efi設定をする
+  if [ -e "${DISK2}" ]; then
+    rm --recursive --force "${MOUNT_POINT}/boot/efi2/*"
+    cp --recursive --force -p "${MOUNT_POINT}/boot/efi/*" "${MOUNT_POINT}/boot/efi2"
+    efibootmgr --create --disk "${DISK2}" --label debian --loader '\EFI\debian\shimx64.efi'
+    tee "${MOUNT_POINT}/etc/grub.d/90_copy_to_boot_efi2" << EOF > /dev/null
+#!/bin/sh
+set -eu
+
+if mountpoint --quiet --nofollow /boot/efi && mountpoint --quiet --nofollow /boot/efi2 ; then
+  rsync --times --recursive --delete /boot/efi/ /boot/efi2/
+fi
+exit 0
+EOF
+    chmod a+x "${MOUNT_POINT}/etc/grub.d/90_copy_to_boot_efi2"
+  fi
+fi
