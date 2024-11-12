@@ -232,8 +232,8 @@ elif [ "debian" = "${DISTRIBUTION}" ]; then
   update-grub
 EOS
   if [ -e "${DISK2}" ]; then
-    rm --recursive --force "${MOUNT_POINT}/boot/efi2/*"
-    cp --recursive --force -p "${MOUNT_POINT}/boot/efi/*" "${MOUNT_POINT}/boot/efi2"
+    find "${MOUNT_POINT}/boot/efi2" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+    find "${MOUNT_POINT}/boot/efi" -mindepth 1 -maxdepth 1 -exec cp --recursive --force -p "{}" "${MOUNT_POINT}/boot/efi2" \;
     efibootmgr --create --disk "${DISK2}" --label debian --loader '\EFI\debian\shimx64.efi'
     tee "${MOUNT_POINT}/etc/grub.d/90_copy_to_boot_efi2" << EOF > /dev/null
 #!/bin/sh
