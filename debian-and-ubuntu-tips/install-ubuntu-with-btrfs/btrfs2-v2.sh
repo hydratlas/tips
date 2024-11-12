@@ -57,12 +57,19 @@ if [ -e "${DISK2}" ]; then
   SWAP2_UUID="$(lsblk -dno UUID ${SWAP2_PART})"
 fi
 
-# アンマウント
-if mountpoint --quiet --nofollow /target; then
-  umount -R /target
+# インストール先を取得
+TARGET="$(find /tmp -maxdepth 1 -type d -iname "calamares-root-*" -print -quit)"
+if [ -z "${TARGET}" ]; then
+  if [ -e "/target" ]; then
+    TARGET="/target"
+  fi
 fi
-if findmnt "${ROOTFS1_PART}" > /dev/null; then
-  umount "${ROOTFS1_PART}"
+
+# アンマウント
+if [ -z "${TARGET}" ]; then
+  if mountpoint --quiet --nofollow "${TARGET}"; then
+    umount -R "${TARGET}"
+  fi
 fi
 
 # マウント
@@ -146,13 +153,17 @@ tee @/etc/fstab <<< "${FSTAB_STR}" > /dev/null
 # GRUB設定の変更
 if [ -e "@/boot/vmlinuz" ]; then
   VMLINUZ="/boot/vmlinuz"
-else
+elif [ -e "@/vmlinuz" ]; then
   VMLINUZ="/vmlinuz"
+else
+  echo "Error: vmlinuz not found." 1>&2
 fi
 if [ -e "@/boot/initrd.img" ]; then
   INITRD="/boot/initrd.img"
-else
+elif [ -e "@/initrd.img" ]; then
   INITRD="/initrd.img"
+else
+  echo "Error: initrd.img not found." 1>&2
 fi
 
 tee @/etc/grub.d/19_linux_rootflags_degraded << EOF > /dev/null
@@ -168,7 +179,6 @@ menuentry '\$TITLE' {
 EOS
 EOF
 chmod a+x @/etc/grub.d/19_linux_rootflags_degraded
-
 
 # いったんアンマウント
 cd /
@@ -204,7 +214,6 @@ elif [ "debian" = "${DISTRIBUTION}" ]; then
   chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
   update-grub
 EOS
-  # efi設定をする
   if [ -e "${DISK2}" ]; then
     rm --recursive --force "${MOUNT_POINT}/boot/efi2/*"
     cp --recursive --force -p "${MOUNT_POINT}/boot/efi/*" "${MOUNT_POINT}/boot/efi2"
