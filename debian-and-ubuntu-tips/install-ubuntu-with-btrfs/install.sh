@@ -4,7 +4,7 @@ set -eux
 SCRIPT_DIR="$(dirname "$0")"
 
 source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
-"$SCRIPT_DIR/scripts/common.sh"
+source "$SCRIPT_DIR/scripts/common.sh"
 
 # インストーラーによるマウントをアンマウント
 if [ -n "${TARGET}" ]; then
@@ -32,7 +32,7 @@ btrfs subvolume set-default "${DEFAULT_SUBVOLUME_NAME}"
 function CREATE_SUBVOLUME () {
     local DIR="${1}"
     local SUBVOLUME_NAME="${2}"
-    if [ ! -e "${SUBVOLUME_NAME}" ]; then
+    if [ ! -e "${DIR}" ]; then
         return 0
     fi
     # サブボリューム作成

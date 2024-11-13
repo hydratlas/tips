@@ -46,11 +46,11 @@ EOF
 }
 function CREATE_SNAPSHOT_BOOT () {
     local BASE_PATH="${1}"
-    local SNAPSHOT_PATH="${2}"
-    local VMLINUZ="$(GET_VMLINUZ_PATH "${SNAPSHOT_PATH}")"
-    local INITRD="$(GET_INITRD_PATH "${SNAPSHOT_PATH}")"
+    local SNAPSHOT_NAME="${2}"
+    local VMLINUZ="$(GET_VMLINUZ_PATH "${SNAPSHOT_NAME}")"
+    local INITRD="$(GET_INITRD_PATH "${SNAPSHOT_NAME}")"
 
-    local OLD_DISTRIBUTION="$(grep -oP '(?<=^PRETTY_NAME=").+(?="$)' "${SNAPSHOT_PATH}/etc/os-release")"
+    local OLD_DISTRIBUTION="$(grep -oP '(?<=^PRETTY_NAME=").+(?="$)' "${SNAPSHOT_NAME}/etc/os-release")"
 
     tee "${BASE_PATH}/etc/grub.d/18_old_linux" << EOF > /dev/null
 #!/bin/sh
@@ -59,8 +59,8 @@ TITLE="\$(echo "${OLD_DISTRIBUTION} (snapshot: ${OLD_SNAPSHOT_NAME})" | grub_quo
 cat << EOS
 menuentry '\$TITLE' {
 search --no-floppy --fs-uuid --set=root ${ROOTFS_UUID}
-linux /${SNAPSHOT_PATH}${VMLINUZ} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=${SNAPSHOT_PATH} \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
-initrd /${SNAPSHOT_PATH}${INITRD}
+linux /${SNAPSHOT_NAME}${VMLINUZ} root=UUID=${ROOTFS_UUID} ro rootflags=subvol=${SNAPSHOT_NAME} \${GRUB_CMDLINE_LINUX} \${GRUB_CMDLINE_LINUX_DEFAULT}
+initrd /${SNAPSHOT_NAME}${INITRD}
 }
 EOS
 EOF

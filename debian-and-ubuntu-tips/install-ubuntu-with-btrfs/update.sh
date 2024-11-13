@@ -4,7 +4,7 @@ set -eux
 SCRIPT_DIR="$(dirname "$0")"
 
 source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
-"$SCRIPT_DIR/scripts/common.sh"
+source "$SCRIPT_DIR/scripts/common.sh"
 
 # btrfsの/からマウント
 mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "subvol=/,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
