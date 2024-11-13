@@ -22,7 +22,7 @@ if [ ! -e "${DEFAULT_SUBVOLUME_NAME}" ]; then
   # サブボリューム作成
   btrfs subvolume snapshot . "${DEFAULT_SUBVOLUME_NAME}"
   # ルートボリュームからファイルを削除
-  find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) \
+  find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "${DEFAULT_SUBVOLUME_NAME}" \
     -exec sh -c 'mountpoint --quiet --nofollow "$1" || rm -dr "$1"' _ {} \;
 fi
 
