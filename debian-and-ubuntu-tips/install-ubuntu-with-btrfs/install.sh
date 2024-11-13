@@ -3,8 +3,15 @@ set -eux
 
 SCRIPT_DIR="$(dirname "$0")"
 
-"$SCRIPT_DIR/scripts/initialize.sh"
+source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
 "$SCRIPT_DIR/scripts/common.sh"
+
+# インストーラーによるマウントをアンマウント
+if [ -n "${TARGET}" ]; then
+  if mountpoint --quiet --nofollow "${TARGET}"; then
+    umount -R "${TARGET}"
+  fi
+fi
 
 # btrfsの/からマウント
 mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
@@ -80,13 +87,6 @@ tee "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" <<< "${FSTAB_STR}" > /dev/null
 
 # 縮退起動をサポート
 CREATE_DEGRADED_BOOT "${DEFAULT_SUBVOLUME_NAME}"
-
-# インストーラーによるマウントをアンマウント
-if [ -n "${TARGET}" ]; then
-  if mountpoint --quiet --nofollow "${TARGET}"; then
-    umount -R "${TARGET}"
-  fi
-fi
 
 # btrfsの/からのマウントをアンマウント
 cd /

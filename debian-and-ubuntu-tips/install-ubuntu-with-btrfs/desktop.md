@@ -63,13 +63,13 @@ cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
 lsblkコマンドでインストール先のストレージの名前（sdX）を確認する。
 ```sh
-lsblk -f -e 7
+lsblk -fe7
 ```
 
 インストール先のストレージを、スクリプトによってフォーマットする。
 ```sh
-sudo bash -x parted.sh sdX
-sudo bash -x parted.sh sdX
+sudo ./parted.sh sdX
+sudo ./parted.sh sdX
 ```
 
 終わったら、ターミナル画面を閉じる。
@@ -125,7 +125,7 @@ cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 
 lsblkコマンドでインストール先のストレージの名前（sdX）を確認する。
 ```sh
-lsblk -f -e 7
+lsblk -fe7
 ```
 
 インストール先のストレージを、スクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。ただし、1台だけ指定した場合には、RAID 1ではなくシングル構成にする。第一引数のストレージから第二引数のストレージにコピーしてRAID 1構成にするため、引数の順番には注意すること。

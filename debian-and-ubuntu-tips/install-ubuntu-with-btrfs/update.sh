@@ -3,7 +3,7 @@ set -eux
 
 SCRIPT_DIR="$(dirname "$0")"
 
-"$SCRIPT_DIR/scripts/initialize.sh"
+source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
 "$SCRIPT_DIR/scripts/common.sh"
 
 # btrfsの/からマウント
