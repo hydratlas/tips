@@ -58,7 +58,7 @@ sudo ./parted.sh sdb
   - /dev/sdb2 (Swap | Formatting with parted.sh)
   - /dev/sdb3 (Btrfs | Configure RAID 1 with install.sh)
 
-OSのインストーラーを使って、`sda3`にBtrfsでOSをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります。
+OSのインストーラーを使って、`sda3`にBtrfsでOSをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります（Ubuntuの場合）。
 - /dev/sda3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
@@ -98,7 +98,7 @@ sudo ./install.sh sda sdb
   - /dev/sdc2 (Swap | Formatting with parted.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)
 
-OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります。
+OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります（Ubuntuの場合）。
 - /dev/sdc3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
@@ -109,7 +109,7 @@ OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストー�
 sudo ./update.sh sdc sda sdb
 ```
 
-`update.sh`の処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したらsdcは不要になります。
+`update.sh`の処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したら`sdc`は不要になります。
 - /dev/sda3 (Btrfs RAID 1) | /dev/sdb3 (Btrfs RAID 1)
   - /mnt/@ (Mount point after reboot: / | New OS)
   - /mnt/@root (Mount point after reboot: /root | Existing data)
