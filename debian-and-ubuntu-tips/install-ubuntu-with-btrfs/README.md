@@ -10,22 +10,23 @@ UEFIブートの必要があります。
 
 ## 解説
 ### 新規インストール時
-`parted.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。FATのサイズは約512MiB、Swapのサイズは約3.75GiB、Btrfsのサイズは残りすべてです。
+`parted.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。デフォルトではFATのサイズは約512MiB、Swapのサイズは4GiB、Btrfsのサイズは残りすべてです。
 
-`parted.sh`のコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
+`parted.sh`のコマンド例は次のとおりです。以下、sdaおよびsdbは例であって、マシンによって異なります。`lsblk -fe7`コマンドでマシンに接続されたストレージを確認することができます。
 ```sh
 sudo ./parted.sh sda
 sudo ./parted.sh sdb
 ```
+またオプションとして`sudo ./parted.sh sda 1024MiB 8GiB`というように、FATとSwapのサイズをデフォルトから変更することができます。
 
 `parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
 - 1台目のSSD
-  - /dev/sda1 (FAT | Formatting with btrfs1.sh)
-  - /dev/sda2 (Swap | Formatting with btrfs1.sh)
+  - /dev/sda1 (FAT | Formatting with parted.sh)
+  - /dev/sda2 (Swap | Formatting with parted.sh)
   - /dev/sda3 (Btrfs | Formatting in the installer)
 - 2台目のSSD
-  - /dev/sdb1 (FAT | Formatting with btrfs1.sh)
-  - /dev/sdb2 (Swap | Formatting with btrfs1.sh)
+  - /dev/sdb1 (FAT | Formatting with parted.sh)
+  - /dev/sdb2 (Swap | Formatting with parted.sh)
   - /dev/sdb3 (Btrfs | Configure RAID 1 with btrfs2.sh)
 
 Ubuntuのインストーラーを使って、`sda3`にBtrfsでUbuntuをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります。
@@ -50,11 +51,11 @@ sudo bash -eux btrfs2.sh sda sdb
 スクリプトが設定する、`/etc/fstab`におけるBtrfsのマウントオプションはSSD向けに最適化されています(`noatime`)。ただし、`ssd`および`discard=async`マウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`ssd`マウントオプションは`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。`btrfs2.sh`の処理後に`/etc/fstab`を手動で編集することによってカスタマイズすることができます。
 
 ### 上書きインストール時
-`btrfs1.sh`および`btrfs2.sh`を使用してインストールした後に、上書きインストールが必要になった際、`btrfs2-update.sh`を使うと既存のUbuntuをサブボリュームに退避できます。
+`parted.sh`および`btrfs2.sh`を使用してインストールした後に、上書きインストールが必要になった際、`btrfs2-update.sh`を使うと既存のUbuntuをサブボリュームに退避できます。
 
 使い方は基本的には新規インストール時と同じです。そのため相違がある部分について解説します。
 
-`btrfs1.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
+`parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
 - 1台目のSSD（既存の物）
   - /dev/sda1 (FAT)
   - /dev/sda2 (Swap)
@@ -64,8 +65,8 @@ sudo bash -eux btrfs2.sh sda sdb
   - /dev/sdb2 (Swap)
   - /dev/sdb3 (Btrfs)
 - 3台目のSSDまたはUSBメモリ（一時的に使う物）
-  - /dev/sdc1 (FAT | Formatting with btrfs1.sh)
-  - /dev/sdc2 (Swap | Formatting with btrfs1.sh)
+  - /dev/sdc1 (FAT | Formatting with parted.sh)
+  - /dev/sdc2 (Swap | Formatting with parted.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)
 
 Ubuntuのインストーラーを使って、`sdc3`にBtrfsでUbuntuをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります。

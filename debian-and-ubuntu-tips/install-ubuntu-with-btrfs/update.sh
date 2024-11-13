@@ -3,10 +3,16 @@ set -eux
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 
-source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
-source "$SCRIPT_DIR/scripts/common.sh"
+source "${SCRIPT_DIR}/scripts/initialize.sh" "${2}" "${3:-}"
+source "${SCRIPT_DIR}/scripts/common.sh"
 
-# btrfsの/からマウント
+# 新しいインストールのbtrfsをデフォルトのマウントポイントでマウント
+if [ -z "${TARGET}" ]; then
+  export TARGET="/target"
+  mount "/dev/${1}" -o "${BTRFS_OPTIONS}" "${TARGET}"
+fi
+
+# 既存のbtrfsを/からマウント
 mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "subvol=/,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 
