@@ -4,6 +4,9 @@ set -eux
 if ! hash sgdisk 2>/dev/null; then
   DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y gdisk
 fi
+if ! hash mkfs.vfat 2>/dev/null; then
+  DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y dosfstools
+fi
 
 DISK="/dev/${1}"
 ESP="${2:-512MiB}" # Debian requires 512 MiB.
