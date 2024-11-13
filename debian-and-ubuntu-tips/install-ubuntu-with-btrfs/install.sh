@@ -14,16 +14,27 @@ if [ -n "${TARGET}" ]; then
 fi
 
 # btrfsの/からマウント
-mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "${BTRFS_OPTIONS}" "${MOUNT_POINT}"
+mount "/dev/disk/by-uuid/${ROOTFS_UUID}" -o "subvol=/,${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 cd "${MOUNT_POINT}"
 
-# @サブボリュームがなければ
+# @サブボリュームがなければ対応
 if [ ! -e "${DEFAULT_SUBVOLUME_NAME}" ]; then
-  # サブボリューム作成
-  btrfs subvolume snapshot . "${DEFAULT_SUBVOLUME_NAME}"
-  # ルートボリュームからファイルを削除
-  find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "${DEFAULT_SUBVOLUME_NAME}" \
-    -exec sh -c 'mountpoint --quiet --nofollow "$1" || rm -dr "$1"' _ {} \;
+  if [ -e "@rootfs" ]; then
+    # @rootfsサブボリュームがあれば、@サブボリュームにリネーム
+    btrfs subvolume snapshot "@rootfs" "${DEFAULT_SUBVOLUME_NAME}"
+    btrfs subvolume delete "@rootfs"
+  elif [ -e "usr" ]; then
+    # /に直接ディレクトリーがあれば、@サブボリュームに変換
+    # サブボリューム作成
+    btrfs subvolume snapshot . "${DEFAULT_SUBVOLUME_NAME}"
+    # ルートボリュームからファイルを削除
+    find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "${DEFAULT_SUBVOLUME_NAME}" \
+      -exec sh -c 'mountpoint --quiet --nofollow "$1" || rm -dr "$1"' _ {} \;
+  else
+    # なにも見つからなければエラー
+    echo "Error: Cannot find installed root(/)." 1>&2
+    exit 1
+  fi
 fi
 
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
@@ -32,7 +43,7 @@ btrfs subvolume set-default "${DEFAULT_SUBVOLUME_NAME}"
 function CREATE_SUBVOLUME () {
     local DIR="${1}"
     local SUBVOLUME_NAME="${2}"
-    if [ ! -e "${DIR}" ]; then
+    if [ -e "${SUBVOLUME_NAME}" ]; then
         return 0
     fi
     # サブボリューム作成
