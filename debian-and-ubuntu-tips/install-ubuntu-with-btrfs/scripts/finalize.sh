@@ -56,6 +56,7 @@ fi
 mount -t proc /proc "${MOUNT_POINT}/proc"
 mount -t sysfs /sys "${MOUNT_POINT}/sys"
 mount -o bind /dev "${MOUNT_POINT}/dev"
+#mount -o bind /dev/pts "${MOUNT_POINT}/dev/pts"
 mount -o bind /sys/firmware/efi/efivars "${MOUNT_POINT}/sys/firmware/efi/efivars"
 
 # GRUB・ESPを更新

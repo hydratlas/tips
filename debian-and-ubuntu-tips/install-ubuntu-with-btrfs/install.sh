@@ -51,7 +51,10 @@ function CREATE_SUBVOLUME () {
     # ディレクトリーを念のため作成
     mkdir -p "${DIR}"
     # ファイルコピー
-    cp -RT --reflink=always "${DIR}/" "${SUBVOLUME_NAME}/"
+    if ! hash rsync 2>/dev/null; then
+      DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y rsync
+    fi
+    rsync -a "${DIR}/" "${SUBVOLUME_NAME}/"
     # ファイル削除
     find "${DIR}" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 }
