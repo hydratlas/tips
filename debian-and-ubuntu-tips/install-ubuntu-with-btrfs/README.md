@@ -14,8 +14,8 @@ UEFIブートの必要があります。
 
 `parted.sh`のコマンド例は次のとおりです。以下、sdXは例であって、マシンによって異なります。
 ```sh
-sudo bash -x parted.sh sda
-sudo bash -x parted.sh sdb
+sudo ./parted.sh sda
+sudo ./parted.sh sdb
 ```
 
 `parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。

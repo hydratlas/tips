@@ -35,6 +35,9 @@ find "${TMP_SNAPSHOT_NAME}/root" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 mkdir -p "${TMP_SNAPSHOT_NAME}/var/log"
 find "${TMP_SNAPSHOT_NAME}/var/log" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
+# fstabをコピー
+cp -p "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" "${TMP_SNAPSHOT_NAME}/etc/fstab"
+
 # @snapshotsサブボリュームがなければ
 if [ ! -e "${SNAPSHOTS_SUBVOLUME_NAME}" ]; then
   # サブボリューム作成
