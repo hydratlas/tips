@@ -1,12 +1,23 @@
-# Ubuntu 24.04またはUbuntu Server 24.04をBtrfs (RAID 1)でセットアップ
+# DebianまたはUbuntuをBtrfs (RAID 1)でセットアップ
 手順および補助スクリプトです。
 
-## 手順
+## 詳細な手順
 - [Ubuntu 24.04](desktop.md)
 - [Ubuntu Server 24.04](server.md)
 
 ## 前提
 UEFIブートの必要があります。
+
+## 動作するOS
+- Ubuntu 24.04
+- Ubuntu Server 24.04
+- Debian Live 12 GNOME
+
+## 動作しないOS
+- Debian Live 12 Standard
+  - tty1のインストーラーからtty2のコンソールに切り替えても、`parted.sh`および`install.sh`のスクリプトは実行できない。そのため、ライブ起動でスクリプトを実行し、再起動してインストーラーを起動する必要がある。
+  - しかしそれでも`install.sh`のchroot時に`update-grub`コマンドが「grub-probe: error: failed to get canonical path of」とエラーになる。`install.sh`をDebian Live 12 GNOMEで実行すると`install.sh`の実行は完了するが、その後、起動に失敗する。
+  - `/boot/efi/EFI/debian/grub.cfg`ファイルの生成がうまくいっていないが原因は不明。
 
 ## 解説
 ### 新規インストール時
@@ -29,11 +40,11 @@ sudo ./parted.sh sdb
   - /dev/sdb2 (Swap | Formatting with parted.sh)
   - /dev/sdb3 (Btrfs | Configure RAID 1 with install.sh)
 
-Ubuntuのインストーラーを使って、`sda3`にBtrfsでUbuntuをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります。
+OSのインストーラーを使って、`sda3`にBtrfsでOSをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります。
 - /dev/sda3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
-`install.sh`はインストールの後段階で使用します。UbuntuがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
+`install.sh`はインストールの後段階で使用します。OSがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
 
 `install.sh`のコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
 ```sh
@@ -51,7 +62,7 @@ sudo ./install.sh sda sdb
 スクリプトが設定する、`/etc/fstab`におけるBtrfsのマウントオプションはSSD向けに最適化されています(`noatime`)。ただし、`ssd`および`discard=async`マウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`ssd`マウントオプションは`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。`install.sh`の処理後に`/etc/fstab`を手動で編集することによってカスタマイズすることができます。
 
 ### 上書きインストール時
-`parted.sh`および`install.sh`を使用してインストールした後に、上書きインストールが必要になった際、`update.sh`を使うと既存のUbuntuをサブボリュームに退避できます。
+`parted.sh`および`install.sh`を使用してインストールした後に、上書きインストールが必要になった際、`update.sh`を使うと既存のOSをサブボリュームに退避できます。
 
 使い方は基本的には新規インストール時と同じです。そのため相違がある部分について解説します。
 
@@ -69,11 +80,11 @@ sudo ./install.sh sda sdb
   - /dev/sdc2 (Swap | Formatting with parted.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)
 
-Ubuntuのインストーラーを使って、`sdc3`にBtrfsでUbuntuをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります。
+OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります。
 - /dev/sdc3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
-`update.sh`はUbuntuがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
+`update.sh`はOSがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
 
 `update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。なお、RAID 1ではない場合、引数を2つだけ指定します。
 ```sh
@@ -89,13 +100,6 @@ sudo ./update.sh sdc sda sdb
   - /mnt/@snapshots (Mount point after reboot: /.snapshots | Existing snapshots)
   - /mnt/@snapshots/20000101T000000+0000 (Existing OS)
 
-既存のUbuntu(`@snapshots/20000101T000000+0000`)はGRUBのメニューエントリーから起動可能です。`update.sh`によってメニューエントリーが追加されています。
+既存のOS(`@snapshots/20000101T000000+0000`)はGRUBのメニューエントリーから起動可能です。`update.sh`によってメニューエントリーが追加されています。
 
-既存のUbuntuの起動中にカーネルのアップデートが行われると（セキュリティーアップデートは自動的に行われます）、メニューエントリーが既存のUbuntuのものになり、新しいUbuntu(`@`)のメニューエントリーが破壊される可能性があります。（`update-grub`を明示的に実行しなければ破壊されない可能性もありますが、詳細は調査していません）
-
-破壊された場合でも、`rootflags=degraded`オプション付きのメニューエントリーは起動先のパスが`@`固定になっているため、そこから`@`にある新しいUbuntuを起動できます。起動後に以下のコマンドを実行すると、新しいUbuntuのメニューエントリーを復元できます。
-
-```sh
-sudo update-grub
-sudo dpkg-reconfigure shim-signed
-```
+既存のOSの起動中にカーネルのアップデートが行われると（セキュリティーアップデートは自動的に行われます）、メニューエントリーが既存のOSのものになり、新しいOS(`@`)のメニューエントリーが破壊される可能性があります。
