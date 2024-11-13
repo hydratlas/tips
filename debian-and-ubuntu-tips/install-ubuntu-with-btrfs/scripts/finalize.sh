@@ -1,6 +1,19 @@
 #!/bin/bash
 set -eux
 
+function UBUNTU_FINALIZE () {
+    if [ -e "${DISK2}" ]; then
+        local EFI_PARTS="${EFI1_PART} ${EFI2_PART}"
+    else
+        local EFI_PARTS="${EFI1_PART}"
+    fi
+    chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
+update-grub
+debconf-set-selections <<< "grub-common grub-efi/install_devices multiselect ${EFI_PARTS}"
+dpkg-reconfigure --frontend noninteractive shim-signed
+EOS
+}
+
 function DEBIAN_FINALIZE () {
     chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
 update-grub
@@ -30,19 +43,6 @@ EOF
     chmod a+x "${MOUNT_POINT}/etc/grub.d/90_copy_to_boot_efi2"
 }
 
-function UBUNTU_FINALIZE () {
-    if [ -e "${DISK2}" ]; then
-        local EFI_PARTS="${EFI1_PART} ${EFI2_PART}"
-    else
-        local EFI_PARTS="${EFI1_PART}"
-    fi
-    chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
-update-grub
-debconf-set-selections <<< "grub-common grub-efi/install_devices multiselect ${EFI_PARTS}"
-dpkg-reconfigure --frontend noninteractive shim-signed
-EOS
-}
-
 # 本番と同じ形でマウント
 mount "${ROOTFS1_PART}" -o "subvol=${DEFAULT_SUBVOLUME_NAME},${BTRFS_OPTIONS}" "${MOUNT_POINT}"
 mount "${ROOTFS1_PART}" -o "subvol=${VAR_LOG_SUBVOLUME_NAME},${BTRFS_OPTIONS}" "${MOUNT_POINT}/var/log"
@@ -57,11 +57,9 @@ mount -o bind /dev "${MOUNT_POINT}/dev"
 mount -o bind /sys/firmware/efi/efivars "${MOUNT_POINT}/sys/firmware/efi/efivars"
 
 # GRUB・ESPを更新
-DISTRIBUTION="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
-if [ "debian" = "${DISTRIBUTION}" ]; then
-    DEBIAN_FINALIZE
-elif [ "ubuntu" = "${DISTRIBUTION}" ]; then
+OS_ID="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
+if [ "ubuntu" = "${OS_ID}" ]; then
     UBUNTU_FINALIZE
 else
-    echo "Error: The distribution is neither debian nor ubuntu. DISTRIBUTION=${DISTRIBUTION}" 1>&2
+    DEBIAN_FINALIZE
 fi

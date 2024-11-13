@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eux
 
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 source "$SCRIPT_DIR/scripts/initialize.sh" "${1}" "${2:-}"
 source "$SCRIPT_DIR/scripts/common.sh"
