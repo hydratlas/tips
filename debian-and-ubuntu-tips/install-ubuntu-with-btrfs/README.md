@@ -8,16 +8,16 @@
 ## 前提
 UEFIブートの必要があります。
 
-## 動作するOS
+## インストールできるOSのISOイメージ
 - Ubuntu 24.04
 - Ubuntu Server 24.04
+- Debian 12
+  - 注意：`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12 GNOMEを使う必要がある（GNOME以外のデスクトップ環境は未検証）
 - Debian Live 12 GNOME
-
-## 動作しないOS
 - Debian Live 12 Standard
-  - tty1のインストーラーからtty2のコンソールに切り替えても、`parted.sh`および`install.sh`のスクリプトは実行できない。そのため、ライブ起動でスクリプトを実行し、再起動してインストーラーを起動する必要がある。
-  - しかしそれでも`install.sh`のchroot時に`update-grub`コマンドが「grub-probe: error: failed to get canonical path of」とエラーになる。`install.sh`をDebian Live 12 GNOMEで実行すると`install.sh`の実行は完了するが、その後、起動に失敗する。
-  - `/boot/efi/EFI/debian/grub.cfg`ファイルの生成がうまくいっていないが原因は不明。
+  - 注意：`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12 GNOMEを使う必要がある（GNOME以外のデスクトップ環境は未検証）
+    - 理由1：tty1のインストーラーからtty2のコンソールに切り替えても、`parted.sh`および`install.sh`のスクリプトは実行できない
+    - 理由2：Debian Live 12 Standardのライブ起動から`install.sh`を実行すると、chroot時の`update-grub`コマンドが「grub-probe: error: failed to get canonical path of」とエラーになる
 
 ## 解説
 ### 新規インストール時
