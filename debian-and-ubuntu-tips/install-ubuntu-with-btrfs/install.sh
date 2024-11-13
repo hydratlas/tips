@@ -31,7 +31,7 @@ btrfs subvolume set-default "${DEFAULT_SUBVOLUME_NAME}"
 
 function CREATE_SUBVOLUME () {
     local DIR="${1}"
-    local SUBVOLUME_NAME="${1}"
+    local SUBVOLUME_NAME="${2}"
     if [ ! -e "${SUBVOLUME_NAME}" ]; then
         return 0
     fi
