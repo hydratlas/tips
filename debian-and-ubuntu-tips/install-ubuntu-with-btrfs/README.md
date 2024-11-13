@@ -102,7 +102,7 @@ OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストー�
 - /dev/sdc3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
-`update.sh`はOSがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
+`update.sh`はOSがインストールされた新しいBtrfsを、既存のBtrfsに差し替えます。
 
 `update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。なお、RAID 1ではない場合、引数を2つだけ指定します。
 ```sh
