@@ -24,7 +24,9 @@ EOS
     # EFI system partitionを冗長化する
     find "${MOUNT_POINT}/boot/efi2" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
     find "${MOUNT_POINT}/boot/efi" -mindepth 1 -maxdepth 1 -exec cp --recursive --force -p "{}" "${MOUNT_POINT}/boot/efi2" \;
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y efibootmgr
+    if ! hash efibootmgr 2>/dev/null; then
+      DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y efibootmgr
+    fi
     efibootmgr --create --disk "${DISK2}" --label debian --loader '\EFI\debian\shimx64.efi'
 
     # EFI system partitionの冗長化を自動化する

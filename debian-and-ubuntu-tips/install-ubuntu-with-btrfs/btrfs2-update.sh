@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/bin/bash
+set -eux
 
 # ディスク
 DISK1="/dev/${1}"

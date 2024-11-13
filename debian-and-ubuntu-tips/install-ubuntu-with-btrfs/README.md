@@ -27,20 +27,20 @@ sudo ./parted.sh sdb
 - 2台目のSSD
   - /dev/sdb1 (FAT | Formatting with parted.sh)
   - /dev/sdb2 (Swap | Formatting with parted.sh)
-  - /dev/sdb3 (Btrfs | Configure RAID 1 with btrfs2.sh)
+  - /dev/sdb3 (Btrfs | Configure RAID 1 with install.sh)
 
 Ubuntuのインストーラーを使って、`sda3`にBtrfsでUbuntuをインストールします。インストールが完了すると、ルートファイルシステムは次のようになります。
 - /dev/sda3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
-`btrfs2.sh`はインストールの後段階で使用します。UbuntuがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
+`install.sh`はインストールの後段階で使用します。UbuntuがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
 
-`btrfs2.sh`のコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
+`install.sh`のコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
 ```sh
-sudo bash -eux btrfs2.sh sda sdb
+sudo ./install.sh sda sdb
 ```
 
-`btrfs2.sh`の処理が完了すると、ルートファイルシステムは次のようになります。
+`install.sh`の処理が完了すると、ルートファイルシステムは次のようになります。
 - /dev/sda3 (Btrfs RAID 1) | /dev/sdb3 (Btrfs RAID 1)
   - /mnt/@ (Mount point after reboot: /)
   - /mnt/@root (Mount point after reboot: /root)
@@ -48,10 +48,10 @@ sudo bash -eux btrfs2.sh sda sdb
   - /mnt/@var_log (Mount point after reboot: /var/log)
   - /mnt/@snapshots (Mount point after reboot: /.snapshots)
 
-スクリプトが設定する、`/etc/fstab`におけるBtrfsのマウントオプションはSSD向けに最適化されています(`noatime`)。ただし、`ssd`および`discard=async`マウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`ssd`マウントオプションは`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。`btrfs2.sh`の処理後に`/etc/fstab`を手動で編集することによってカスタマイズすることができます。
+スクリプトが設定する、`/etc/fstab`におけるBtrfsのマウントオプションはSSD向けに最適化されています(`noatime`)。ただし、`ssd`および`discard=async`マウントオプションはほとんどの場合で自動的に設定されるため、スクリプトによって明示的に指定しません。`ssd`マウントオプションは`cat /sys/block/XXX/queue/rotational`が0であれば自動的に設定されます。`install.sh`の処理後に`/etc/fstab`を手動で編集することによってカスタマイズすることができます。
 
 ### 上書きインストール時
-`parted.sh`および`btrfs2.sh`を使用してインストールした後に、上書きインストールが必要になった際、`btrfs2-update.sh`を使うと既存のUbuntuをサブボリュームに退避できます。
+`parted.sh`および`install.sh`を使用してインストールした後に、上書きインストールが必要になった際、`update.sh`を使うと既存のUbuntuをサブボリュームに退避できます。
 
 使い方は基本的には新規インストール時と同じです。そのため相違がある部分について解説します。
 
@@ -73,23 +73,23 @@ Ubuntuのインストーラーを使って、`sdc3`にBtrfsでUbuntuをインス
 - /dev/sdc3 (Btrfs single)
   - /target (Mount point after reboot: /)
 
-`btrfs2-update.sh`はUbuntuがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
+`update.sh`はUbuntuがインストールされた新しいBtrfsをRAID 1化およびサブボリューム化するとともに、既存のBtrfsに差し替えます。
 
-`btrfs2-update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。`sdc3`は`/target`にマウントされていることを前提にしているため、引数で指定する必要はありません。
+`update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。なお、RAID 1ではない場合、引数を2つだけ指定します。
 ```sh
-sudo bash -eux btrfs2-update.sh sda sdb
+sudo ./update.sh sdc sda sdb
 ```
 
-`btrfs2-update.sh`の処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したらsdcは不要になります。
+`update.sh`の処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したらsdcは不要になります。
 - /dev/sda3 (Btrfs RAID 1) | /dev/sdb3 (Btrfs RAID 1)
-  - /mnt/@ (Mount point after reboot: / | New Ubuntu)
+  - /mnt/@ (Mount point after reboot: / | New OS)
   - /mnt/@root (Mount point after reboot: /root | Existing data)
   - /mnt/@home (Mount point after reboot: /home | Existing data)
   - /mnt/@var_log (Mount point after reboot: /var/log | Existing data)
   - /mnt/@snapshots (Mount point after reboot: /.snapshots | Existing snapshots)
-  - /mnt/@snapshots/20000101T000000+0000 (Existing Ubuntu)
+  - /mnt/@snapshots/20000101T000000+0000 (Existing OS)
 
-既存のUbuntu(`@snapshots/20000101T000000+0000`)はGRUBのメニューエントリーから起動可能です。`btrfs2-update.sh`によってメニューエントリーが追加されています。
+既存のUbuntu(`@snapshots/20000101T000000+0000`)はGRUBのメニューエントリーから起動可能です。`update.sh`によってメニューエントリーが追加されています。
 
 既存のUbuntuの起動中にカーネルのアップデートが行われると（セキュリティーアップデートは自動的に行われます）、メニューエントリーが既存のUbuntuのものになり、新しいUbuntu(`@`)のメニューエントリーが破壊される可能性があります。（`update-grub`を明示的に実行しなければ破壊されない可能性もありますが、詳細は調査していません）
 

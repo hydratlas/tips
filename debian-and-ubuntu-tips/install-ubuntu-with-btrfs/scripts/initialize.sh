@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eux
 
+if ! hash btrfs 2>/dev/null; then
+  DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y btrfs-progs
+fi
+
 export MOUNT_POINT="/mnt"
 
 # ディスク

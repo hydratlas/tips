@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eux
 
+if ! hash sgdisk 2>/dev/null; then
+  DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y gdisk
+fi
+
 DISK="/dev/${1}"
 ESP="${2:-512MiB}" # Debian requires 512 MiB.
 SWAP="${3:-4GiB}"
