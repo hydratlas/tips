@@ -17,6 +17,7 @@ EOS
 function DEBIAN_FINALIZE () {
     chroot "${MOUNT_POINT}" /bin/bash -eux -- << EOS
 update-grub
+dpkg-reconfigure --frontend noninteractive shim-signed
 EOS
     if [ ! -e "${DISK2}" ]; then
         return 0
