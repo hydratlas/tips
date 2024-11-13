@@ -1,10 +1,6 @@
 # DebianまたはUbuntuをBtrfs (RAID 1)でセットアップ
 手順および補助スクリプトです。
 
-## 詳細な手順
-- [Ubuntu 24.04](desktop.md)
-- [Ubuntu Server 24.04](server.md)
-
 ## 前提
 UEFIブートの必要があります。
 
@@ -18,6 +14,28 @@ UEFIブートの必要があります。
   - 注意：`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12 GNOMEを使う必要がある（GNOME以外のデスクトップ環境は未検証）
     - 理由1：tty1のインストーラーからtty2のコンソールに切り替えても、`parted.sh`および`install.sh`のスクリプトは実行できない
     - 理由2：Debian Live 12 Standardのライブ起動から`install.sh`を実行すると、chroot時の`update-grub`コマンドが「grub-probe: error: failed to get canonical path of」とエラーになる
+
+## 使い方
+### インストール前
+```sh
+sudo apt install -y git
+git clone --depth=1 https://github.com/hydratlas/tips
+cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
+
+lsblk -fe7
+
+sudo ./parted.sh sdX
+sudo ./parted.sh sdX
+```
+
+### インストール後
+```sh
+sudo ./install.sh sdX sdX
+```
+
+## 詳細な手順
+- [Ubuntu 24.04](desktop.md)
+- [Ubuntu Server 24.04](server.md)
 
 ## 解説
 ### 新規インストール時
