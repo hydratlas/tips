@@ -10,12 +10,6 @@ sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/sys
 sudo systemctl restart systemd-logind.service
 ```
 
-## QEMUゲストエージェントをインストールする
-QEMU（仮想マシン）で、仮想マシンのゲストの場合にはインストールする。
-```sh
-sudo apt-get install --no-install-recommends -y qemu-guest-agent
-```
-
 ## NVMeの情報を表示
 ```sh
 sudo apt install -yq nvme-cli &&
