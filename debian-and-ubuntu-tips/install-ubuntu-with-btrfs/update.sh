@@ -38,7 +38,7 @@ find "${TARGET}/${TMP_SNAPSHOT_NAME}/var/log" -mindepth 1 -maxdepth 1 -exec rm -
 cd "${MOUNT_POINT}"
 
 # fstabをコピー
-cp -p "etc/fstab" "${TARGET}/${TMP_SNAPSHOT_NAME}/etc/fstab"
+cp -p "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" "${TARGET}/${TMP_SNAPSHOT_NAME}/etc/fstab"
 
 # 新しいインストールから既存のインストールへ転送
 NEW_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')_new"
