@@ -8,13 +8,10 @@ UEFIブートの必要があります。
 - Ubuntu 24.04
 - Ubuntu Server 24.04
 - Debian 12
-  - 注意：`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12 GNOMEを使う必要がある（GNOME以外のデスクトップ環境は未検証）
+  - 注意：インストーラーはbusyboxで実行されていると思われるため、`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12のライブ起動から実行する必要がある
 - Debian Live 12 GNOME
 - Debian Live 12 Standard
-  - 注意：`parted.sh`および`install.sh`のスクリプトを実行するときには、Debian Live 12 GNOMEを使う必要がある（GNOME以外のデスクトップ環境は未検証）
-    - 理由1：tty1のインストーラーからtty2のコンソールに切り替えても、`parted.sh`および`install.sh`のスクリプトは実行できない
-    - 理由2：Debian Live 12 Standardのライブ起動から`install.sh`を実行すると、chroot時の`update-grub`コマンドが「grub-probe: error: failed to get canonical path of」とエラーになる
-
+  - 注意：インストーラーはbusyboxで実行されていると思われるため、`parted.sh`および`install.sh`のスクリプトを実行するときには、ライブ起動から実行する必要がある
 ## 使い方
 ### インストール前
 ```sh
@@ -106,7 +103,7 @@ OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストー�
 
 `update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。なお、RAID 1ではない場合、引数を2つだけ指定します。
 ```sh
-sudo ./update.sh sdc sda sdb
+sudo ./update.sh sdc3 sda sdb
 ```
 
 `update.sh`の処理が完了すると、ルートファイルシステムは次のようになります。処理が完了したら`sdc`は不要になります。

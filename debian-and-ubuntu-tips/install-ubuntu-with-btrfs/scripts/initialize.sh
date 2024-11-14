@@ -102,7 +102,7 @@ CALAMARES_ROOT="$(find /tmp -maxdepth 1 -type d -iname "calamares-root-*" -print
 if [ -n "${CALAMARES_ROOT}" ]; then
   export TARGET="${CALAMARES_ROOT}"
 else
-  if [ -e "/target" ]; then
+  if [ -e "/target" ] && mountpoint --quiet --nofollow /target; then
     export TARGET="/target"
   else
     export TARGET=""
