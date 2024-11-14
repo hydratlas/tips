@@ -12,6 +12,7 @@ UEFIブートの必要があります。
 - Debian Live 12 GNOME
 - Debian Live 12 Standard
   - 注意：インストーラーはbusyboxで実行されていると思われるため、`parted.sh`および`install.sh`のスクリプトを実行するときには、ライブ起動から実行する必要がある
+
 ## 使い方
 ### インストール前
 ```sh
@@ -46,11 +47,11 @@ sudo ./parted.sh sdb
 またオプションとして`sudo ./parted.sh sda 1024MiB 8GiB`というように、FATとSwapのサイズをデフォルトから変更することができます。
 
 `parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
-- 1台目のSSD
+- 1台目のストレージデバイス
   - /dev/sda1 (FAT | Formatting with parted.sh)
   - /dev/sda2 (Swap | Formatting with parted.sh)
   - /dev/sda3 (Btrfs | Formatting in the installer)
-- 2台目のSSD
+- 2台目のストレージデバイス
   - /dev/sdb1 (FAT | Formatting with parted.sh)
   - /dev/sdb2 (Swap | Formatting with parted.sh)
   - /dev/sdb3 (Btrfs | Configure RAID 1 with install.sh)
@@ -80,24 +81,24 @@ sudo ./install.sh sda sdb
 `parted.sh`および`install.sh`を使用してインストールした後に、上書きインストールが必要になった際、`update.sh`を使うと既存のOSをサブボリュームに退避できます。
 
 `parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
-- 1台目のSSD（既存の物）
+- 1台目のストレージデバイス（既存の物）
   - /dev/sda1 (FAT)
   - /dev/sda2 (Swap)
   - /dev/sda3 (Btrfs)
-- 2台目のSSD（既存の物）
+- 2台目のストレージデバイス（既存の物）
   - /dev/sdb1 (FAT)
   - /dev/sdb2 (Swap)
   - /dev/sdb3 (Btrfs)
-- 3台目のSSDまたはUSBメモリ（一時的に使う物）
+- 3台目のストレージデバイスまたはUSBメモリ（一時的に使う物）
   - /dev/sdc1 (FAT | Formatting with parted.sh)
   - /dev/sdc2 (Swap | Formatting with parted.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)
 
-まずOSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。次に新規インストール時と同様に`install.sh`を実行します。インストールが完了すると、新しいルートファイルシステムは次のようになります（Ubuntuの場合）。
+まずOSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。次に新規インストール時と同様に`install.sh`を実行します。
 
-`update.sh`はOSがインストールされた新しいBtrfsを、既存のBtrfsに差し替えます。
+`update.sh`はOSがインストールされた新しいBtrfsを、既存のBtrfsに差し込みます。`/etc/fstab`は既存のものをそのまま使うため、たとえば`/home`を別のストレージデバイスで動かしていたとしても、問題なく使用を継続できます。
 
-`update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し替えます。なお、RAID 1ではない場合、引数を2つだけ指定します。
+`update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し込みます。なお、RAID 1ではない場合、引数を2つだけ指定します。
 ```sh
 sudo ./update.sh sdc3 sda sdb
 ```

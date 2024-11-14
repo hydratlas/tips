@@ -69,6 +69,15 @@ sudo groupdel <username>
 sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 ```
 
+## DebianでBOOTX64.EFIを作成する
+UbuntuではEFIシステムパーティションに`EFI/BOOT/BOOTX64.EFI`が作成されるが、Debianでは作成されない。`grub2/force_efi_extra_removable`を`true`にして作成されるようにする。作成しておくと、マザーボードがブートに失敗する可能性が減るが、デュアルブートの場合にはほかのOSの`EFI/BOOT/BOOTX64.EFI`を上書きしてしまうリスクがある。
+```sh
+sudo debconf-set-selections <<< "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" &&
+sudo dpkg-reconfigure --frontend noninteractive shim-signed &&
+ls -la /boot/efi/EFI/BOOT
+```
+設定の確認は`debconf-get-selections | grep grub`でできる。Ubuntuの場合はデフォルトで`grub-efi-amd64 grub2/no_efi_extra_removable boolean false`となっている。`true`と`false`の意味が逆になっていることに注意。
+
 ## GRUBの待ち時間をなくす（管理者）
 ```sh
 sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null

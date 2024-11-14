@@ -15,7 +15,7 @@ if [ ! -e "${MOUNT_POINT}/${DEFAULT_SUBVOLUME_NAME}" ]; then
     exit 1
 fi
 
-# インストーラーによるマウントがない場合、新しいインストールのbtrfsをデフォルトのマウントポイントでマウント
+# 新しいインストールのbtrfsをデフォルトのマウントポイントでマウント
 if [ -z "${TARGET}" ]; then
     export TARGET="/target"
     mkdir -p "${TARGET}"
@@ -84,6 +84,6 @@ fi
 
 # btrfsの/からのマウントをアンマウント
 cd /
-umount -l "${MOUNT_POINT}"
+umount -Rl "${MOUNT_POINT}"
 
 "$SCRIPT_DIR/scripts/finalize.sh"
