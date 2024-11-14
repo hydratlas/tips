@@ -79,8 +79,6 @@ sudo ./install.sh sda sdb
 ### 上書きインストール時
 `parted.sh`および`install.sh`を使用してインストールした後に、上書きインストールが必要になった際、`update.sh`を使うと既存のOSをサブボリュームに退避できます。
 
-使い方は基本的には新規インストール時と同じです。そのため相違がある部分について解説します。
-
 `parted.sh`によって作るパーティションの構成と、各パーティションのファイルシステムは次のとおりです。
 - 1台目のSSD（既存の物）
   - /dev/sda1 (FAT)
@@ -95,9 +93,7 @@ sudo ./install.sh sda sdb
   - /dev/sdc2 (Swap | Formatting with parted.sh)
   - /dev/sdc3 (Btrfs | Formatting in the installer)
 
-OSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。インストールが完了すると、新しいルートファイルシステムは次のようになります（Ubuntuの場合）。
-- /dev/sdc3 (Btrfs single)
-  - /target (Mount point after reboot: /)
+まずOSのインストーラーを使って、`sdc3`にBtrfsでOSをインストールします。次に新規インストール時と同様に`install.sh`を実行します。インストールが完了すると、新しいルートファイルシステムは次のようになります（Ubuntuの場合）。
 
 `update.sh`はOSがインストールされた新しいBtrfsを、既存のBtrfsに差し替えます。
 

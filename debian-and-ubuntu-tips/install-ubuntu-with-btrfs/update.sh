@@ -21,41 +21,35 @@ if [ -z "${TARGET}" ]; then
     mkdir -p "${TARGET}"
     mount "/dev/${1}" -o "${BTRFS_OPTIONS}" "${TARGET}"
 fi
-if [ -e "${TARGET}/usr" ]; then
-    TARGET_SUBVOLUME="${TARGET}"
-elif [ -e "${TARGET}/@" ]; then
-    TARGET_SUBVOLUME="${TARGET}/@"
-elif [ -e "${TARGET}/@rootfs" ]; then
-    TARGET_SUBVOLUME="${TARGET}/@rootfs"
-else
+if [ ! -e "${TARGET}/usr" ]; then
     echo "Error: Cannot find installed root(/)." 1>&2
     exit 1
 fi
 
 # 新しいインストールからスナップショットを所得
 TMP_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')_tmp"
-btrfs subvolume snapshot "${TARGET_SUBVOLUME}" "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}"
+btrfs subvolume snapshot "${TARGET}" "${TARGET}/${TMP_SNAPSHOT_NAME}"
 
 # 新しいインストールから既存のインストールの@配下のサブボリュームと重複するファイルを削除
-mkdir -p "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/home"
-find "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/home" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-mkdir -p "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/root"
-find "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/root" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
-mkdir -p "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/var/log"
-find "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/var/log" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+mkdir -p "${TARGET}/${TMP_SNAPSHOT_NAME}/home"
+find "${TARGET}/${TMP_SNAPSHOT_NAME}/home" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+mkdir -p "${TARGET}/${TMP_SNAPSHOT_NAME}/root"
+find "${TARGET}/${TMP_SNAPSHOT_NAME}/root" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
+mkdir -p "${TARGET}/${TMP_SNAPSHOT_NAME}/var/log"
+find "${TARGET}/${TMP_SNAPSHOT_NAME}/var/log" -mindepth 1 -maxdepth 1 -exec rm -dr "{}" +
 
 # 既存のインストールのbtrfsへ移動
 cd "${MOUNT_POINT}"
 
 # fstabをコピー
-cp -p "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}/etc/fstab"
+cp -p "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" "${TARGET}/${TMP_SNAPSHOT_NAME}/etc/fstab"
 
 # 新しいインストールから既存のインストールへ転送
 NEW_SNAPSHOT_NAME="$(date '+%Y%m%dT%H%M%S%z')_new"
-btrfs subvolume snapshot -r "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}" "${TARGET_SUBVOLUME}/${NEW_SNAPSHOT_NAME}" # 新しいインストールのスナップショットを読み取り専用で作る
-btrfs subvolume delete "${TARGET_SUBVOLUME}/${TMP_SNAPSHOT_NAME}" # 転送元の書き込み可能なスナップショットを削除
-btrfs send "${TARGET_SUBVOLUME}/${NEW_SNAPSHOT_NAME}" | btrfs receive . # 読み取り専用のスナップショットを転送
-btrfs subvolume delete "${TARGET_SUBVOLUME}/${NEW_SNAPSHOT_NAME}" # 転送元の読み取り専用のスナップショットを削除
+btrfs subvolume snapshot -r "${TARGET}/${TMP_SNAPSHOT_NAME}" "${TARGET}/${NEW_SNAPSHOT_NAME}" # 新しいインストールのスナップショットを読み取り専用で作る
+btrfs subvolume delete "${TARGET}/${TMP_SNAPSHOT_NAME}" # 転送元の書き込み可能なスナップショットを削除
+btrfs send "${TARGET}/${NEW_SNAPSHOT_NAME}" | btrfs receive . # 読み取り専用のスナップショットを転送
+btrfs subvolume delete "${TARGET}/${NEW_SNAPSHOT_NAME}" # 転送元の読み取り専用のスナップショットを削除
 
 # @snapshotsサブボリュームがなければ
 if [ ! -e "${SNAPSHOTS_SUBVOLUME_NAME}" ]; then
