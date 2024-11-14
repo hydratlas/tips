@@ -23,6 +23,10 @@ if [ ! -e "${DEFAULT_SUBVOLUME_NAME}" ]; then
         # @rootfsサブボリュームがあれば、@サブボリュームにリネーム
         btrfs subvolume snapshot "@rootfs" "${DEFAULT_SUBVOLUME_NAME}"
         btrfs subvolume delete "@rootfs"
+    elif [ -e "@" ]; then
+        # @サブボリュームがあれば、@サブボリュームにリネーム（DEFAULT_SUBVOLUME_NAMEが@ではない場合に有効）
+        btrfs subvolume snapshot "@" "${DEFAULT_SUBVOLUME_NAME}"
+        btrfs subvolume delete "@"
     elif [ -e "usr" ]; then
         # /に直接ディレクトリーがあれば、@サブボリュームに変換
         # サブボリューム作成
