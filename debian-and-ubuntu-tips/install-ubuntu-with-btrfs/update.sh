@@ -8,8 +8,8 @@ source "${SCRIPT_DIR}/scripts/common.sh"
 
 # インストーラーによるマウントがない場合、新しいインストールのbtrfsをデフォルトのマウントポイントでマウント
 if [ -z "${TARGET}" ]; then
-  export TARGET="/target"
-  mount "/dev/${1}" -o "${BTRFS_OPTIONS}" "${TARGET}"
+    export TARGET="/target"
+    mount "/dev/${1}" -o "${BTRFS_OPTIONS}" "${TARGET}"
 fi
 cd "${TARGET}"
 
@@ -31,8 +31,8 @@ cd "${MOUNT_POINT}"
 
 # 既存のインストールの@サブボリュームを確認
 if [ ! -e "${DEFAULT_SUBVOLUME_NAME}" ]; then
-  echo "Error: ${DEFAULT_SUBVOLUME_NAME} Subvolume not found." 1>&2
-  exit 1
+    echo "Error: ${DEFAULT_SUBVOLUME_NAME} Subvolume not found." 1>&2
+    exit 1
 fi
 
 # 新しいインストールから既存のインストールへ転送
@@ -44,8 +44,8 @@ btrfs subvolume delete "${TARGET}/${NEW_SNAPSHOT_NAME}" # 転送元の読み取�
 
 # @snapshotsサブボリュームがなければ
 if [ ! -e "${SNAPSHOTS_SUBVOLUME_NAME}" ]; then
-  # サブボリューム作成
-  btrfs subvolume create "${SNAPSHOTS_SUBVOLUME_NAME}"
+    # サブボリューム作成
+    btrfs subvolume create "${SNAPSHOTS_SUBVOLUME_NAME}"
 fi
 
 # 既存の@サブボリュームの退避
@@ -72,7 +72,9 @@ sed -i "s|subvol=${DEFAULT_SUBVOLUME_NAME},|subvol=${SNAPSHOTS_SUBVOLUME_NAME}/$
 CREATE_SNAPSHOT_BOOT "${DEFAULT_SUBVOLUME_NAME}" "${SNAPSHOTS_SUBVOLUME_NAME}/${OLD_SNAPSHOT_NAME}"
 
 # 縮退起動をサポート
-CREATE_DEGRADED_BOOT "${DEFAULT_SUBVOLUME_NAME}"
+if [ -e "${DISK2}" ]; then
+    CREATE_DEGRADED_BOOT "${DEFAULT_SUBVOLUME_NAME}"
+fi
 
 # btrfsの/からのマウントをアンマウント
 cd /

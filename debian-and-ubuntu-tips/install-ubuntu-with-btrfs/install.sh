@@ -8,9 +8,9 @@ source "$SCRIPT_DIR/scripts/common.sh"
 
 # インストーラーによるマウントをアンマウント
 if [ -n "${TARGET}" ]; then
-  if mountpoint --quiet --nofollow "${TARGET}"; then
-    umount -R "${TARGET}"
-  fi
+    if mountpoint --quiet --nofollow "${TARGET}"; then
+        umount -R "${TARGET}"
+    fi
 fi
 
 # btrfsの/からマウント
@@ -19,22 +19,22 @@ cd "${MOUNT_POINT}"
 
 # @サブボリュームがなければ対応
 if [ ! -e "${DEFAULT_SUBVOLUME_NAME}" ]; then
-  if [ -e "@rootfs" ]; then
-    # @rootfsサブボリュームがあれば、@サブボリュームにリネーム
-    btrfs subvolume snapshot "@rootfs" "${DEFAULT_SUBVOLUME_NAME}"
-    btrfs subvolume delete "@rootfs"
-  elif [ -e "usr" ]; then
-    # /に直接ディレクトリーがあれば、@サブボリュームに変換
-    # サブボリューム作成
-    btrfs subvolume snapshot . "${DEFAULT_SUBVOLUME_NAME}"
-    # ルートボリュームからファイルを削除
-    find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "${DEFAULT_SUBVOLUME_NAME}" \
-      -exec sh -c 'mountpoint --quiet --nofollow "$1" || rm -dr "$1"' _ {} \;
-  else
-    # なにも見つからなければエラー
-    echo "Error: Cannot find installed root(/)." 1>&2
-    exit 1
-  fi
+    if [ -e "@rootfs" ]; then
+        # @rootfsサブボリュームがあれば、@サブボリュームにリネーム
+        btrfs subvolume snapshot "@rootfs" "${DEFAULT_SUBVOLUME_NAME}"
+        btrfs subvolume delete "@rootfs"
+    elif [ -e "usr" ]; then
+        # /に直接ディレクトリーがあれば、@サブボリュームに変換
+        # サブボリューム作成
+        btrfs subvolume snapshot . "${DEFAULT_SUBVOLUME_NAME}"
+        # ルートボリュームからファイルを削除
+        find . -mindepth 1 -maxdepth 1 \( -type d -or -type l \) -not -iname "${DEFAULT_SUBVOLUME_NAME}" \
+          -exec sh -c 'mountpoint --quiet --nofollow "$1" || rm -dr "$1"' _ {} \;
+    else
+        # なにも見つからなければエラー
+        echo "Error: Cannot find installed root(/)." 1>&2
+        exit 1
+    fi
 fi
 
 # @サブボリュームをデフォルト（GRUBがブートしようとする）に変更
@@ -52,7 +52,7 @@ function CREATE_SUBVOLUME () {
     mkdir -p "${DIR}"
     # ファイルコピー
     if ! hash rsync 2>/dev/null; then
-      DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y rsync
+        DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y rsync
     fi
     rsync -a "${DIR}/" "${SUBVOLUME_NAME}/"
     # ファイル削除
@@ -79,8 +79,8 @@ btrfs filesystem defragment -r -czstd .
 
 # RAID1化
 if [ -e "${DISK2}" ]; then
-  btrfs device add -f "${ROOTFS2_PART}" .
-  btrfs balance start -mconvert=raid1 -dconvert=raid1 .
+    btrfs device add -f "${ROOTFS2_PART}" .
+    btrfs balance start -mconvert=raid1 -dconvert=raid1 .
 fi
 
 # fstabを作成
@@ -93,14 +93,16 @@ FSTAB_ARRAY+=("/dev/disk/by-uuid/${ROOTFS_UUID} /.snapshots btrfs defaults,subvo
 FSTAB_ARRAY+=("/dev/disk/by-uuid/${EFI1_UUID} /boot/efi vfat defaults,nofail,x-systemd.device-timeout=5 0 0")
 FSTAB_ARRAY+=("/dev/disk/by-uuid/${SWAP1_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0")
 if [ -e "${DISK2}" ]; then
-  FSTAB_ARRAY+=("/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0")
-  FSTAB_ARRAY+=("/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0")
+    FSTAB_ARRAY+=("/dev/disk/by-uuid/${EFI2_UUID} /boot/efi2 vfat defaults,nofail,x-systemd.device-timeout=5 0 0")
+    FSTAB_ARRAY+=("/dev/disk/by-uuid/${SWAP2_UUID} none swap sw,nofail,x-systemd.device-timeout=5 0 0")
 fi
 printf -v FSTAB_STR "%s\n" "${FSTAB_ARRAY[@]}"
 tee "${DEFAULT_SUBVOLUME_NAME}/etc/fstab" <<< "${FSTAB_STR}" > /dev/null
 
 # 縮退起動をサポート
-CREATE_DEGRADED_BOOT "${DEFAULT_SUBVOLUME_NAME}"
+if [ -e "${DISK2}" ]; then
+    CREATE_DEGRADED_BOOT "${DEFAULT_SUBVOLUME_NAME}"
+fi
 
 # btrfsの/からのマウントをアンマウント
 cd /
