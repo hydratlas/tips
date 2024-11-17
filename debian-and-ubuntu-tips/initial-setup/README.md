@@ -69,7 +69,7 @@ sudo groupdel <username>
 sudo tee "/etc/sudoers.d/90-adm" <<< "%sudo ALL=(ALL) NOPASSWD: ALL" > /dev/null
 ```
 
-## DebianでBOOTX64.EFIを作成する
+## DebianでBOOTX64.EFIを作成する（管理者）
 UbuntuではEFIシステムパーティションに`EFI/BOOT/BOOTX64.EFI`が作成されるが、Debianでは作成されない。`grub2/force_efi_extra_removable`を`true`にして作成されるようにする。作成しておくと、マザーボードがブートに失敗する可能性が減るが、デュアルブートの場合にはほかのOSの`EFI/BOOT/BOOTX64.EFI`を上書きしてしまうリスクがある。
 ```sh
 sudo debconf-set-selections <<< "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" &&

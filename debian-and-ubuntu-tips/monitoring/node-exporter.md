@@ -64,46 +64,53 @@ sudo systemctl status prometheus-node-exporter-collectors.service
 ## Node Exporterのインストール
 公式サイトは[prometheus/node_exporter: Exporter for machine metrics](https://github.com/prometheus/node_exporter)。
 
+### 必要なパッケージのインストール
+```sh
+sudo apt-get install -y jq
+```
+
 ### インストール
 ```sh
-OWNER="prometheus" &&
-REPO="node_exporter" &&
 OS="$(uname -s)" &&
 OS="${OS,,}" &&
 ARCH="$(dpkg --print-architecture)" &&
-if [ "$ARCH" = "i386" ]; then
+if [ "${ARCH}" = "i386" ]; then
   ARCH="386"
 fi &&
-LATEST_RELEASE="$(wget -q -O - https://api.github.com/repos/$OWNER/$REPO/releases/latest)" &&
-FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".$OS-$ARCH.tar.gz\")) | .browser_download_url" &&
-DOWNLOAD_URL="$(echo "$LATEST_RELEASE" | jq -r "$FILTER")" &&
-if [ -z "$DOWNLOAD_URL" ]; then
-  echo 'Could not find download URL.' 1>&2
-else
-  cd "$HOME" &&
-  mkdir -p node_exporter &&
-  wget -O - "$DOWNLOAD_URL" | tar xvfz - -C node_exporter --strip-components 1 &&
-  sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
-  rm -dr node_exporter
-fi
+LATEST_RELEASE="$(wget -q -O - "https://api.github.com/repos/prometheus/node_exporter/releases/latest")" &&
+FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".${OS}-${ARCH}.tar.gz\")) | .browser_download_url" &&
+DOWNLOAD_URL="$(echo "${LATEST_RELEASE}" | jq -r "${FILTER}")" &&
+if [ -z "${DOWNLOAD_URL}" ]; then
+  echo "Could not find download URL." 1>&2 &&
+  exit 1
+fi &&
+mkdir -p "${HOME}/node_exporter" &&
+wget -O - "${DOWNLOAD_URL}" | tar xfz - -C "${HOME}/node_exporter" --strip-components 1 &&
+sudo install -m 0775 -D -t /usr/local/bin "${HOME}/node_exporter/node_exporter" &&
+rm -dr "${HOME}/node_exporter"
 ```
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 
 ### 設定・起動・常時起動化
 ```sh
-getent group node-exporter 2>&1 > /dev/null || sudo groupadd -r node-exporter &&
-getent passwd node-exporter 2>&1 > /dev/null || sudo useradd -r -g node-exporter -s /usr/sbin/nologin node-exporter &&
 sudo tee "/etc/systemd/system/node_exporter.service" <<'EOF' >/dev/null &&
 [Unit]
-Description=Node Exporter
-After=network.target
+Description=Prometheus Node Exporter
+After=network-online.target
 
 [Service]
-User=node-exporter
-Group=node-exporter
 Type=simple
 ExecStart=/usr/local/bin/node_exporter --collector.textfile.directory=/opt/prometheus-node-exporter-collectors/prom
+SyslogIdentifier=node_exporter
 Restart=always
+RestartSec=1
+StartLimitInterval=0
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=yes
+DynamicUser=true
 
 [Install]
 WantedBy=multi-user.target
@@ -111,6 +118,7 @@ EOF
 sudo systemctl daemon-reload &&
 sudo systemctl enable --now node_exporter.service
 ```
+`DynamicUser=true`を指定することによって、明示的にroot以外のユーザーを作成せずにすんでいる。
 
 ### 確認
 ```sh
@@ -119,4 +127,43 @@ sudo systemctl status node_exporter.service
 node_exporter --version
 
 wget -q -O - http://localhost:9100/metrics
+```
+
+### 自動アップデートスクリプト
+```sh
+#!/bin/bash
+BINARY_NAME="node_exporter"
+INSTALL_DIR="/usr/local/bin"
+TEMP_DIR="/tmp"
+
+OS="$(uname -s)"
+OS="${OS,,}"
+ARCH="$(dpkg --print-architecture)"
+if [ "${ARCH}" = "i386" ]; then
+  ARCH="386"
+fi
+LATEST_RELEASE="$(wget -q -O - "https://api.github.com/repos/prometheus/node_exporter/releases/latest")"
+FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".${OS}-${ARCH}.tar.gz\")) | .browser_download_url"
+DOWNLOAD_URL="$(echo "${LATEST_RELEASE}" | jq -r "${FILTER}")"
+if [ -z "$DOWNLOAD_URL" ]; then
+  echo "Could not find download URL." 1>&2
+  exit 1
+fi
+DOWNLOAD_FILEBASENAME="${DOWNLOAD_URL##*/}"
+DOWNLOAD_FILEBASENAME="${DOWNLOAD_FILEBASENAME%.tar.gz}"
+wget -O - "${DOWNLOAD_URL}" | tar xzf - -O "${DOWNLOAD_FILEBASENAME}/node_exporter" > "${TEMP_DIR}/${BINARY_NAME}"
+
+if [ -e "${INSTALL_DIR}/${BINARY_NAME}" ]; then
+  CURRENT_MD5="$(md5sum "${INSTALL_DIR}/${BINARY_NAME}")"
+  CURRENT_MD5="${CURRENT_MD5:0:32}"
+  NEW_MD5="$(md5sum "${TEMP_DIR}/${BINARY_NAME}")"
+  NEW_MD5="${NEW_MD5:0:32}"
+  if [ "${CURRENT_MD5}" = "${NEW_MD5}" ]; then
+    exit 0
+  fi
+  systemctl stop node_exporter.service
+fi
+install -m 0775 -D -t "${INSTALL_DIR}" "${TEMP_DIR}/${BINARY_NAME}"
+systemctl enable --now node_exporter.service
+rm "${TEMP_DIR}/${BINARY_NAME}"
 ```
