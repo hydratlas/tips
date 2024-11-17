@@ -77,6 +77,7 @@ ARCH="$(dpkg --print-architecture)" &&
 if [ "${ARCH}" = "i386" ]; then
   ARCH="386"
 fi &&
+<<<<<<< HEAD
 LATEST_RELEASE="$(wget -q -O - "https://api.github.com/repos/prometheus/node_exporter/releases/latest")" &&
 FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".${OS}-${ARCH}.tar.gz\")) | .browser_download_url" &&
 DOWNLOAD_URL="$(echo "${LATEST_RELEASE}" | jq -r "${FILTER}")" &&
@@ -88,6 +89,20 @@ mkdir -p "${HOME}/node_exporter" &&
 wget -O - "${DOWNLOAD_URL}" | tar xfz - -C "${HOME}/node_exporter" --strip-components 1 &&
 sudo install -m 0775 -D -t /usr/local/bin "${HOME}/node_exporter/node_exporter" &&
 rm -dr "${HOME}/node_exporter"
+=======
+LATEST_RELEASE="$(wget -q -O - https://api.github.com/repos/$OWNER/$REPO/releases/latest)" &&
+FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".$OS-$ARCH.tar.gz\")) | .browser_download_url" &&
+DOWNLOAD_URL="$(echo "$LATEST_RELEASE" | jq -r "$FILTER")" &&
+if [ -z "$DOWNLOAD_URL" ]; then
+  echo "Could not find download URL. ${DOWNLOAD_URL}" 1>&2
+  exit 1
+fi &&
+cd "$HOME" &&
+mkdir -p node_exporter &&
+wget -O - "$DOWNLOAD_URL" | tar xvfz - -C node_exporter --strip-components 1 &&
+sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
+rm -dr node_exporter
+>>>>>>> e80621135d0ca3da9372889f8dca58017ce458ef
 ```
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 
