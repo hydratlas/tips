@@ -11,6 +11,7 @@ d-i keyboard-configuration/xkb-keymap select jp
 
 ### Network configuration
 d-i netcfg/choose_interface select auto
+d-i netcfg/get_hostname seen false
 d-i netcfg/get_domain string
 d-i netcfg/get_domain seen false
 d-i hw-detect/load_firmware boolean true
