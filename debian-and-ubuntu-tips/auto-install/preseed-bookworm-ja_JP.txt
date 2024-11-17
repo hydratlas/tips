@@ -11,8 +11,7 @@ d-i keyboard-configuration/xkb-keymap select jp
 
 ### Network configuration
 d-i netcfg/choose_interface select auto
-#d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string
+d-i netcfg/get_domain string ""
 d-i hw-detect/load_firmware boolean true
 
 ### Mirror settings
@@ -20,7 +19,7 @@ d-i mirror/protocol string http
 d-i mirror/country string manual
 d-i mirror/http/hostname string ftp.jp.debian.org
 d-i mirror/http/directory string /debian
-d-i mirror/http/proxy string
+d-i mirror/http/proxy string ""
 
 ### Account setup
 d-i passwd/root-login boolean false
