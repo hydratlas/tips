@@ -60,6 +60,14 @@ sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/
 qm set <vmid> --name <name>
 ```
 
+## クリップボードからテキストを貼り付け
+1. ブラウザに[Tampermonkey](https://www.tampermonkey.net/)拡張機能をインストール
+1. [Copy/Paste for noVNC Proxmox](https://gist.github.com/amunchet/4cfaf0274f3d238946f9f8f94fa9ee02)を開く
+1. `noVNCCopyPasteProxmox.user.js`の「Raw」ボタンを押す
+1. Tampermonkeyのスクリプトインスロール画面が表示されるためインストールする
+1. Proxmox VEで仮想マシンのコンソールをnoVNCで開く
+1. 右クリックから「貼り付け」を押す
+
 ## その他
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 

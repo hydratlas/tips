@@ -64,6 +64,11 @@ sudo systemctl status prometheus-node-exporter-collectors.service
 ## Node Exporterのインストール
 公式サイトは[prometheus/node_exporter: Exporter for machine metrics](https://github.com/prometheus/node_exporter)。
 
+### 必要なパッケージのインストール
+```sh
+sudo apt-get install -y jq
+```
+
 ### インストール
 ```sh
 OWNER="prometheus" &&
@@ -78,32 +83,37 @@ LATEST_RELEASE="$(wget -q -O - https://api.github.com/repos/$OWNER/$REPO/release
 FILTER=".assets[] | select(.name | startswith(\"node_exporter-\") and endswith(\".$OS-$ARCH.tar.gz\")) | .browser_download_url" &&
 DOWNLOAD_URL="$(echo "$LATEST_RELEASE" | jq -r "$FILTER")" &&
 if [ -z "$DOWNLOAD_URL" ]; then
-  echo 'Could not find download URL.' 1>&2
-else
-  cd "$HOME" &&
-  mkdir -p node_exporter &&
-  wget -O - "$DOWNLOAD_URL" | tar xvfz - -C node_exporter --strip-components 1 &&
-  sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
-  rm -dr node_exporter
-fi
+  echo "Could not find download URL. ${DOWNLOAD_URL}" 1>&2
+  exit 1
+fi &&
+cd "$HOME" &&
+mkdir -p node_exporter &&
+wget -O - "$DOWNLOAD_URL" | tar xvfz - -C node_exporter --strip-components 1 &&
+sudo install -m 0775 -D -t /usr/local/bin node_exporter/node_exporter &&
+rm -dr node_exporter
 ```
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 
 ### 設定・起動・常時起動化
 ```sh
-getent group node-exporter 2>&1 > /dev/null || sudo groupadd -r node-exporter &&
-getent passwd node-exporter 2>&1 > /dev/null || sudo useradd -r -g node-exporter -s /usr/sbin/nologin node-exporter &&
 sudo tee "/etc/systemd/system/node_exporter.service" <<'EOF' >/dev/null &&
 [Unit]
-Description=Node Exporter
-After=network.target
+Description=Prometheus Node Exporter
+After=network-online.target
 
 [Service]
-User=node-exporter
-Group=node-exporter
 Type=simple
 ExecStart=/usr/local/bin/node_exporter --collector.textfile.directory=/opt/prometheus-node-exporter-collectors/prom
+SyslogIdentifier=node_exporter
 Restart=always
+RestartSec=1
+StartLimitInterval=0
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=yes
+DynamicUser=true
 
 [Install]
 WantedBy=multi-user.target
@@ -111,6 +121,7 @@ EOF
 sudo systemctl daemon-reload &&
 sudo systemctl enable --now node_exporter.service
 ```
+`DynamicUser=true`を指定することによって、明示的にroot以外のユーザーを作成せずにすんでいる。
 
 ### 確認
 ```sh
