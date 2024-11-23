@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import argparse
+import pathlib
+import sys
+
+def update_or_add_textblock(file_path, block_name, block_content):
+    path = pathlib.Path(file_path)
+    block_start = f"# BEGIN {block_name}" # ブロックの開始行
+    block_end = f"# END {block_name}" # ブロックの終了行
+ 
+    with path.open('r+', encoding='utf-8') as file:
+        old_lines = file.readlines() # 更新前のファイルの行をすべて読み込む
+        new_lines = [] # 更新後のファイルの行
+        temp_lines = [] # 仮置きの行
+
+        in_block = False # 現在ブロックの内側か
+        found_block = False # すでにブロックが見つかったか
+
+        # 現在のファイルの行をループ
+        for line in old_lines:
+            if not in_block: # 現在、ブロックの外側である場合
+                if line.strip() == block_start: # 現れた行がブロックの開始行であった場合
+                    in_block = True # ブロックの内側になったことを記録
+                
+                # 更新前のファイルの行を、更新後のファイルの行にそのまま加える
+                new_lines.append(line)
+            else: # 現在、ブロックの内側である場合
+                if line.strip() == block_end: # 現れた行がブロックの終了行であった場合
+                    # ブロックの内容(block_content)を、更新後のファイルの行に加える
+                    new_lines.append(block_content + "\n")
+
+                    # 更新前のファイルの行を、更新後のファイルの行にそのまま加える
+                    new_lines.append(line)
+
+                    found_block = True # ブロックが見つかったことを記録
+                    in_block = False # ブロックの内側ではなくなったことを記録
+                else:
+                    # 更新前のファイルの行を、仮置きの行にそのまま加える
+                    temp_lines.append(line)
+
+        # 結局ブロックの開始行は見つかったが、ブロックの終了行は見つからなかった場合
+        if in_block:
+            # 仮置きしていた行を、更新後のファイルの行に加える
+            new_lines.extend(temp_lines)
+
+        # 結局ブロックが見つからなかった場合
+        if not found_block:
+            # ブロックを末尾に追加
+            new_lines.append(block_start + "\n")
+            new_lines.append(block_content + "\n")
+            new_lines.append(block_end + "\n")
+
+        file.seek(0) # ファイルのシークを先頭に戻す
+        file.truncate(0) # ファイルの中身を0に切り詰める（ファイルを空にする）
+        file.writelines(new_lines) # 更新後のファイルの行を書き込む
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Add or update text blocks in a text file.')
+
+    parser.add_argument('file_path')
+    parser.add_argument('block_name')
+    parser.add_argument('block_content')
+
+    args = parser.parse_args()
+
+    # ファイルパスを文字列からpathlib.Pathに変換
+    file_path = pathlib.Path(args.file_path)
+
+    # ファイルパスがファイルとして存在することを確認
+    if not file_path.is_file():
+        # ファイルとして存在しない場合はエラーとして終了
+        print(f"Error: File '{file_path}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+
+    update_or_add_textblock(file_path, args.block_name, args.block_content)
