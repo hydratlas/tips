@@ -110,6 +110,34 @@ done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo netplan try --timeout 10
 ```
 
+### ネットワーク設定（nftables）
+作りかけ。ufwでやるなら必要ない。
+#### 設定
+```sh
+sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
+net/ipv4/ip_forward=1
+EOS
+sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
+sudo apt-get install -y nftables ipcalc &&
+host_index="" &&
+while read -r index element; do
+  if [ "${element}" = "${HOSTNAME}" ]; then
+    host_index=${index}
+  fi
+done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+sudo nft add table ip snat &&
+sudo nft add chain ip snat postrouting { type nat hook postrouting priority 100 \; } &&
+while read -r index element; do
+  interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
+  ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
+  cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
+  network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
+  network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
+  sudo nft add rule ip snat postrouting ip saddr "${network_address}/${cidr}" oifname "${interface}" snat to "${ip_address}"
+done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
+sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
+```
+
 ### ネットワーク設定（ufw）
 #### 設定
 `ufw allow`のサービス名のリストは`/etc/services`のものが使われる。
@@ -123,15 +151,14 @@ sysctl -a 2>/dev/null | grep ip_forward &&
 sudo perl -p -i -e "s/^#?DEFAULT_FORWARD_POLICY=.*\$/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g" /etc/default/ufw &&
 sudo perl -p -i -e "s|^#?net/ipv4/ip_forward=.*\$|net/ipv4/ip_forward=1|g" /etc/ufw/sysctl.conf &&
 sudo ufw allow ssh &&
+sudo ufw limit ssh &&
 sudo ufw allow domain &&
 sudo ufw allow bootps &&
-sudo ufw allow bootpc &&
 sudo ufw allow mdns &&
 sudo ufw logging medium &&
 sudo apt-get install -y ipcalc &&
-TARGET_FILE="/etc/ufw/before.rules" &&
-START_MARKER="# BEGIN MASQUERADE BLOCK" &&
-END_MARKER="# END MASQUERADE BLOCK" &&
+wget -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
+sudo chmod a+x /usr/local/bin/update_or_add_textblock &&
 CODE_BLOCK1=$(cat << EOS
 *nat
 -F
@@ -152,9 +179,6 @@ while read -r index element; do
   cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
   network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
   network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
-  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to any &&
-  sudo ufw route allow in on "${interface}" from "${network_address}/${cidr}" to any &&
-  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to 224.0.0.18 comment 'keepalived multicast' &&
   CODE_BLOCK2="${CODE_BLOCK2}"$'\n'"$(cat << EOS
 -A POSTROUTING -s ${network_address}/${cidr} -o ${outside_interface} -j MASQUERADE
 EOS
@@ -165,9 +189,12 @@ COMMIT
 EOS
 ) &&
 CODE_BLOCK="${CODE_BLOCK1}"$'\n'"${CODE_BLOCK2}"$'\n'"${CODE_BLOCK3}" &&
-if ! sudo grep -q "${START_MARKER}" "${TARGET_FILE}"; then
-  echo "${START_MARKER}"$'\n'"${CODE_BLOCK}"$'\n'"${END_MARKER}" | sudo tee -a "${TARGET_FILE}" > /dev/null  
-fi &&
+cat "${TARGET_FILE}" | update_or_add_textblock "MASQUERADE" "${CODE_BLOCK}" | sudo tee "${TARGET_FILE}" > /dev/null &&
+while read -r index element; do
+  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to any &&
+  sudo ufw route allow in on "${interface}" from "${network_address}/${cidr}" to any &&
+  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to 224.0.0.18 comment 'keepalived multicast'
+done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo systemctl restart ufw.service &&
 sudo systemctl enable ufw.service &&
 sudo ufw enable &&
