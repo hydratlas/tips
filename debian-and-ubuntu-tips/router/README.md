@@ -126,6 +126,8 @@ while read -r index element; do
     host_index=${index}
   fi
 done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
+outside_ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
 sudo nft add table ip filter &&
 sudo nft add chain ip filter INPUT { type filter hook input priority 0 \; } &&
 sudo nft add chain ip filter FORWARD { type filter hook forward priority 0 \; } &&
@@ -136,8 +138,6 @@ sudo nft add rule ip filter INPUT iifname "lo" accept && # ローカルホスト
 sudo nft add rule ip filter INPUT ct state established,related accept && # 既存の接続や関連の入力トラフィックは許可
 sudo nft add table ip nat &&
 sudo nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; } &&
-outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
-outside_ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
 while read -r index element; do
   interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
   ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
@@ -149,7 +149,9 @@ while read -r index element; do
   sudo nft add rule ip filter INPUT iifname "${interface}" udp dport 67 accept && # DHCPリクエストに関する入力トラフィックを許可
   sudo nft add rule ip filter FORWARD ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックは許可
   sudo nft add rule ip filter FORWARD ip daddr "${network_address}/${cidr}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックは許可
-  sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" iifname "${interface}"  oifname "${outside_interface}" snat to "${outside_ip_address}" # SNATを設定
+  sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" \
+    log prefix "\"nft snat: \"" level info \
+    snat to "${outside_ip_address}" # SNATを設定
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo nft add rule ip filter INPUT drop && # その他すべての入力トラフィックを拒否
 sudo nft add rule ip filter FORWARD drop && # その他すべての転送トラフィックを拒否
