@@ -110,8 +110,7 @@ done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo netplan try --timeout 10
 ```
 
-### ネットワーク設定（nftables）
-作りかけ。ufwでやるなら必要ない。
+### IPマスカレードおよびファイアウォール設定（nftables）
 #### 設定
 ```sh
 sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
@@ -125,20 +124,41 @@ while read -r index element; do
     host_index=${index}
   fi
 done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
-sudo nft add table ip snat &&
-sudo nft add chain ip snat postrouting { type nat hook postrouting priority 100 \; } &&
+sudo nft add table ip filter &&
+sudo nft add chain ip filter INPUT { type filter hook input priority 0 \; } &&
+sudo nft add chain ip filter FORWARD { type filter hook forward priority 0 \; } &&
+sudo nft add chain ip filter OUTPUT { type filter hook output priority 0 \; } &&
+sudo nft add rule ip filter INPUT iifname "lo" accept && # ローカルホストへの入力トラフィックは許可
+sudo nft add rule ip filter INPUT ct state established,related accept && # 既存の接続や関連の入力トラフィックは許可
+sudo nft add table ip nat &&
+sudo nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; } &&
+outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
+outside_ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
 while read -r index element; do
   interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
   ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
   cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
   network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
   network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
-  sudo nft add rule ip snat postrouting ip saddr "${network_address}/${cidr}" oifname "${interface}" snat to "${ip_address}"
+  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport 53 accept && # DNSクエリ(UDP)に関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport 53 accept && # DNSクエリ(TCP)に関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" udp dport 67 accept && # DHCPリクエストに関する入力トラフィックを許可
+  sudo nft add rule ip filter FORWARD ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックは許可
+  sudo nft add rule ip filter FORWARD ip daddr "${network_address}/${cidr}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックは許可
+  sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" snat to "${outside_ip_address}" # SNATを設定
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
+sudo nft add rule ip filter INPUT drop && # その他すべての入力トラフィックを拒否
+sudo nft add rule ip filter FORWARD drop && # その他すべての転送トラフィックを拒否
 sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
 ```
+設定をリセットする際は`sudo nft flush ruleset`コマンドを実行する。
 
-### ネットワーク設定（ufw）
+#### 削除
+```sh
+sudo apt-get purge -y nftables
+```
+
+### IPマスカレードおよびファイアウォール設定（ufw）
 #### 設定
 `ufw allow`のサービス名のリストは`/etc/services`のものが使われる。
 ```sh
@@ -156,9 +176,13 @@ sudo ufw allow domain &&
 sudo ufw allow bootps &&
 sudo ufw allow mdns &&
 sudo ufw logging medium &&
-sudo apt-get install -y ipcalc &&
-wget -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
-sudo chmod a+x /usr/local/bin/update_or_add_textblock &&
+sudo apt-get install -y ipcalc moreutils &&
+if [ ! -e /usr/local/bin/update_or_add_textblock ]; then
+  URL="https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" &&
+  wget --spider "${URL}" &&
+  wget -O - "${URL}" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
+  sudo chmod a+x /usr/local/bin/update_or_add_textblock
+fi &&
 CODE_BLOCK1=$(cat << EOS
 *nat
 -F
@@ -189,7 +213,8 @@ COMMIT
 EOS
 ) &&
 CODE_BLOCK="${CODE_BLOCK1}"$'\n'"${CODE_BLOCK2}"$'\n'"${CODE_BLOCK3}" &&
-cat "${TARGET_FILE}" | update_or_add_textblock "MASQUERADE" "${CODE_BLOCK}" | sudo tee "${TARGET_FILE}" > /dev/null &&
+TARGET_FILE="/etc/ufw/before.rules" &&
+sudo cat "${TARGET_FILE}" | update_or_add_textblock "MASQUERADE" "${CODE_BLOCK}" | sudo sponge "${TARGET_FILE}" &&
 while read -r index element; do
   sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to any &&
   sudo ufw route allow in on "${interface}" from "${network_address}/${cidr}" to any &&
@@ -199,6 +224,17 @@ sudo systemctl restart ufw.service &&
 sudo systemctl enable ufw.service &&
 sudo ufw enable &&
 sudo ufw status verbose
+```
+
+#### 確認
+```sh
+sudo systemctl status ufw.service
+```
+
+#### 無効化・削除
+```sh
+sudo ufw disable &&
+sudo apt-get purge -y ufw
 ```
 
 #### ログの確認

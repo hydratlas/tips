@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# バグがあるため使用不可
+
 import argparse
 import pathlib
 import sys
@@ -65,4 +67,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    update_or_add_textblock(sys.stdin.readlines(), args.block_name, args.block_content)
+    update_or_add_textblock(sys.stdin.read().splitlines(), args.block_name, args.block_content)
