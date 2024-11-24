@@ -22,7 +22,7 @@ def update_or_add_textblock(old_lines, block_name, block_content):
                 in_block = True # ブロックの内側になったことを記録
             
             # 更新前の行を、更新後の行にそのまま加える
-            new_lines.append(line + "\n")
+            new_lines.append(line)
         else: # 現在、ブロックの内側である場合
             if line.strip() == block_start: # 現れた行がブロックの開始行であった場合
                 # 仮置きしていた行を、更新後の行に加える
@@ -30,19 +30,19 @@ def update_or_add_textblock(old_lines, block_name, block_content):
                 temp_lines = []
 
                 # 更新前の行を、更新後の行にそのまま加える
-                new_lines.append(line + "\n")
+                new_lines.append(line)
             elif line.strip() == block_end: # 現れた行がブロックの終了行であった場合
                 # ブロックの内容(block_content)を、更新後の行に加える
-                new_lines.append(block_content + "\n")
+                new_lines.append(block_content)
 
                 # 更新前の行を、更新後の行にそのまま加える
-                new_lines.append(line + "\n")
+                new_lines.append(line)
 
                 found_block = True # ブロックが見つかったことを記録
                 in_block = False # ブロックの内側ではなくなったことを記録
             else:
                 # 更新前の行を、仮置きの行にそのまま加える
-                temp_lines.append(line + "\n")
+                temp_lines.append(line)
 
     # 結局ブロックの開始行は見つかったが、ブロックの終了行は見つからなかった場合
     if in_block:
@@ -53,11 +53,11 @@ def update_or_add_textblock(old_lines, block_name, block_content):
     # 結局ブロックが見つからなかった場合
     if not found_block:
         # ブロックを末尾に追加
-        new_lines.append(block_start + "\n")
-        new_lines.append(block_content + "\n")
-        new_lines.append(block_end + "\n")
-    
-    print(*new_lines)
+        new_lines.append(block_start)
+        new_lines.append(block_content)
+        new_lines.append(block_end)
+
+    print(*new_lines, sep="\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Add or update text blocks in a text.')
