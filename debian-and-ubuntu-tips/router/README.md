@@ -177,12 +177,10 @@ sudo ufw allow bootps &&
 sudo ufw allow mdns &&
 sudo ufw logging medium &&
 sudo apt-get install -y ipcalc moreutils &&
-if [ ! -e /usr/local/bin/update_or_add_textblock ]; then
-  URL="https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" &&
-  wget --spider "${URL}" &&
-  wget -O - "${URL}" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
-  sudo chmod a+x /usr/local/bin/update_or_add_textblock
-fi &&
+URL="https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" &&
+wget --spider "${URL}" &&
+wget -O - "${URL}" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
+sudo chmod a+x /usr/local/bin/update_or_add_textblock &&
 CODE_BLOCK1=$(cat << EOS
 *nat
 -F

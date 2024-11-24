@@ -22,7 +22,7 @@ def update_or_add_textblock(old_lines, block_name, block_content):
                 in_block = True # ブロックの内側になったことを記録
             
             # 更新前の行を、更新後の行にそのまま加える
-            new_lines.append(line)
+            new_lines.append(line + "\n")
         else: # 現在、ブロックの内側である場合
             if line.strip() == block_start: # 現れた行がブロックの開始行であった場合
                 # 仮置きしていた行を、更新後の行に加える
@@ -30,19 +30,19 @@ def update_or_add_textblock(old_lines, block_name, block_content):
                 temp_lines = []
 
                 # 更新前の行を、更新後の行にそのまま加える
-                new_lines.append(line)
+                new_lines.append(line + "\n")
             elif line.strip() == block_end: # 現れた行がブロックの終了行であった場合
                 # ブロックの内容(block_content)を、更新後の行に加える
                 new_lines.append(block_content + "\n")
 
                 # 更新前の行を、更新後の行にそのまま加える
-                new_lines.append(line)
+                new_lines.append(line + "\n")
 
                 found_block = True # ブロックが見つかったことを記録
                 in_block = False # ブロックの内側ではなくなったことを記録
             else:
                 # 更新前の行を、仮置きの行にそのまま加える
-                temp_lines.append(line)
+                temp_lines.append(line + "\n")
 
     # 結局ブロックの開始行は見つかったが、ブロックの終了行は見つからなかった場合
     if in_block:
