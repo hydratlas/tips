@@ -111,6 +111,7 @@ sudo netplan try --timeout 10
 ```
 
 ### IPマスカレードおよびファイアウォール設定（nftables）
+ufwと同じことをしており、併用不可。また、ufwはnftablesに依存しているため、nftablesは簡単にはアンインストールできない。
 #### 設定
 ```sh
 sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
@@ -118,6 +119,7 @@ net/ipv4/ip_forward=1
 EOS
 sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
 sudo apt-get install -y nftables ipcalc &&
+sudo systemctl enable --now nftables.service &&
 host_index="" &&
 while read -r index element; do
   if [ "${element}" = "${HOSTNAME}" ]; then
@@ -128,6 +130,8 @@ sudo nft add table ip filter &&
 sudo nft add chain ip filter INPUT { type filter hook input priority 0 \; } &&
 sudo nft add chain ip filter FORWARD { type filter hook forward priority 0 \; } &&
 sudo nft add chain ip filter OUTPUT { type filter hook output priority 0 \; } &&
+sudo nft add rule ip filter INPUT icmp type echo-request accept && # エコー要求は許可(ping)
+sudo nft add rule ip filter INPUT icmp type echo-reply accept && # エコー応答は許可(ping)
 sudo nft add rule ip filter INPUT iifname "lo" accept && # ローカルホストへの入力トラフィックは許可
 sudo nft add rule ip filter INPUT ct state established,related accept && # 既存の接続や関連の入力トラフィックは許可
 sudo nft add table ip nat &&
@@ -145,20 +149,26 @@ while read -r index element; do
   sudo nft add rule ip filter INPUT iifname "${interface}" udp dport 67 accept && # DHCPリクエストに関する入力トラフィックを許可
   sudo nft add rule ip filter FORWARD ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックは許可
   sudo nft add rule ip filter FORWARD ip daddr "${network_address}/${cidr}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックは許可
-  sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" snat to "${outside_ip_address}" # SNATを設定
+  sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" iifname "${interface}"  oifname "${outside_interface}" snat to "${outside_ip_address}" # SNATを設定
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo nft add rule ip filter INPUT drop && # その他すべての入力トラフィックを拒否
 sudo nft add rule ip filter FORWARD drop && # その他すべての転送トラフィックを拒否
 sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
 ```
-設定をリセットする際は`sudo nft flush ruleset`コマンドを実行する。
 
-#### 削除
+#### 確認
 ```sh
-sudo apt-get purge -y nftables
+sudo systemctl status nftables.service
+```
+
+#### 【やりなおすとき】初期化
+```sh
+sudo nft flush ruleset &&
+sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
 ```
 
 ### IPマスカレードおよびファイアウォール設定（ufw）
+nftablesと同じことをしており、併用不可。また、ufwはnftablesに依存しているため、nftablesは簡単にはアンインストールできない。
 #### 設定
 `ufw allow`のサービス名のリストは`/etc/services`のものが使われる。
 ```sh
@@ -170,11 +180,8 @@ sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
 sysctl -a 2>/dev/null | grep ip_forward &&
 sudo perl -p -i -e "s/^#?DEFAULT_FORWARD_POLICY=.*\$/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g" /etc/default/ufw &&
 sudo perl -p -i -e "s|^#?net/ipv4/ip_forward=.*\$|net/ipv4/ip_forward=1|g" /etc/ufw/sysctl.conf &&
-sudo ufw allow ssh &&
-sudo ufw limit ssh &&
 sudo ufw allow domain &&
 sudo ufw allow bootps &&
-sudo ufw allow mdns &&
 sudo ufw logging medium &&
 sudo apt-get install -y ipcalc moreutils &&
 URL="https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" &&
@@ -220,16 +227,17 @@ while read -r index element; do
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo systemctl restart ufw.service &&
 sudo systemctl enable ufw.service &&
-sudo ufw enable &&
-sudo ufw status verbose
+sudo ufw enable
 ```
 
 #### 確認
 ```sh
+sudo ufw status verbose
+
 sudo systemctl status ufw.service
 ```
 
-#### 無効化・削除
+#### 【やりなおすとき】無効化・削除
 ```sh
 sudo ufw disable &&
 sudo apt-get purge -y ufw
