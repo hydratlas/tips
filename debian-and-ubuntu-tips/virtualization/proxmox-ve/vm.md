@@ -1,87 +1,187 @@
 
 # VM作成
+以下で、クラウドイメージとCloud-initを使い、QEMUゲストエージェント(qemu-guest-agent)が有効な状態で起動させる方法を示す。
+
 ## イメージのダウンロード
-Proxmox VEのストレージ（local）画面でイメージをダウンロードする。
+### 概要
+Proxmox VEのストレージ（local）画面でイメージをダウンロードする。クラウドイメージが、仮想マシンに最適化されていて、なおかつ固有のすぐに起動できる状態で用意されているため便利である。
 
 Ubuntuの場合は、[Ubuntu Cloud Images - the official Ubuntu images for public clouds, Openstack, KVM and LXD](https://cloud-images.ubuntu.com/)からダウンロードする。ダウンロードするファイルの例：[https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img]()
 
 Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images/cloud/)からダウンロードする。拡張子が.qcow2のものをダウンロードするが、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする。ダウンロードするファイルの例：[https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2]()
 
-## イメージのカスタマイズおよびテンプレートの作成
-### 変数の準備
-#### Debian 12の場合
+以下の関数によってコマンドラインからもダウンロードできる。
+
+### 関数の準備
 ```sh
-BASE_IMAGE="debian-12-backports-genericcloud-amd64.img" &&
-NAME="$(basename ${BASE_IMAGE} .img)" &&
-CUSTOM_IMAGE="${NAME}-custom.img"
+DL () {
+  local IMAGE_URL="${1}" &&
+  local IMAGE_DIR="/var/lib/vz/template/iso" &&
+  local IMAGE_NAME="${IMAGE_URL%%[\?#]*}" &&
+  IMAGE_NAME="${IMAGE_NAME##*/}" && # URLから取り出したファイル名（拡張子あり）
+  local IMAGE_STEM="${IMAGE_NAME%.*}" && # ファイル名（拡張子なし）
+  IMAGE_NAME="${IMAGE_STEM}.img" && # ファイル名（.img拡張子）
+  local CURRENT_TIME=$(date +%s) && # 現在の時刻
+  local TIMESPAN=$((7 * 24 * 60 * 60)) && # 時間間隔（1週間）
+  if [ ! -e "${IMAGE_DIR}/${IMAGE_NAME}" ] || [ ${TIMESPAN} -lt $((CURRENT_TIME - $(stat -c %Y "${IMAGE_DIR}/${IMAGE_NAME}"))) ]; then
+    wget -O "${IMAGE_DIR}/${IMAGE_NAME}" "${IMAGE_URL}" # ファイルが存在しないか、1週間以上古かったらダウンロード
+  fi
+}
 ```
 
-#### Ubuntu 24.04の場合
+### 関数の実行
 ```sh
-BASE_IMAGE="ubuntu-24.04-minimal-cloudimg-amd64.img" &&
-NAME="$(basename ${BASE_IMAGE} .img)" &&
-CUSTOM_IMAGE="${NAME}-custom.img"
+DL https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2 # Debian 12
+DL https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img # Ubuntu 24.04
+```
+
+## VMの作成
+### スニペットの準備
+#### スニペットの有効化
+- Proxmox VEの画面から「データセンター」→「ストレージ」を選択
+- リストから「local」を選択して「編集」ボタンを押す
+- 複数選択の「内容」に「スニペット」が含まれるようにする
+
+### スニペットの配置
+```sh
+tee "/var/lib/vz/snippets/qemu-guest-agent.yaml" << EOS > /dev/null
+#cloud-config
+packages: [qemu-guest-agent]
+runcmd: [systemctl enable --now qemu-guest-agent]
+EOS
+```
+
+### 関数の準備
+```sh
+CREATE () {
+  local VMID="${1}" &&
+  local STORAGE="${2}" &&
+  local SNIPPET_STORAGE="${3}" &&
+  local IMAGE_PATH="${4}" &&
+  qm create "${VMID}" \
+    --cpu x86-64-v3 \
+    --virtio0 "${STORAGE}:0,import-from=${IMAGE_PATH}" \
+    --machine q35 \
+    --bios ovmf --efidisk0 "${STORAGE}:0" \
+    --vga virtio \
+    --scsihw virtio-scsi-single \
+    --serial0 socket \
+    --ostype l26 \
+    --boot order=virtio0 \
+    --scsi0 "${STORAGE}:cloudinit,size=4M" \
+    --agent enabled=1 \
+    --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
+}
+START () {
+  local VMID="${1}" &&
+  local TZ="$(timedatectl show --property=Timezone | cut -d= -f2)" &&
+  local SCRIPT=$(cat << EOF
+tee -a "/etc/default/grub" << EOS > /dev/null &&
+GRUB_CMDLINE_LINUX="quiet console=tty0 console=ttyS0,115200"
+GRUB_TERMINAL_INPUT="console serial"
+GRUB_TERMINAL_OUTPUT="gfxterm serial"
+GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
+EOS
+update-grub &&
+timedatectl set-timezone ${TZ} &&
+dpkg-reconfigure --frontend noninteractive tzdata
+EOF
+  ) &&
+  qm start "${VMID}" &&
+  while ! qm guest cmd "${VMID}" ping; do
+    sleep 1s
+  done &&
+  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
+}
 ```
 
 ### 実行
-適宜変更して使用する。`virt-customize`コマンドがエラーで失敗するときには`-vx`オプションを加えてデバッグする。テンプレートの作成時に、ディスクの容量は与えられた`.img`ファイルによって規定されている。
+適宜変更して使用する。
 ```sh
-echo -n "vmid: " &&
-read VMID &&
+VMID="<vmid>" &&
+CREATE "${VMID}" "local-zfs" "local" "/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64-custom.img" &&
+qm set "${VMID}" \
+  --name "<name>" \
+  --cores 4 \
+  --memory 8192 \
+  --net0 virtio,bridge=vmbr0 \
+  --ipconfig0 ip=dhcp,ip6=dhcp \
+  --ciuser "user" \
+  --cipassword "$(openssl passwd -6 "p")" &&
+qm resize "${VMID}" virtio0 8G &&
+START "${VMID}" &&
+qm guest exec "${VMID}" -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+  avahi-daemon libnss-mdns \
+  less nano \
+  bash-completion command-not-found \
+  ' | jq -r '."out-data", ."err-data"'
+```
+- `import-from`はイメージファイルによって規定された容量にしかできないため、後から容量を変更している
+- Cloud-initは`local-zfs:cloudinit`で設定しているが、これを`--ide0`で設定すると、`--machine pc --bios seabios`でないと動かない。`--scsi0`で設定すれば、`--machine pc --bios seabios`でも`--machine q35 --bios ovmf --efidisk0 local-zfs:0`でも動く
+- GRUBの設定を変更して、GRUBをコンソールに出力させている
+- タイムゾーンはホストと同じものを設定している
+
+### 実行前にSSHを設定
+`START`の前に次のように実行すると、Cloud-initによってSSHの`authorized_keys`を設定できる。起動中に実行した場合は再起動が必要。
+```sh
+KEY_URL="https://github.com/<name>.keys" &&
+KEY_FILE="$(mktemp)" &&
 IMAGE_DIR="/var/lib/vz/template/iso" &&
+wget -O "$KEY_FILE" "$KEY_URL" &&
+qm set "${VMID}" --sshkey "${KEY_FILE}" &&
+rm "$KEY_FILE"
+```
+
+### 【デバッグ】すでに作成されているVMの設定を確認
+```sh
+qm config "${VMID}"
+```
+これを参考にして`qm create`コマンドのオプションを検討する。
+
+### 【元に戻す】停止・削除
+```sh
+qm stop "${VMID}" &&
+qm destroy "${VMID}"
+```
+
+## VMの使用
+### ホストからコマンドを実行（QEMU guest agentが必要）
+```sh
+qm guest exec "${VMID}" -- bash -c "uname -r && uname -n" | jq -r '."out-data", ."err-data"'
+```
+
+### シリアルコンソールに接続
+```sh
+qm terminal "${VMID}"
+```
+シリアルコンソールは同時に一つしか使用できないため、ディスプレーをSerial terminal 0 (serial0)に設定すると接続できなくなることに注意。
+
+
+## 【遺産】イメージのカスタマイズ
+イメージをカスタマイズすることもできるが、`qemu-guest-agent`さえ入っていれば通常の起動後に実行できる。
+```sh
+IMAGE_DIR="/var/lib/vz/template/iso" &&
+BASE_FILE="ubuntu-24.04-minimal-cloudimg-amd64.img" &&
+CUSTOM_FILE="${BASE_FILE%.*}" && # 拡張子なし
+CUSTOM_FILE="${CUSTOM_FILE}-custom.img" &&
+GRUBCONF=$(cat << EOS
+GRUB_CMDLINE_LINUX="quiet console=tty0 console=ttyS0,115200"
+GRUB_TERMINAL_INPUT="console serial"
+GRUB_TERMINAL_OUTPUT="gfxterm serial"
+GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
+EOS
+) &&
 apt-get install --no-install-recommends -y guestfs-tools libguestfs-tools &&
-cp "${IMAGE_DIR}/${BASE_IMAGE}" "${IMAGE_DIR}/${CUSTOM_IMAGE}" &&
-virt-customize -a "${IMAGE_DIR}/${CUSTOM_IMAGE}" \
-  --install qemu-guest-agent,avahi-daemon,libnss-mdns,less,bash-completion,command-not-found,nano,whiptail \
+cp "${IMAGE_DIR}/${BASE_FILE}" "${IMAGE_DIR}/${CUSTOM_FILE}" &&
+virt-customize -a "${IMAGE_DIR}/${CUSTOM_FILE}" --install qemu-guest-agent \
   --timezone "$(timedatectl show --property=Timezone | cut -d= -f2)" \
   --mkdir /etc/ssh/sshd_config.d \
   --write '/etc/ssh/sshd_config.d/90-local.conf:
 PasswordAuthentication no
 PermitRootLogin no
 ' \
-  --run-command 'echo "GRUB_CMDLINE_LINUX=\"quiet console=tty0 console=ttyS0,115200\"\nGRUB_TERMINAL_INPUT=\"console serial\"\nGRUB_TERMINAL_OUTPUT=\"gfxterm serial\"\nGRUB_SERIAL_COMMAND=\"serial --unit=0 --speed=115200\"" >> /etc/default/grub' \
-  --run-command 'update-grub' &&
-virt-sysprep -a "${IMAGE_DIR}/${CUSTOM_IMAGE}" --enable machine-id,ssh-hostkeys &&
-qemu-img resize "${IMAGE_DIR}/${CUSTOM_IMAGE}" 8G &&
-qm create "${VMID}" \
-  --name "${NAME}" \
-  --cpu x86-64-v3 \
-  --cores 4 \
-  --memory 8192 \
-  --virtio0 "local-zfs:0,import-from=${IMAGE_DIR}/${CUSTOM_IMAGE}" \
-  --bios seabios \
-  --vga virtio \
-  --scsihw virtio-scsi-pci \
-  --ide0 local-zfs:cloudinit \
-  --net0 virtio,bridge=vmbr0 \
-  --serial0 socket \
-  --ostype l26 \
-  --boot order=virtio0 \
-  --agent enabled=1 \
-  --ciuser "user" \
-  --cipassword "p" \
-  --ipconfig0 ip=dhcp,ip6=dhcp &&
-qm template "${VMID}"
+  --run-command "echo \"${GRUBCONF}\" >> /etc/default/grub" \
+  --run-command "update-grub" &&
+  virt-sysprep -a "${IMAGE_DIR}/${CUSTOM_FILE}" --enable machine-id,ssh-hostkeys
 ```
-
-## テンプレートからVMを作成（クローン）
-WebUIから行ってもよい。
-```sh
-qm clone <TEMPLATE_ID> <NEW_VM_ID> --name <NEW_VM_NAME>
-```
-
-## VMの追加設定
-```sh
-VMID=<vmid> &&
-UESR=<name> &&
-PASSWORD="$(openssl passwd -6 "<password>")" &&
-KEY_URI=https://github.com/<name>.keys &&
-KEY_FILE="$(mktemp)" &&
-IMAGE_DIR="/var/lib/vz/template/iso" &&
-wget -O "$KEY_FILE" "$KEY_URI" &&
-qm set "${VMID}" \
-  --ciuser "${UESR}" \
-  --cipassword "${PASSWORD}" \
-  --sshkey "${KEY_FILE}" &&
-rm "$KEY_FILE"
-```
+`virt-customize`コマンドがエラーで失敗するときには`-vx`オプションを加えてデバッグする。

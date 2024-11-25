@@ -77,16 +77,6 @@ nano /etc/pve/corosync.conf
 1. Proxmox VEで仮想マシンのコンソールをnoVNCで開く
 1. 右クリックから「貼り付け」を押す
 
-## VM内でコマンドを実行（QEMU guest agentが必要）
-```sh
-qm guest exec <vmid> -- bash -c "uname -r && uname -n" | jq -r '."out-data", ."err-data"'
-```
-
-## VMのシリアルコンソールに接続（シリアルコンソールの設定が必要）
-```sh
-qm terminal <vmid>
-```
-
 ## その他
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 
@@ -95,4 +85,4 @@ noVNCが開かないとき
 /usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
 ```
 
-LinuxのデスクトップOSはディスプレイをVirtIO-GPUにする。
+LinuxではディスプレーをVirtIO-GPUにする。
