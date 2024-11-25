@@ -56,8 +56,7 @@ JSON='{
 echo "${JSON}" | jq -c "."
 ```
 
-## IPマスカレード
-### ネットワーク設定（Netplan）
+## ネットワーク設定（Netplan）
 ```sh
 host_index="" &&
 while read -r index element; do
@@ -107,19 +106,92 @@ network:
 EOS
   sudo chmod go= "/etc/netplan/90-${interface}.yaml"
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-sudo netplan try --timeout 10
+sudo netplan apply
+```
+SSHから実行しているときは`sudo netplan apply`を`sudo netplan try --timeout 10`に変更した上で、実行時には10秒以内にEnterキーを押す。
+
+## VRRP（Virtual Router Redundancy Protocol）
+なぜかKeepalivedより前にDnsmasqをインストールすると`sudo systemctl stop dnsmasq.service`によってDnsmasqを再起動しないとDNSキャッシュサーバー機能が動かないため、Dnsmasqは後にインストールする。
+
+### 設定
+```sh
+sudo apt-get install -y keepalived &&
+sudo systemctl stop keepalived.service &&
+if ! id keepalived_script; then
+  sudo useradd -s /sbin/nologin -M keepalived_script
+fi &&
+sudo tee "/etc/keepalived/check_dhcp.sh" << EOS > /dev/null &&
+#!/bin/bash
+if systemctl is-active --quiet dnsmasq.service; then
+  exit 0
+else
+  exit 1
+fi
+EOS
+sudo chmod a+x "/etc/keepalived/check_dhcp.sh" &&
+sudo tee "/etc/keepalived/keepalived.conf" << EOS > /dev/null &&
+include /etc/keepalived/conf.d/*.conf
+EOS
+sudo mkdir -p /etc/keepalived/conf.d &&
+sudo tee "/etc/keepalived/conf.d/base.conf" << EOS > /dev/null &&
+global_defs {
+  enable_script_security
+  script_user keepalived_script
+}
+vrrp_script check_dhcp {
+  script "/etc/keepalived/check_dhcp.sh"
+  interval 2
+  fall 2
+  rise 2
+}
+EOS
+host_index="" &&
+while read -r index element; do
+  if [ "${element}" = "${HOSTNAME}" ]; then
+    host_index=${index}
+  fi
+done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+vrrp_state="$(echo "${JSON}" | jq -c -r ".vrrp.state[${host_index}]")" &&
+vrrp_priority="$(echo "${JSON}" | jq -c -r ".vrrp.priority[${host_index}]")" &&
+vrrp_advert_int="$(echo "${JSON}" | jq -c -r ".vrrp.advert_int")" &&
+while read -r index element; do
+  interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
+  virtual_router_id="$(echo "${element}" | jq -c -r ".virtual_router_id")" &&
+  virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
+  cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
+  sudo tee "/etc/keepalived/conf.d/${interface}.conf" << EOS > /dev/null
+vrrp_instance VI_${interface} {
+    state ${vrrp_state}
+    interface ${interface}
+    virtual_router_id ${virtual_router_id}
+    priority ${vrrp_priority}
+    advert_int ${vrrp_advert_int}
+    virtual_ipaddress {
+        ${virtual_ip_address}/${cidr}
+    }
+    track_script {
+        check_dhcp
+    }
+}
+EOS
+done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
+sudo systemctl enable --now keepalived.service
 ```
 
-### IPマスカレードおよびファイアウォール設定（nftables）
-ufwと同じことをしており、併用不可。また、ufwはnftablesに依存しているため、nftablesは簡単にはアンインストールできない。
-#### 設定
+### 確認
+```sh
+sudo systemctl status keepalived.service
+```
+
+## IPマスカレードおよびファイアウォール設定（nftables）
+### 設定
 ```sh
 sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
 net/ipv4/ip_forward=1
 EOS
 sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
 sudo apt-get install -y nftables ipcalc &&
-sudo systemctl enable --now nftables.service &&
+sudo systemctl stop nftables.service &&
 host_index="" &&
 while read -r index element; do
   if [ "${element}" = "${HOSTNAME}" ]; then
@@ -144,9 +216,10 @@ while read -r index element; do
   cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
   network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
   network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
-  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport 53 accept && # DNSクエリ(UDP)に関する入力トラフィックを許可
-  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport 53 accept && # DNSクエリ(TCP)に関する入力トラフィックを許可
-  sudo nft add rule ip filter INPUT iifname "${interface}" udp dport 67 accept && # DHCPリクエストに関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" ip daddr 224.0.0.18 ip protocol vrrp accept && # Keepalivedに関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport domain accept && # DNSクエリ(UDP)に関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport domain accept && # DNSクエリ(TCP)に関する入力トラフィックを許可
+  sudo nft add rule ip filter INPUT iifname "${interface}" udp dport bootps accept && # DHCPリクエストに関する入力トラフィックを許可
   sudo nft add rule ip filter FORWARD ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックは許可
   sudo nft add rule ip filter FORWARD ip daddr "${network_address}/${cidr}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックは許可
   sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" \
@@ -155,108 +228,32 @@ while read -r index element; do
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
 sudo nft add rule ip filter INPUT drop && # その他すべての入力トラフィックを拒否
 sudo nft add rule ip filter FORWARD drop && # その他すべての転送トラフィックを拒否
-sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
+sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null &&
+sudo systemctl enable --now nftables.service
 ```
 
-#### 確認
+### 確認
 ```sh
 sudo systemctl status nftables.service
 ```
 
-#### 【やりなおすとき】初期化
+### 【やりなおすとき】初期化
 ```sh
 sudo nft flush ruleset &&
 sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null
 ```
 
-### IPマスカレードおよびファイアウォール設定（ufw）
-nftablesと同じことをしており、併用不可。また、ufwはnftablesに依存しているため、nftablesは簡単にはアンインストールできない。
-#### 設定
-`ufw allow`のサービス名のリストは`/etc/services`のものが使われる。
-```sh
-sudo apt-get install -y ufw &&
-sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
-net/ipv4/ip_forward=1
-EOS
-sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
-sysctl -a 2>/dev/null | grep ip_forward &&
-sudo perl -p -i -e "s/^#?DEFAULT_FORWARD_POLICY=.*\$/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g" /etc/default/ufw &&
-sudo perl -p -i -e "s|^#?net/ipv4/ip_forward=.*\$|net/ipv4/ip_forward=1|g" /etc/ufw/sysctl.conf &&
-sudo ufw allow domain &&
-sudo ufw allow bootps &&
-sudo ufw logging medium &&
-sudo apt-get install -y ipcalc moreutils &&
-URL="https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/update_or_add_textblock" &&
-wget --spider "${URL}" &&
-wget -O - "${URL}" | sudo tee /usr/local/bin/update_or_add_textblock > /dev/null &&
-sudo chmod a+x /usr/local/bin/update_or_add_textblock &&
-CODE_BLOCK1=$(cat << EOS
-*nat
--F
-:POSTROUTING ACCEPT [0:0]
-EOS
-) &&
-host_index="" &&
-while read -r index element; do
-  if [ "${element}" = "${HOSTNAME}" ]; then
-    host_index=${index}
-  fi
-done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
-outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
-CODE_BLOCK2="" &&
-while read -r index element; do
-  interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
-  ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
-  cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-  network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
-  network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
-  CODE_BLOCK2="${CODE_BLOCK2}"$'\n'"$(cat << EOS
--A POSTROUTING -s ${network_address}/${cidr} -o ${outside_interface} -j MASQUERADE
-EOS
-  )"
-done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-CODE_BLOCK3=$(cat << EOS
-COMMIT
-EOS
-) &&
-CODE_BLOCK="${CODE_BLOCK1}"$'\n'"${CODE_BLOCK2}"$'\n'"${CODE_BLOCK3}" &&
-TARGET_FILE="/etc/ufw/before.rules" &&
-sudo cat "${TARGET_FILE}" | update_or_add_textblock "MASQUERADE" "${CODE_BLOCK}" | sudo sponge "${TARGET_FILE}" &&
-while read -r index element; do
-  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to any &&
-  sudo ufw route allow in on "${interface}" from "${network_address}/${cidr}" to any &&
-  sudo ufw allow in on "${interface}" from "${network_address}/${cidr}" to 224.0.0.18 comment 'keepalived multicast'
-done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-sudo systemctl restart ufw.service &&
-sudo systemctl enable ufw.service &&
-sudo ufw enable
-```
-
-#### 確認
-```sh
-sudo ufw status verbose
-
-sudo systemctl status ufw.service
-```
-
-#### 【やりなおすとき】無効化・削除
-```sh
-sudo ufw disable &&
-sudo apt-get purge -y ufw
-```
-
-#### ログの確認
-```sh
-journalctl | grep "\[UFW "
-```
-
 ## DNSキャッシュサーバーおよびDHCPサーバー
 ### 設定
 ```sh
-sudo apt-get install -y dnsmasq
+sudo apt-get install -y dnsmasq &&
+sudo systemctl stop dnsmasq.service &&
 elements="$(echo "${JSON}" | jq '.ntp.ip_address[]')" &&
 dns="$(echo "${JSON}" | jq -r '.outside.dns[] | "server=\(.)"')" &&
 ntp="$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
+# resolvconfパッケージがインストールされている場合、dnsmasqはシステムのデフォルトリゾルバとして
+# 127.0.0.1配下のdnsmasqを使用するようにresolvconfに伝えるが、その動作を抑制する。
+sudo perl -pe "s/^#?DNSMASQ_EXCEPT=.*\$/DNSMASQ_EXCEPT=lo/g" -i "/etc/default/dnsmasq"
 sudo tee "/etc/dnsmasq.d/base.conf" << EOS > /dev/null &&
 # プレーンネーム（ドットやドメイン部分のないもの）を転送しない
 domain-needed
@@ -330,57 +327,12 @@ dhcp-option=tag:${interface},option:dns-server,${virtual_ip_address}
 #dhcp-host=aa:bb:cc:dd:ee:ff,192.168.9.99
 EOS
 done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-sudo systemctl restart dnsmasq.service &&
-sudo systemctl enable dnsmasq.service
+sudo systemctl enable --now dnsmasq.service
 ```
 
 ### 確認（サーバー側）
 ```sh
 sudo systemctl status dnsmasq.service
-```
-
-## VRRP（Virtual Router Redundancy Protocol）
-### 設定
-```sh
-sudo apt-get install -y keepalived &&
-sudo tee "/etc/keepalived/keepalived.conf" << EOS > /dev/null &&
-include /etc/keepalived/conf.d/*.conf
-EOS
-sudo mkdir -p /etc/keepalived/conf.d &&
-host_index="" &&
-while read -r index element; do
-  if [ "${element}" = "${HOSTNAME}" ]; then
-    host_index=${index}
-  fi
-done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
-vrrp_state="$(echo "${JSON}" | jq -c -r ".vrrp.state[${host_index}]")" &&
-vrrp_priority="$(echo "${JSON}" | jq -c -r ".vrrp.priority[${host_index}]")" &&
-vrrp_advert_int="$(echo "${JSON}" | jq -c -r ".vrrp.advert_int")" &&
-while read -r index element; do
-  interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
-  virtual_router_id="$(echo "${element}" | jq -c -r ".virtual_router_id")" &&
-  virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
-  cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-  sudo tee "/etc/keepalived/conf.d/${interface}.conf" << EOS > /dev/null
-vrrp_instance VI_${interface} {
-    state ${vrrp_state}
-    interface ${interface}
-    virtual_router_id ${virtual_router_id}
-    priority ${vrrp_priority}
-    advert_int ${vrrp_advert_int}
-    virtual_ipaddress {
-        ${virtual_ip_address}/${cidr}
-    }
-}
-EOS
-done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-sudo systemctl restart keepalived.service &&
-sudo systemctl enable keepalived.service
-```
-
-### 確認
-```sh
-sudo systemctl status keepalived.service
 ```
 
 ### 確認（クライアント側）
@@ -389,5 +341,5 @@ ip a
 ip r
 cat /run/systemd/resolve/resolv.conf
 dig hostname.home.apra
-dig www.google.com
+dig google.com
 ```

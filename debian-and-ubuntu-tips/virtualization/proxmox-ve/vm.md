@@ -52,6 +52,11 @@ EOS
 ```
 
 ### 関数の準備
+- 適当なマシン構成（あとから`qm set`コマンドで変更可能）
+- ホストと同じタイムゾーンの設定
+- GRUBをシリアルコンソールに出力
+- シリアルコンソール向けに`apt`コマンドのプログレスバーを無効化
+- 初回の`apt-get update`コマンドを実行
 ```sh
 CREATE () {
   local VMID="${1}" &&
@@ -84,7 +89,11 @@ GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
 EOS
 update-grub &&
 timedatectl set-timezone ${TZ} &&
-dpkg-reconfigure --frontend noninteractive tzdata
+dpkg-reconfigure --frontend noninteractive tzdata &&
+tee -a "/etc/apt/apt.conf.d/99progressbar" << EOS > /dev/null &&
+Dpkg::Progress-Fancy "0";
+EOS
+apt-get update
 EOF
   ) &&
   qm start "${VMID}" &&
@@ -113,7 +122,7 @@ START "${VMID}" &&
 qm guest exec "${VMID}" -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -yq \
   avahi-daemon libnss-mdns \
   less nano \
-  bash-completion command-not-found \
+  bash-completion command-not-found iputils-ping \
   ' | jq -r '."out-data", ."err-data"'
 ```
 - `import-from`はイメージファイルによって規定された容量にしかできないため、後から容量を変更している
