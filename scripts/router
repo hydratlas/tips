@@ -165,7 +165,7 @@ EOS
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
         local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-        local nat_is_enabled=$(echo "${element}" | jq -e 'if has(".nat.is_enabled") and .nat.is_enabled == true then true else false end') &&
+        local nat_is_enabled=$(echo "${element}" | jq 'if .nat | has("is_enabled") and .is_enabled == true then true else false end') &&
         local network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
         network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
         sudo nft add rule ip filter INPUT iifname "${interface}" ip daddr 224.0.0.18 ip protocol vrrp accept && # Keepalivedに関する入力トラフィックを許可
