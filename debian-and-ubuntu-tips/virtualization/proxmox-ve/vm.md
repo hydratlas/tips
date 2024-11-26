@@ -17,7 +17,7 @@ Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images
   - ファイルが存在しないか、1週間以上古かったらダウンロード
   - 拡張子は`.img`に統一
 ```sh
-eval "$(wget -q -O - "https://github.com/hydratlas/tips/blob/main/scripts/proxmox-ve")"
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
 ```
 中身は[proxmox-ve](/scripts/proxmox-ve)を参照。
 
@@ -53,7 +53,7 @@ EOS
   - シリアルコンソール向けに`apt`コマンドのプログレスバーを無効化
   - 初回の`apt-get update`コマンドを実行
 ```sh
-eval "$(wget -q -O - "https://github.com/hydratlas/tips/blob/main/scripts/proxmox-ve")"
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
 ```
 中身は[proxmox-ve](/scripts/proxmox-ve)を参照。
 

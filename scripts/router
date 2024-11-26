@@ -50,7 +50,7 @@ network:
 EOS
         sudo chmod go= "/etc/netplan/90-${interface}.yaml"
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-    if [ -n "$SSH_CONNECTION" ]; then
+    if [ "${SSH_CONNECTION-}" ]; then
         sudo netplan try --timeout 30
     else
         sudo netplan apply

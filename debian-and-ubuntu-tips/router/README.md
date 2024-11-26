@@ -70,7 +70,7 @@ echo "${JSON}" | jq -c "."
 - setup_nftables
 - setup_dnsmasq
 ```sh
-eval "$(wget -q -O - "https://github.com/hydratlas/tips/blob/main/scripts/router")"
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/router")"
 ```
 中身は[router](/scripts/router)を参照。
 
