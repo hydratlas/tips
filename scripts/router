@@ -22,14 +22,14 @@ network:
       match:
         macaddress: "${mac_address}"
       addresses:
-      - "${ip_address}/${cidr}"
+        - "${ip_address}/${cidr}"
       nameservers:
         addresses: ${dns}
       dhcp6: true
       set-name: "${interface}"
       routes:
-      - to: "default"
-        via: "${route}"
+        - to: "default"
+          via: "${route}"
 EOS
     sudo chmod go= "/etc/netplan/90-${interface}.yaml" &&
     while read -r index element; do
@@ -45,7 +45,7 @@ network:
       match:
         macaddress: "${mac_address}"
       addresses:
-      - "${ip_address}/${cidr}"
+        - "${ip_address}/${cidr}"
       set-name: "${interface}"
 EOS
         sudo chmod go= "/etc/netplan/90-${interface}.yaml"
