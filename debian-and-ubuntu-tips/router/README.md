@@ -42,7 +42,7 @@ JSON='{
       "virtual_ip_address": "192.168.2.1",
       "cidr": "24",
       "nat": {
-        "is_enabled": "true"
+        "is_enabled": true
       },
       "dhcp_range": [["192.168.2.17", "192.168.2.135"], ["192.168.2.136", "192.168.2.254"]],
       "virtual_router_id": "1"
@@ -54,7 +54,7 @@ JSON='{
       "virtual_ip_address": "192.168.3.1",
       "cidr": "24",
       "nat": {
-        "is_enabled": "true"
+        "is_enabled": true
       },
       "dhcp_range": [["192.168.3.17", "192.168.3.135"], ["192.168.3.136", "192.168.3.254"]],
       "virtual_router_id": "1"
@@ -102,6 +102,11 @@ sudo systemctl start dnsmasq.service
 setup_nftables "${JSON}"
 ```
 やりなおすときは、`sudo nft flush ruleset`コマンドを実行する。
+
+### 現在の永続的な設定の確認
+```sh
+cat /etc/nftables.conf
+```
 
 ### SNATのログ確認
 ```sh
