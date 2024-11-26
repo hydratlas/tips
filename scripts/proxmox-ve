@@ -1,0 +1,59 @@
+#!/bin/bash
+set -eux
+image_downloader () {
+  local IMAGE_URL="${1}" &&
+  local IMAGE_DIR="/var/lib/vz/template/iso" &&
+  local IMAGE_NAME="${IMAGE_URL%%[\?#]*}" &&
+  IMAGE_NAME="${IMAGE_NAME##*/}" && # URLから取り出したファイル名（拡張子あり）
+  local IMAGE_STEM="${IMAGE_NAME%.*}" && # ファイル名（拡張子なし）
+  IMAGE_NAME="${IMAGE_STEM}.img" && # ファイル名（.img拡張子）
+  local CURRENT_TIME=$(date +%s) && # 現在の時刻
+  local TIMESPAN=$((7 * 24 * 60 * 60)) && # 時間間隔（1週間）
+  if [ ! -e "${IMAGE_DIR}/${IMAGE_NAME}" ] || [ ${TIMESPAN} -lt $((CURRENT_TIME - $(stat -c %Y "${IMAGE_DIR}/${IMAGE_NAME}"))) ]; then
+    wget -O "${IMAGE_DIR}/${IMAGE_NAME}" "${IMAGE_URL}" # ファイルが存在しないか、1週間以上古かったらダウンロード
+  fi
+}
+vm_create () {
+  local VMID="${1}" &&
+  local STORAGE="${2}" &&
+  local SNIPPET_STORAGE="${3}" &&
+  local IMAGE_PATH="${4}" &&
+  qm create "${VMID}" \
+    --cpu x86-64-v3 \
+    --virtio0 "${STORAGE}:0,import-from=${IMAGE_PATH}" \
+    --machine q35 \
+    --bios ovmf --efidisk0 "${STORAGE}:0" \
+    --vga virtio \
+    --scsihw virtio-scsi-single \
+    --serial0 socket \
+    --ostype l26 \
+    --boot order=virtio0 \
+    --scsi0 "${STORAGE}:cloudinit,size=4M" \
+    --agent enabled=1 \
+    --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
+}
+vm_start () {
+  local VMID="${1}" &&
+  local TZ="$(timedatectl show --property=Timezone | cut -d= -f2)" &&
+  local SCRIPT=$(cat << EOF
+tee -a "/etc/default/grub" << EOS > /dev/null &&
+GRUB_CMDLINE_LINUX="quiet console=tty0 console=ttyS0,115200"
+GRUB_TERMINAL_INPUT="console serial"
+GRUB_TERMINAL_OUTPUT="gfxterm serial"
+GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
+EOS
+update-grub &&
+timedatectl set-timezone ${TZ} &&
+dpkg-reconfigure --frontend noninteractive tzdata &&
+tee -a "/etc/apt/apt.conf.d/99progressbar" << EOS > /dev/null &&
+Dpkg::Progress-Fancy "0";
+EOS
+apt-get update
+EOF
+  ) &&
+  qm start "${VMID}" &&
+  while ! qm guest cmd "${VMID}" ping; do
+    sleep 1s
+  done &&
+  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
+}
