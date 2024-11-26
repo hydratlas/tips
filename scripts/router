@@ -16,20 +16,20 @@ setup_netplan () {
     local route="$(echo "${JSON}" | jq -c -r ".outside.route")" &&
     sudo tee "/etc/netplan/90-${interface}.yaml" << EOS > /dev/null &&
 network:
-    version: 2
-    ethernets:
-        ${interface}:
-        match:
-            macaddress: "${mac_address}"
-        addresses:
-        - "${ip_address}/${cidr}"
-        nameservers:
-            addresses: ${dns}
-        dhcp6: true
-        set-name: "${interface}"
-        routes:
-        - to: "default"
-            via: "${route}"
+  version: 2
+  ethernets:
+    ${interface}:
+      match:
+        macaddress: "${mac_address}"
+      addresses:
+      - "${ip_address}/${cidr}"
+      nameservers:
+        addresses: ${dns}
+      dhcp6: true
+      set-name: "${interface}"
+      routes:
+      - to: "default"
+        via: "${route}"
 EOS
     sudo chmod go= "/etc/netplan/90-${interface}.yaml" &&
     while read -r index element; do
@@ -39,14 +39,14 @@ EOS
         local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
         sudo tee "/etc/netplan/90-${interface}.yaml" << EOS > /dev/null &&
 network:
-    version: 2
-    ethernets:
-        ${interface}:
-        match:
-            macaddress: "${mac_address}"
-        addresses:
-        - "${ip_address}/${cidr}"
-        set-name: "${interface}"
+  version: 2
+  ethernets:
+    ${interface}:
+      match:
+        macaddress: "${mac_address}"
+      addresses:
+      - "${ip_address}/${cidr}"
+      set-name: "${interface}"
 EOS
         sudo chmod go= "/etc/netplan/90-${interface}.yaml"
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
