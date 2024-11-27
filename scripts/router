@@ -284,20 +284,26 @@ EOS
         subnet_mask="${subnet_mask#"${subnet_mask%%[![:space:]]*}"}" &&
         local virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
         local dhcp_range="$(echo "${element}" | jq -r ".dhcp_range[${host_index}] | join(\",\")")" &&
-        sudo tee "/etc/dnsmasq.d/${interface}.conf" << EOS > /dev/null
+        local dhcp_host_strings=() &&
+        while read -r index2 dhcp_host; do
+            local dhcp_host_ip_address="$(echo "${dhcp_host}" | jq -c -r ".ip_address")" &&
+            local dhcp_host_mac_address="$(echo "${dhcp_host}" | jq -c -r ".mac_address")" &&
+            dhcp_host_strings+=("dhcp-host=${interface},${dhcp_host_mac_address},${dhcp_host_ip_address}")
+        done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)" &&
+        sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" << EOS > /dev/null
 # インターフェース
 interface=${interface}
 
 # DHCPのアドレスの範囲
-dhcp-range=tag:${interface},${dhcp_range},${subnet_mask},24h
+dhcp-range=${interface},${dhcp_range},${subnet_mask},24h
 
 # デフォルトルート
-dhcp-option=tag:${interface},option:router,${virtual_ip_address}
+dhcp-option=${interface},option:router,${virtual_ip_address}
 
 # DNSサーバー
-dhcp-option=tag:${interface},option:dns-server,${virtual_ip_address}
+dhcp-option=${interface},option:dns-server,${virtual_ip_address}
 
-#dhcp-host=aa:bb:cc:dd:ee:ff,192.168.9.99
+$(printf "%s\n" "${dhcp_host_strings[@]}")
 EOS
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
     sudo systemctl enable --now dnsmasq.service &&

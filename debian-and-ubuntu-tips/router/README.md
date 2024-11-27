@@ -57,7 +57,13 @@ JSON='{
         "is_enabled": true
       },
       "dhcp_range": [["192.168.3.17", "192.168.3.135"], ["192.168.3.136", "192.168.3.254"]],
-      "virtual_router_id": "1"
+      "virtual_router_id": "1", 
+      "dhcp_hosts": [
+        {
+          "ip_address": "192.168.3.10",
+          "mac_address": "XX:XX:XX:XX:XX:XX"
+        }
+      }
     }
   ]
 }' &&
