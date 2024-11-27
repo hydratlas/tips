@@ -185,9 +185,9 @@ setup_nftables () {
         sudo nft add rule inet filter INPUT iifname "${interface}" ip protocol udp udp dport bootps accept && # DHCPリクエストに関する入力トラフィックを許可(IPv4)
         if ${forwarding_is_enabled}; then
             sudo nft add rule inet filter FORWARD ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックを許可(IPv4)
-            sudo nft add rule inet filter FORWARD iifname "${interface}" oifname "${outside_interface}" ip6 accept && # 前行と同様の設定(IPv6)
+            sudo nft add rule inet filter FORWARD ip6 saddr "::/0" iifname "${interface}" oifname "${outside_interface}" accept && # 前行と同様の設定(IPv6)
             sudo nft add rule inet filter FORWARD ip daddr "${network_address}/${cidr}" iifname "${outside_interface}" oifname "${interface}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックを許可(IPv4)
-            sudo nft add rule inet filter FORWARD iifname "${outside_interface}" oifname "${interface}" ct state established,related ip6 accept && # 前行と同様の設定(IPv6)
+            sudo nft add rule inet filter FORWARD ip6 saddr "::/0" iifname "${outside_interface}" oifname "${interface}" ct state established,related accept && # 前行と同様の設定(IPv6)
             sudo nft add rule inet filter FORWARD ip6 nexthdr icmpv6 icmpv6 type { 1, 2, 3, 4, 133, 134, 135, 136 } accept && # ICMPのエラー・近隣探索の転送トラフィックを許可(IPv6)
             if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
                 local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
