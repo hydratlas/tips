@@ -60,6 +60,7 @@ JSON='{
       "virtual_router_id": "1", 
       "dhcp_hosts": [
         {
+          "hostname": "client1",
           "ip_address": "192.168.3.10",
           "mac_address": "XX:XX:XX:XX:XX:XX"
         }
