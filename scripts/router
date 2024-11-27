@@ -195,6 +195,9 @@ setup_nftables () {
                 sudo nft add rule inet nat PREROUTING ip6 saddr "${ipv6_network_prefix}/${ipv6_cidr}" ip6 daddr 64:ff9b::/96 iifname "${interface}" oifname "${outside_interface}" \
                     log prefix "\"nft dnat: \"" level info \
                     dnat to ip # DNATを設定(IPv6 to IPv4)
+                sudo nft add rule inet nat POSTROUTING ip6 daddr 64:ff9b::/96 \
+                    log prefix "\"nft masquerade: \"" level info \
+                    masquerade # マスカレードを設定(IPv6 to IPv4)
             fi &&
             sudo nft add rule inet nat POSTROUTING ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" \
                 log prefix "\"nft masquerade: \"" level info \
