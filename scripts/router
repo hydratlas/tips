@@ -161,9 +161,9 @@ setup_nftables () {
     fi
     local outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
     sudo nft add table inet filter &&
-    sudo nft add chain inet filter INPUT { type filter hook input priority 0 \; policy drop\; } &&
-    sudo nft add chain inet filter FORWARD { type filter hook forward priority 0 \; policy drop\; } &&
-    sudo nft add chain inet filter OUTPUT { type filter hook output priority 0 \; policy drop\; } &&
+    sudo nft add chain inet filter INPUT { type filter hook input priority 0 \; policy accept\; } &&
+    sudo nft add chain inet filter FORWARD { type filter hook forward priority 0 \; policy accept\; } &&
+    sudo nft add chain inet filter OUTPUT { type filter hook output priority 0 \; policy accept\; } &&
     sudo nft add rule inet filter INPUT ip protocol icmp icmp type { echo-request, echo-reply } accept && # ICMPのエコー要求・応答の入力トラフィックを許可(IPv4)
     sudo nft add rule inet filter INPUT ip6 nexthdr icmpv6 icmpv6 type { 128, 129 } accept && # 前行と同様の設定(IPv6)
     sudo nft add rule inet filter INPUT ip6 nexthdr icmpv6 icmpv6 type { 1, 2, 3, 4, 133, 134, 135, 136 } accept && # ICMPのエラー・近隣探索の入力トラフィックを許可(IPv6)
@@ -201,6 +201,8 @@ setup_nftables () {
                 masquerade # マスカレードを設定(IPv4) ※SNATの場合には「snat to "${outside_ip_address}"」
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
+    sudo nft add rule inet filter INPUT drop && # その他すべての入力トラフィックを拒否
+    sudo nft add rule inet filter FORWARD drop && # その他すべての転送トラフィックを拒否
     sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null &&
     sudo systemctl enable --now nftables.service &&
     systemctl status --no-pager nftables.service
