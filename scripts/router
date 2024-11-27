@@ -8,6 +8,10 @@ setup_netplan () {
             host_index=${index}
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+    if [ -z "${host_index}" ]; then
+        echo "There is no corresponding host name in the JSON." &&
+        exit 1
+    fi
     local interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
     local mac_address="$(echo "${JSON}" | jq -c -r ".outside.mac_address[${host_index}]")" &&
     local ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
@@ -109,6 +113,10 @@ EOS
             host_index=${index}
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+    if [ -z "${host_index}" ]; then
+        echo "There is no corresponding host name in the JSON." &&
+        exit 1
+    fi
     local vrrp_state="$(echo "${JSON}" | jq -c -r ".vrrp.state[${host_index}]")" &&
     local vrrp_priority="$(echo "${JSON}" | jq -c -r ".vrrp.priority[${host_index}]")" &&
     local vrrp_advert_int="$(echo "${JSON}" | jq -c -r ".vrrp.advert_int")" &&
@@ -154,6 +162,10 @@ EOS
             host_index=${index}
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+    if [ -z "${host_index}" ]; then
+        echo "There is no corresponding host name in the JSON." &&
+        exit 1
+    fi
     local outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
     local outside_ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
     sudo nft add table ip filter &&
@@ -258,6 +270,10 @@ EOS
             host_index=${index}
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+    if [ -z "${host_index}" ]; then
+        echo "There is no corresponding host name in the JSON." &&
+        exit 1
+    fi
     while read -r index element; do
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
