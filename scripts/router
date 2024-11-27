@@ -287,17 +287,17 @@ EOS
         local dhcp_host_strings=() &&
         if echo "$element" | jq -e 'has("dhcp_hosts")' > /dev/null; then
             while read -r index2 dhcp_host; do
-                local dhcp_host_hostname="$(echo "${dhcp_host}" | jq -c -r ".hostname")" &&
-                local dhcp_host_ip_address="$(echo "${dhcp_host}" | jq -c -r ".ip_address")" &&
-                local dhcp_host_mac_address="" &&
+                local dhcp_host_array=() &&
                 if echo "$dhcp_host" | jq -e 'has("mac_address")' > /dev/null; then
-                    dhcp_host_mac_address="$(echo "${dhcp_host}" | jq -c -r '.mac_address')"
-                fi
-                local dhcp_host_id="*" &&
+                    dhcp_host_array+=("$(echo "${dhcp_host}" | jq -c -r '.mac_address')")
+                fi &&
                 if echo "$dhcp_host" | jq -e 'has("id")' > /dev/null; then
-                    local dhcp_host_id="id:$(echo "${dhcp_host}" | jq -c -r '.id')"
-                fi
-                dhcp_host_strings+=("dhcp-host=${dhcp_host_mac_address},${dhcp_host_id},${dhcp_host_ip_address},${dhcp_host_hostname},24h")
+                    dhcp_host_array+=("id:$(echo "${dhcp_host}" | jq -c -r '.id')")
+                fi &&
+                dhcp_host_array+=("$(echo "${dhcp_host}" | jq -c -r ".ip_address")") &&
+                dhcp_host_array+=("$(echo "${dhcp_host}" | jq -c -r ".hostname")") &&
+                dhcp_host_array+=("24h") &&
+                dhcp_host_strings+=("dhcp-host=$(IFS=','; echo "${dhcp_host_array[*]}")")
             done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)"
         fi &&
         sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" << EOS > /dev/null
