@@ -272,8 +272,8 @@ EOS
         echo "There is no corresponding host name in the JSON." &&
         exit 1
     fi
-    local conf_lines=() &&
     while read -r index element; do
+        local conf_lines=() &&
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
         local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
