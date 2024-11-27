@@ -126,6 +126,6 @@ ip a
 ip r
 cat /run/systemd/resolve/resolv.conf
 dig hostname.home.apra
-dig @<dns server ip> google.com
+watch dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" google.com
 ```
 `watch `を前に付けると1秒間隔で自動的に取得できる。

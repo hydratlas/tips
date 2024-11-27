@@ -145,6 +145,7 @@ EOS
     sudo systemctl enable --now keepalived.service &&
     systemctl status --no-pager keepalived.service
     set +eux
+    systemctl is-active --quiet keepalived.service
 }
 setup_nftables () {
     set -eux &&
@@ -203,6 +204,7 @@ EOS
     sudo systemctl enable --now nftables.service &&
     systemctl status --no-pager nftables.service
     set +eux
+    systemctl is-active --quiet nftables.service
 }
 setup_dnsmasq () {
     set -eux &&
@@ -301,4 +303,5 @@ EOS
     sudo systemctl enable --now dnsmasq.service &&
     systemctl status --no-pager dnsmasq.service
     set +eux
+    systemctl is-active --quiet dnsmasq.service
 }
