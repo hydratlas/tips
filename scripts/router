@@ -217,7 +217,6 @@ setup_dnsmasq () {
     local JSON="${1}" &&
     sudo apt-get install -y dnsmasq &&
     sudo systemctl stop dnsmasq.service &&
-    local elements="$(echo "${JSON}" | jq '.ntp.ip_address[]')" &&
     local ntp="dhcp-option=option:ntp-server,$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
     local ntp_v6="" &&
     if echo "${JSON}" | jq -e '.ntp.ipv6_address | type == "array"' > /dev/null; then
@@ -241,9 +240,6 @@ expand-hosts
 
 # dnsmasqのドメインを設定する
 domain=home.apra
-
-# DNS64用の設定
-server=64:ff9b::/96
 
 # インターフェースへのバインドを起動時に固定せず、ダイナミックに変更する（bind-interfacesとは併用できない）
 bind-dynamic
