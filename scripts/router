@@ -20,7 +20,7 @@ setup_netplan () {
         local ipv6_is_enabled=$(echo "${element}" | jq 'has("ipv6") then true else false end') &&
         local ipv6_address=""
         if ${ipv6_is_enabled}; then
-            ipv6_address="- $(echo "${element}" | jq -c -r ".ipv6.network_prefix")$(echo "${element}" | jq -c -r ".ipv6.cidr")"
+            ipv6_address="- $(echo "${element}" | jq -c -r ".ipv6.network_prefix")/$(echo "${element}" | jq -c -r ".ipv6.cidr")"
         fi
         sudo tee "/etc/netplan/70-${interface}.yaml" << EOS > /dev/null &&
 network:
