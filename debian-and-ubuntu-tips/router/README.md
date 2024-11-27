@@ -13,8 +13,8 @@
 - DHCPによるIPアドレスの最大配布数は`192.168.n.17`から`254`までを2分割しているため、119個
   - 変更可能
 - `dhcp_hosts`で固定的にDHCPアドレスを配布可能
-  - MACアドレスだけではなくIDも指定可能（`cat /etc/machine-id`から取得）
-    - 両方指定して、両方の条件を満たすときだけ配布することも可能
+  - MACアドレスだけではなくクライアントIDも指定可能（ただしテストでは機能していない）
+    - クライアントIDの取得方法: `sudo netplan ip leases eth0 | grep -oP '^CLIENTID=\K.*' | sed 's/\(..\)/\1:/g' | sed 's/:$//'`
 - `virtual_router_id`は`1`としているが、`0`から`255`までの範囲で同じネットワークの別のVRRPと重ならない値にする
 
 ```sh
@@ -135,10 +135,16 @@ setup_dnsmasq "${JSON}"
 ```
 やりなおすときは、そのままやりなおして構わない。
 
+### DHCPクライアントからの要求の確認
+```sh
+sudo journalctl -u dnsmasq | grep "DHCPDISCOVER"
+```
+
 ### 確認（クライアント側）
 ```sh
 ip a
 ip r
+sudo netplan ip leases eth0
 cat /run/systemd/resolve/resolv.conf
 dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" client1.home.apra
 watch dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" google.com
