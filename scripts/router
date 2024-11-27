@@ -285,11 +285,13 @@ EOS
         local virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
         local dhcp_range="$(echo "${element}" | jq -r ".dhcp_range[${host_index}] | join(\",\")")" &&
         local dhcp_host_strings=() &&
-        while read -r index2 dhcp_host; do
-            local dhcp_host_ip_address="$(echo "${dhcp_host}" | jq -c -r ".ip_address")" &&
-            local dhcp_host_mac_address="$(echo "${dhcp_host}" | jq -c -r ".mac_address")" &&
-            dhcp_host_strings+=("dhcp-host=${interface},${dhcp_host_mac_address},${dhcp_host_ip_address}")
-        done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)" &&
+        if echo "$json" | jq -e 'has("dhcp_hosts")' > /dev/null; then
+            while read -r index2 dhcp_host; do
+                local dhcp_host_ip_address="$(echo "${dhcp_host}" | jq -c -r ".ip_address")" &&
+                local dhcp_host_mac_address="$(echo "${dhcp_host}" | jq -c -r ".mac_address")" &&
+                dhcp_host_strings+=("dhcp-host=${interface},${dhcp_host_mac_address},${dhcp_host_ip_address}")
+            done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)"
+        fi &&
         sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" << EOS > /dev/null
 # インターフェース
 interface=${interface}

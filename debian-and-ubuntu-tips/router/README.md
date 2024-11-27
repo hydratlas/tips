@@ -63,7 +63,7 @@ JSON='{
           "ip_address": "192.168.3.10",
           "mac_address": "XX:XX:XX:XX:XX:XX"
         }
-      }
+      ]
     }
   ]
 }' &&
