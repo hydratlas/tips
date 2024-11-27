@@ -2,6 +2,8 @@
 - Ubuntu Server 24.04を使って、SNAT、DNSキャッシュサーバーおよびDHCPサーバーができるルーターを設定する
   - DNSキャッシュサーバーおよびDHCPサーバーはオンで、SNATはオフのネットワークセグメントも対応可能
 - そのように設定するルーターを2台用意して、VRRP（Virtual Router Redundancy Protocol）によって冗長性を確保する
+- NAT64対応
+  - IPv4アドレスをIPv6アドレスに変換する方法: `IFS='.' read -r -a octets <<< "192.0.20.1" && ipv4_hex=$(printf "%02x%02x%02x%02x" "${octets[0]}" "${octets[1]}" "${octets[2]}" "${octets[3]}") && echo "64:ff9b::$(echo $ipv4_hex | sed 's/\(..\)\(..\)\(..\)\(..\)/\1\2:\3\4/')"`
 
 ## 変数の準備
 この例は次のような構成を想定している
@@ -44,7 +46,7 @@ JSON='{
       "ip_address": ["192.168.2.2", "192.168.2.3"],
       "virtual_ip_address": "192.168.2.1",
       "cidr": "24",
-      "nat": {
+      "forwarding": {
         "is_enabled": true
       },
       "dhcp_range": [["192.168.2.17", "192.168.2.135"], ["192.168.2.136", "192.168.2.254"]],
@@ -56,7 +58,7 @@ JSON='{
       "ip_address": ["192.168.3.2", "192.168.3.3"],
       "virtual_ip_address": "192.168.3.1",
       "cidr": "24",
-      "nat": {
+      "forwarding": {
         "is_enabled": true
       },
       "dhcp_range": [["192.168.3.17", "192.168.3.135"], ["192.168.3.136", "192.168.3.254"]],

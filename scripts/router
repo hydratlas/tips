@@ -12,36 +12,17 @@ setup_netplan () {
         echo "There is no corresponding host name in the JSON." &&
         exit 1
     fi
-    local interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
-    local mac_address="$(echo "${JSON}" | jq -c -r ".outside.mac_address[${host_index}]")" &&
-    local ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
-    local cidr="$(echo "${JSON}" | jq -c -r ".outside.cidr")" &&
-    local dns="$(echo "${JSON}" | jq -c ".outside.dns")" &&
-    local route="$(echo "${JSON}" | jq -c -r ".outside.route")" &&
-    sudo tee "/etc/netplan/90-${interface}.yaml" << EOS > /dev/null &&
-network:
-  version: 2
-  ethernets:
-    ${interface}:
-      match:
-        macaddress: "${mac_address}"
-      addresses:
-        - "${ip_address}/${cidr}"
-      nameservers:
-        addresses: ${dns}
-      dhcp6: true
-      set-name: "${interface}"
-      routes:
-        - to: "default"
-          via: "${route}"
-EOS
-    sudo chmod go= "/etc/netplan/90-${interface}.yaml" &&
     while read -r index element; do
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local mac_address="$(echo "${element}" | jq -c -r ".mac_address[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
         local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-        sudo tee "/etc/netplan/90-${interface}.yaml" << EOS > /dev/null &&
+        local ipv6_is_enabled=$(echo "${element}" | jq 'has("ipv6") then true else false end') &&
+        local ipv6_address=""
+        if ${ipv6_is_enabled}; then
+            ipv6_address="- $(echo "${element}" | jq -c -r ".ipv6.network_prefix")$(echo "${element}" | jq -c -r ".ipv6.cidr")"
+        fi
+        sudo tee "/etc/netplan/70-${interface}.yaml" << EOS > /dev/null &&
 network:
   version: 2
   ethernets:
@@ -50,9 +31,10 @@ network:
         macaddress: "${mac_address}"
       addresses:
         - "${ip_address}/${cidr}"
+        ${ipv6_address}
       set-name: "${interface}"
 EOS
-        sudo chmod go= "/etc/netplan/90-${interface}.yaml"
+        sudo chmod go= "/etc/netplan/70-${interface}.yaml"
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
     set +u &&
     if [ "${SSH_CONNECTION-}" ]; then
@@ -150,10 +132,17 @@ EOS
 setup_nftables () {
     set -eux &&
     local JSON="${1}" &&
-    sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
-net/ipv4/ip_forward=1
-EOS
-    sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
+    local sysctl_conf_lines=() &&
+    sysctl_conf_lines+=("net.ipv4.ip_forward=1") &&
+    while read -r index element; do
+        local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
+        local forwarding_is_enabled=$(echo "${element}" | jq 'if .forwarding | has("is_enabled") and .is_enabled == true then true else false end') &&
+        if ${forwarding_is_enabled}; then
+            sysctl_conf_lines+=("net.ipv6.conf.${interface}.forwarding = 1")
+        fi
+    done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
+    sudo tee /etc/sysctl.d/20-forwarding.conf <<< "$(printf "%s\n" "${sysctl_conf_lines[@]}")" &&
+    sudo sysctl -p /etc/sysctl.d/20-forwarding.conf &&
     sudo apt-get install -y nftables ipcalc &&
     sudo systemctl stop nftables.service &&
     sudo nft flush ruleset &&
@@ -168,38 +157,47 @@ EOS
         exit 1
     fi
     local outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
-    local outside_ip_address="$(echo "${JSON}" | jq -c -r ".outside.ip_address[${host_index}]")" &&
-    sudo nft add table ip filter &&
-    sudo nft add chain ip filter INPUT { type filter hook input priority 0 \; } &&
-    sudo nft add chain ip filter FORWARD { type filter hook forward priority 0 \; } &&
-    sudo nft add chain ip filter OUTPUT { type filter hook output priority 0 \; } &&
-    sudo nft add rule ip filter INPUT icmp type echo-request accept && # エコー要求は許可(ping)
-    sudo nft add rule ip filter INPUT icmp type echo-reply accept && # エコー応答は許可(ping)
-    sudo nft add rule ip filter INPUT iifname "lo" accept && # ローカルホストへの入力トラフィックは許可
-    sudo nft add rule ip filter INPUT ct state established,related accept && # 既存の接続や関連の入力トラフィックは許可
-    sudo nft add table ip nat &&
-    sudo nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; } &&
+    sudo nft add table inet filter &&
+    sudo nft add chain inet filter INPUT { type filter hook input priority 0 \; policy drop\; } &&
+    sudo nft add chain inet filter FORWARD { type filter hook forward priority 0 \; policy drop\; } &&
+    sudo nft add chain inet filter OUTPUT { type filter hook output priority 0 \; policy drop\; } &&
+    sudo nft add rule inet filter INPUT ip protocol icmp icmp type { echo-request, echo-reply } accept && # ICMPのエコー要求・応答の入力トラフィックを許可(IPv4)
+    sudo nft add rule inet filter INPUT ip6 nexthdr icmpv6 icmpv6 type { 128, 129 } accept && # 前行と同様の設定(IPv6)
+    sudo nft add rule inet filter INPUT ip6 nexthdr icmpv6 icmpv6 type { 1, 2, 3, 4, 133, 134, 135, 136 } accept && # ICMPのエラー・近隣探索の入力トラフィックを許可(IPv6)
+    sudo nft add rule inet filter INPUT iifname "lo" accept && # ローカルホストへの入力トラフィックを許可
+    sudo nft add rule inet filter INPUT ct state established,related accept && # 既存の接続や関連の入力トラフィックを許可
+    sudo nft add table inet nat &&
+    sudo nft add chain inet nat PREROUTING { type nat hook prerouting priority -100 \; policy accept\; } &&
+    sudo nft add chain inet nat POSTROUTING { type nat hook postrouting priority 100 \; policy accept\; } &&
     while read -r index element; do
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
         local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-        local nat_is_enabled=$(echo "${element}" | jq 'if .nat | has("is_enabled") and .is_enabled == true then true else false end') &&
+        local forwarding_is_enabled=$(echo "${element}" | jq 'if .forwarding | has("is_enabled") and .is_enabled == true then true else false end') &&
         local network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
         network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
-        sudo nft add rule ip filter INPUT iifname "${interface}" ip daddr 224.0.0.18 ip protocol vrrp accept && # Keepalivedに関する入力トラフィックを許可
-        sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport domain accept && # DNSクエリ(UDP)に関する入力トラフィックを許可
-        sudo nft add rule ip filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport domain accept && # DNSクエリ(TCP)に関する入力トラフィックを許可
-        sudo nft add rule ip filter INPUT iifname "${interface}" udp dport bootps accept && # DHCPリクエストに関する入力トラフィックを許可
-        if ${nat_is_enabled}; then
-            sudo nft add rule ip filter FORWARD ip saddr "${network_address}/${cidr}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックは許可
-            sudo nft add rule ip filter FORWARD ip daddr "${network_address}/${cidr}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックは許可
-            sudo nft add rule ip nat postrouting ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" \
-            log prefix "\"nft snat: \"" level info \
-            snat to "${outside_ip_address}" # SNATを設定
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip daddr 224.0.0.18 ip protocol vrrp accept && # Keepalivedに関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport domain accept && # DNSクエリ(UDP)に関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport domain accept && # DNSクエリ(TCP)に関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip protocol udp dport bootps accept && # DHCPリクエストに関する入力トラフィックを許可(IPv4)
+        if ${forwarding_is_enabled}; then
+            sudo nft add rule inet filter FORWARD ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックを許可(IPv4)
+            sudo nft add rule inet filter FORWARD ip6 iifname "${interface}" oifname "${outside_interface}" accept && # 前行と同様の設定(IPv6)
+            sudo nft add rule inet filter FORWARD ip daddr "${network_address}/${cidr}" iifname "${outside_interface}" oifname "${interface}" ct state established,related accept && # 外部からローカルネットワークへの関連の転送トラフィックを許可(IPv4)
+            sudo nft add rule inet filter FORWARD ip6 iifname "${outside_interface}" oifname "${interface}" ct state established,related accept && # 前行と同様の設定(IPv6)
+            sudo nft add rule inet filter FORWARD ip6 nexthdr icmpv6 icmpv6 type { 1, 2, 3, 4, 133, 134, 135, 136 } accept && # ICMPのエラー・近隣探索の転送トラフィックを許可(IPv6)
+            if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
+                local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
+                local ipv6_cidr="$(echo "${element}" | jq -c -r ".ipv6.cidr")" &&
+                sudo nft add rule inet nat PREROUTING ip6 saddr "${ipv6_network_prefix}/${ipv6_cidr}" daddr 64:ff9b::/96 iifname "${interface}" oifname "${outside_interface}" \
+                    log prefix "\"nft dnat: \"" level info \
+                    dnat to ip # DNATを設定(IPv6 to IPv4)
+            fi &&
+            sudo nft add rule inet nat POSTROUTING ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" \
+                log prefix "\"nft masquerade: \"" level info \
+                masquerade # マスカレードを設定(IPv4) ※SNATの場合には「snat to "${outside_ip_address}"」
         fi
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-    sudo nft add rule ip filter INPUT drop && # その他すべての入力トラフィックを拒否
-    sudo nft add rule ip filter FORWARD drop && # その他すべての転送トラフィックを拒否
     sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null &&
     sudo systemctl enable --now nftables.service &&
     systemctl status --no-pager nftables.service
@@ -212,11 +210,14 @@ setup_dnsmasq () {
     sudo apt-get install -y dnsmasq &&
     sudo systemctl stop dnsmasq.service &&
     local elements="$(echo "${JSON}" | jq '.ntp.ip_address[]')" &&
-    local dns="$(echo "${JSON}" | jq -r '.outside.dns[] | "server=\(.)"')" &&
-    local ntp="$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
+    local ntp="dhcp-option=option:ntp-server,$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
+    local ntp_v6="" &&
+    if echo "${JSON}" | jq -e '.ntp.ipv6_address | type == "array"' > /dev/null; then
+      ntp="dhcp-option=option6:ntp-server,$(echo "${JSON}" | jq -r '[.ntp.ipv6_address[] | "[" + . + "]"] | join(",")')" &&
+    fi &&
     # resolvconfパッケージがインストールされている場合、dnsmasqはシステムのデフォルトリゾルバとして
     # 127.0.0.1配下のdnsmasqを使用するようにresolvconfに伝えるが、その動作を抑制する。
-    sudo perl -pe "s/^#?DNSMASQ_EXCEPT=.*\$/DNSMASQ_EXCEPT=lo/g" -i "/etc/default/dnsmasq"
+    sudo perl -pe "s/^#?DNSMASQ_EXCEPT=.*\$/DNSMASQ_EXCEPT=lo/g" -i "/etc/default/dnsmasq" &&
     sudo tee "/etc/dnsmasq.d/base.conf" << EOS > /dev/null &&
 # プレーンネーム（ドットやドメイン部分のないもの）を転送しない
 domain-needed
@@ -227,24 +228,14 @@ bogus-priv
 # ローカル専用ドメインをここに追加すると、これらのドメインのクエリは/etc/hostsまたはDHCPからのみ応答される。
 local=/home.apra/
 
-# hosts-file内の単純な名前にドメインを自動的に追加したい場合は、これを設定する（ドメインも設定する：後述）。
+# hosts-file内の単純な名前にドメインを自動的に追加したい場合は、これを設定する。
 expand-hosts
 
 # dnsmasqのドメインを設定する
 domain=home.apra
 
-# /etc/resolv.confを読み込まない→systemd-resolvedを使うため読み込む
-#no-resolv
-
-# 上位のDNSサーバーへの参照→systemd-resolvedを使うためいらない
-#${dns}
-
-# これをサポートしているシステムでは、dnsmasqは、いくつかのインターフェイスでしかリッスンしていない場合でも、
-# ワイルドカードアドレスをバインドする。そして、応答すべきでないリクエストを破棄する。
-# これは、インターフェイスが行ったり来たりしてアドレスが変わっても動作するという利点がある。
-# dnsmasqがリッスンしているインターフェースだけを本当にバインドしたい場合は、このオプションのコメントを外す。
-# このオプションが必要になるのは次のような場合だけである。同じマシン上で別のネームサーバーを実行している場合。
-#bind-interfaces
+# DNS64用の設定
+server=64:ff9b::/96
 
 # インターフェースへのバインドを起動時に固定せず、ダイナミックに変更する（bind-interfacesとは併用できない）
 bind-dynamic
@@ -253,7 +244,8 @@ bind-dynamic
 except-interface=lo
 
 # NTPサーバーを公告
-dhcp-option=option:ntp-server,${ntp}
+${ntp}
+${ntp_v6}
 EOS
     local TARGET_FILE="/etc/dnsmasq.conf" &&
     local START_MARKER="# BEGIN INCLUDE BLOCK" &&
@@ -276,6 +268,7 @@ EOS
         echo "There is no corresponding host name in the JSON." &&
         exit 1
     fi
+    local conf_lines=() &&
     while read -r index element; do
         local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
         local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
@@ -285,7 +278,15 @@ EOS
         local virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
         local dhcp_range="$(echo "${element}" | jq -r ".dhcp_range[${host_index}] | join(\",\")")" &&
         local dhcp_host_strings=() &&
-        if echo "$element" | jq -e 'has("dhcp_hosts")' > /dev/null; then
+        conf_lines+=("interface=${interface}") && # インターフェース
+        conf_lines+=("dhcp-range=${interface},${dhcp_range},${subnet_mask},24h") && # DHCPのアドレスの範囲
+        conf_lines+=("dhcp-option=${interface},option:router,${virtual_ip_address}") && # デフォルトルート
+        if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
+            local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
+            conf_lines+=("enable-ra") && # IPv6のルーターアドバタイズメント(Router Advertisement)機能を有効化
+            conf_lines+=("dhcp-range=${ipv6_network_prefix}, ra-only") && # RAでネットワークプレフィックスを公告
+        fi &&
+        if echo "${element}" | jq -e '.dhcp_hosts | type == "array"' > /dev/null; then
             while read -r index2 dhcp_host; do
                 local dhcp_host_array=() &&
                 if echo "$dhcp_host" | jq -e 'has("mac_address")' > /dev/null; then
@@ -297,24 +298,10 @@ EOS
                 dhcp_host_array+=("$(echo "${dhcp_host}" | jq -c -r ".ip_address")") &&
                 dhcp_host_array+=("$(echo "${dhcp_host}" | jq -c -r ".hostname")") &&
                 dhcp_host_array+=("24h") &&
-                dhcp_host_strings+=("dhcp-host=$(IFS=','; echo "${dhcp_host_array[*]}")")
+                conf_lines+=("dhcp-host=$(IFS=','; echo "${dhcp_host_array[*]}")") # DHCP固定配布
             done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)"
         fi &&
-        sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" << EOS > /dev/null
-# インターフェース
-interface=${interface}
-
-# DHCPのアドレスの範囲
-dhcp-range=${interface},${dhcp_range},${subnet_mask},24h
-
-# デフォルトルート
-dhcp-option=${interface},option:router,${virtual_ip_address}
-
-# DNSサーバー
-dhcp-option=${interface},option:dns-server,${virtual_ip_address}
-
-$(printf "%s\n" "${dhcp_host_strings[@]}")
-EOS
+        sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" <<< "$(printf "%s\n" "${conf_lines[@]}")"
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
     sudo systemctl enable --now dnsmasq.service &&
     systemctl status --no-pager dnsmasq.service
