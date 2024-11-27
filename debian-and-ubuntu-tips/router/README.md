@@ -12,6 +12,8 @@
 - ホスト名`router2`のIPアドレス: `192.168.2.3`および`192.168.3.3`
 - DHCPによるIPアドレスの最大配布数は`192.168.n.17`から`254`までを2分割しているため、119個
   - 変更可能
+- `dhcp_hosts`で固定的にDHCPアドレスを配布可能
+  - MACアドレスだけではなくIDも指定可能（`cat /etc/machine-id`から取得）
 - `virtual_router_id`は`1`としているが、`0`から`255`までの範囲で同じネットワークの別のVRRPと重ならない値にする
 
 ```sh
@@ -63,6 +65,11 @@ JSON='{
           "hostname": "client1",
           "ip_address": "192.168.3.10",
           "mac_address": "XX:XX:XX:XX:XX:XX"
+        },
+        {
+          "hostname": "client2",
+          "ip_address": "192.168.3.11",
+          "id": "xxxxxxxxxxxxxxxxxxxxxxxxxx"
         }
       ]
     }
@@ -132,7 +139,7 @@ setup_dnsmasq "${JSON}"
 ip a
 ip r
 cat /run/systemd/resolve/resolv.conf
-dig hostname.home.apra
+dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" client1.home.apra
 watch dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" google.com
 ```
 `watch `を前に付けると1秒間隔で自動的に取得できる。

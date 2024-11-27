@@ -290,7 +290,13 @@ EOS
                 local dhcp_host_hostname="$(echo "${dhcp_host}" | jq -c -r ".hostname")" &&
                 local dhcp_host_ip_address="$(echo "${dhcp_host}" | jq -c -r ".ip_address")" &&
                 local dhcp_host_mac_address="$(echo "${dhcp_host}" | jq -c -r ".mac_address")" &&
-                dhcp_host_strings+=("dhcp-host=${interface},${dhcp_host_mac_address},${dhcp_host_ip_address},${dhcp_host_hostname}")
+                local dhcp_host_id="$(echo "${dhcp_host}" | jq -c -r '.id')" &&
+                if [ -z "${dhcp_host_id}" ]; then
+                    dhcp_host_id="*"
+                else
+                    dhcp_host_id="id:${dhcp_host_id}"
+                fi &&
+                dhcp_host_strings+=("dhcp-host=${dhcp_host_mac_address},${dhcp_host_id},${dhcp_host_ip_address},${dhcp_host_hostname},24h")
             done <<< "$(echo "${element}" | jq -c -r ".dhcp_hosts[]" | nl -v 0)"
         fi &&
         sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" << EOS > /dev/null
