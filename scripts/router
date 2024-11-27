@@ -213,7 +213,7 @@ setup_dnsmasq () {
     local ntp="dhcp-option=option:ntp-server,$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
     local ntp_v6="" &&
     if echo "${JSON}" | jq -e '.ntp.ipv6_address | type == "array"' > /dev/null; then
-      ntp="dhcp-option=option6:ntp-server,$(echo "${JSON}" | jq -r '[.ntp.ipv6_address[] | "[" + . + "]"] | join(",")')" &&
+      ntp="dhcp-option=option6:ntp-server,$(echo "${JSON}" | jq -r '[.ntp.ipv6_address[] | "[" + . + "]"] | join(",")')"
     fi &&
     # resolvconfパッケージがインストールされている場合、dnsmasqはシステムのデフォルトリゾルバとして
     # 127.0.0.1配下のdnsmasqを使用するようにresolvconfに伝えるが、その動作を抑制する。
@@ -284,7 +284,7 @@ EOS
         if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
             local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
             conf_lines+=("enable-ra") && # IPv6のルーターアドバタイズメント(Router Advertisement)機能を有効化
-            conf_lines+=("dhcp-range=${ipv6_network_prefix}, ra-only") && # RAでネットワークプレフィックスを公告
+            conf_lines+=("dhcp-range=${ipv6_network_prefix}, ra-only") # RAでネットワークプレフィックスを公告
         fi &&
         if echo "${element}" | jq -e '.dhcp_hosts | type == "array"' > /dev/null; then
             while read -r index2 dhcp_host; do
