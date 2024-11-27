@@ -20,10 +20,10 @@ setup_netplan () {
         local ipv6_is_enabled=$(echo "${element}" | jq 'has("ipv6") then true else false end') &&
         local ipv6_address=""
         if ${ipv6_is_enabled}; then
-            ipv6_address+="- " &&
+            ipv6_address+="- \"" &&
             ipv6_address+="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
             ipv6_address+="/" &&
-            ipv6_address+="$(echo "${element}" | jq -c -r ".ipv6.cidr")"
+            ipv6_address+="$(echo "${element}" | jq -c -r ".ipv6.cidr")\""
         fi
         sudo tee "/etc/netplan/70-${interface}.yaml" << EOS > /dev/null &&
 network:
@@ -180,9 +180,9 @@ setup_nftables () {
         local network_address="$(ipcalc "${ip_address}/${cidr}" | grep -oP "(?<=^Network:) *[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")" &&
         network_address="${network_address#"${network_address%%[![:space:]]*}"}" &&
         sudo nft add rule inet filter INPUT iifname "${interface}" ip daddr 224.0.0.18 ip protocol vrrp accept && # Keepalivedに関する入力トラフィックを許可(IPv4)
-        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport domain accept && # DNSクエリ(UDP)に関する入力トラフィックを許可(IPv4)
-        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport domain accept && # DNSクエリ(TCP)に関する入力トラフィックを許可(IPv4)
-        sudo nft add rule inet filter INPUT iifname "${interface}" ip protocol udp dport bootps accept && # DHCPリクエストに関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" udp dport 53 accept && # DNSクエリ(UDP)に関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip saddr "${network_address}/${cidr}" tcp dport 53 accept && # DNSクエリ(TCP)に関する入力トラフィックを許可(IPv4)
+        sudo nft add rule inet filter INPUT iifname "${interface}" ip protocol udp dport 67 accept && # DHCPリクエストに関する入力トラフィックを許可(IPv4)
         if ${forwarding_is_enabled}; then
             sudo nft add rule inet filter FORWARD ip saddr "${network_address}/${cidr}" iifname "${interface}" oifname "${outside_interface}" accept && # ローカルネットワークから外部への転送トラフィックを許可(IPv4)
             sudo nft add rule inet filter FORWARD ip6 iifname "${interface}" oifname "${outside_interface}" accept && # 前行と同様の設定(IPv6)
