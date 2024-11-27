@@ -101,7 +101,7 @@ sudo systemctl start dnsmasq.service
 ```sh
 setup_nftables "${JSON}"
 ```
-やりなおすときは、`sudo nft flush ruleset`コマンドを実行する。
+やりなおすときは、そのままやりなおして構わない。
 
 ### 現在の永続的な設定の確認
 ```sh

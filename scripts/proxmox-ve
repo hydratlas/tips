@@ -1,6 +1,6 @@
 #!/bin/bash
-set -eux
 image_downloader () {
+  set -eux &&
   local IMAGE_URL="${1}" &&
   local IMAGE_DIR="/var/lib/vz/template/iso" &&
   local IMAGE_NAME="${IMAGE_URL%%[\?#]*}" &&
@@ -12,8 +12,10 @@ image_downloader () {
   if [ ! -e "${IMAGE_DIR}/${IMAGE_NAME}" ] || [ ${TIMESPAN} -lt $((CURRENT_TIME - $(stat -c %Y "${IMAGE_DIR}/${IMAGE_NAME}"))) ]; then
     wget -O "${IMAGE_DIR}/${IMAGE_NAME}" "${IMAGE_URL}" # ファイルが存在しないか、1週間以上古かったらダウンロード
   fi
+  set +eux
 }
 vm_create () {
+  set -eux &&
   local VMID="${1}" &&
   local STORAGE="${2}" &&
   local SNIPPET_STORAGE="${3}" &&
@@ -31,8 +33,10 @@ vm_create () {
     --scsi0 "${STORAGE}:cloudinit,size=4M" \
     --agent enabled=1 \
     --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
+  set +eux
 }
 vm_start () {
+  set -eux &&
   local VMID="${1}" &&
   local TZ="$(timedatectl show --property=Timezone | cut -d= -f2)" &&
   local SCRIPT=$(cat << EOF
@@ -56,4 +60,5 @@ EOF
     sleep 1s
   done &&
   qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
+  set +eux
 }
