@@ -292,7 +292,7 @@ EOS
         conf_lines+=("interface=${interface}") && # インターフェース
         conf_lines+=("dhcp-range=${interface},${dhcp_range},${subnet_mask},24h") && # DHCPのアドレスの範囲
         conf_lines+=("dhcp-option=${interface},option:router,${virtual_ip_address}") && # デフォルトルート
-        conf_lines+=("dhcp-option=${interface},dns-server,${virtual_ip_address}") && # DNSサーバー
+        conf_lines+=("dhcp-option=${interface},option:dns-server,${virtual_ip_address}") && # DNSサーバー
         if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
             local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
             conf_lines+=("dhcp-range=${interface},${ipv6_network_prefix},ra-only") # RAでネットワークプレフィックスを公告
