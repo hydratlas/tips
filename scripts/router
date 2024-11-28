@@ -157,6 +157,9 @@ setup_nftables () {
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
     sudo tee /etc/sysctl.d/20-forwarding.conf <<< "$(printf "%s\n" "${sysctl_conf_lines[@]}")" &&
     sudo sysctl -p /etc/sysctl.d/20-forwarding.conf &&
+    if [ -e /etc/nftables.conf ]; then
+        sudo rm /etc/nftables.conf
+    fi &&
     sudo apt-get install -y nftables ipcalc &&
     sudo systemctl stop nftables.service &&
     sudo nft flush ruleset &&
@@ -206,6 +209,7 @@ setup_nftables () {
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
     sudo nft add rule inet filter INPUT drop && # その他すべての入力トラフィックを拒否
     sudo nft add rule inet filter FORWARD drop && # その他すべての転送トラフィックを拒否
+
     sudo systemctl enable --now nftables.service &&
     sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null &&
     systemctl status --no-pager nftables.service
