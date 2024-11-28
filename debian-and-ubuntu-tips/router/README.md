@@ -24,12 +24,7 @@ sudo apt-get install -y jq &&
 JSON='{
   "router_host": ["router1", "router2"],
   "outside": {
-    "interface": ["eth0", "eth0"],
-    "mac_address": ["XX:XX:XX:XX:XX:XX", "XX:XX:XX:XX:XX:XX"],
-    "ip_address": ["nnn.nnn.nnn.nnn", "nnn.nnn.nnn.nnn"],
-    "cidr": "24",
-    "dns": ["nnn.nnn.nnn.nnn", "8.8.8.8"],
-    "route": "nnn.nnn.nnn.nnn"
+    "interface": ["eth0", "eth0"]
   },
   "vrrp": {
     "state": ["MASTER", "BACKUP"],
@@ -125,9 +120,9 @@ setup_nftables "${JSON}"
 cat /etc/nftables.conf
 ```
 
-### SNATのログ確認
+### IPマスカレードのログ確認
 ```sh
-journalctl --dmesg --no-pager -n 1000 | grep "nft snat:"
+journalctl --dmesg --no-pager -n 1000 | grep "nft masquerade:"
 ```
 
 ## DNSキャッシュサーバーおよびDHCPサーバー
