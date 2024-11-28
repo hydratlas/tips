@@ -246,13 +246,16 @@ expand-hosts
 # dnsmasqのドメインを設定する
 domain=home.apra
 
+# resolv.confを明示的に指定（デフォルトのはずなのであるが）
+resolv-file=/etc/resolv.conf
+
 # インターフェースへのバインドを起動時に固定せず、ダイナミックに変更する（bind-interfacesとは併用できない）
 bind-dynamic
 
 # loはsystemd-resolvedに任せるため、Dnsmasqでは使わないようにする（これによりbind-interfacesを使わなくてもすむ）
 except-interface=lo
 
-# Router Advertisement
+# IPv6のRAを有効化
 enable-ra
 
 # NTPサーバーを公告
