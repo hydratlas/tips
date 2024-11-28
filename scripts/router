@@ -192,9 +192,9 @@ setup_nftables () {
             if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
                 local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
                 local ipv6_cidr="$(echo "${element}" | jq -c -r ".ipv6.cidr")" &&
-                sudo nft add rule inet nat PREROUTING ip6 saddr "${ipv6_network_prefix}/${ipv6_cidr}" ip6 daddr 64:ff9b::/96 iifname "${interface}" oifname "${outside_interface}" \
-                    log prefix "\"nft dnat: \"" level info \
-                    dnat to ip # DNATを設定(IPv6 to IPv4)
+                #sudo nft add rule inet nat PREROUTING ip6 saddr "${ipv6_network_prefix}/${ipv6_cidr}" ip6 daddr 64:ff9b::/96 iifname "${interface}" oifname "${outside_interface}" \
+                #    log prefix "\"nft dnat: \"" level info \
+                #    dnat to ip # DNATを設定(IPv6 to IPv4)
                 sudo nft add rule inet nat POSTROUTING ip6 daddr 64:ff9b::/96 \
                     log prefix "\"nft masquerade: \"" level info \
                     masquerade # マスカレードを設定(IPv6 to IPv4)
@@ -220,7 +220,7 @@ setup_dnsmasq () {
     local ntp="dhcp-option=option:ntp-server,$(echo "${JSON}" | jq -r '.ntp.ip_address | join(",")')" &&
     local ntp_v6="" &&
     if echo "${JSON}" | jq -e '.ntp.ipv6_address | type == "array"' > /dev/null; then
-      ntp="dhcp-option=option6:ntp-server,$(echo "${JSON}" | jq -r '[.ntp.ipv6_address[] | "[" + . + "]"] | join(",")')"
+      ntp_v6="dhcp-option=option6:ntp-server,$(echo "${JSON}" | jq -r '[.ntp.ipv6_address[] | "[" + . + "]"] | join(",")')"
     fi &&
     # resolvconfパッケージがインストールされている場合、dnsmasqはシステムのデフォルトリゾルバとして
     # 127.0.0.1配下のdnsmasqを使用するようにresolvconfに伝えるが、その動作を抑制する。
@@ -246,6 +246,9 @@ bind-dynamic
 
 # loはsystemd-resolvedに任せるため、Dnsmasqでは使わないようにする（これによりbind-interfacesを使わなくてもすむ）
 except-interface=lo
+
+# Router Advertisement
+enable-ra
 
 # NTPサーバーを公告
 ${ntp}
@@ -287,8 +290,7 @@ EOS
         conf_lines+=("dhcp-option=${interface},option:router,${virtual_ip_address}") && # デフォルトルート
         if echo "$element" | jq -e 'has("ipv6")' > /dev/null; then
             local ipv6_network_prefix="$(echo "${element}" | jq -c -r ".ipv6.network_prefix")" &&
-            conf_lines+=("enable-ra") && # IPv6のルーターアドバタイズメント(Router Advertisement)機能を有効化
-            conf_lines+=("dhcp-range=${ipv6_network_prefix}, ra-only") # RAでネットワークプレフィックスを公告
+            conf_lines+=("dhcp-range=${interface},${ipv6_network_prefix},ra-only") # RAでネットワークプレフィックスを公告
         fi &&
         if echo "${element}" | jq -e '.dhcp_hosts | type == "array"' > /dev/null; then
             while read -r index2 dhcp_host; do
