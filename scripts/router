@@ -127,9 +127,9 @@ vrrp_instance VI_${interface} {
 }
 EOS
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-    sudo systemctl enable --now keepalived.service &&
-    systemctl status --no-pager keepalived.service
     set +eux
+    sudo systemctl enable --now keepalived.service
+    systemctl status --no-pager keepalived.service
     systemctl is-active --quiet keepalived.service
 }
 setup_nftables () {
@@ -212,9 +212,9 @@ setup_nftables () {
     sudo nft add rule inet filter FORWARD drop && # その他すべての転送トラフィックを拒否
     sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null &&
     sudo nft flush ruleset &&
-    sudo systemctl enable --now nftables.service &&
-    systemctl status --no-pager nftables.service
     set +eux
+    sudo systemctl enable --now nftables.service
+    systemctl status --no-pager nftables.service
     systemctl is-active --quiet nftables.service
 }
 setup_dnsmasq () {
@@ -314,8 +314,8 @@ EOS
         fi &&
         sudo tee "/etc/dnsmasq.d/interface-${interface}.conf" <<< "$(printf "%s\n" "${conf_lines[@]}")"
     done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-    sudo systemctl enable --now dnsmasq.service &&
-    systemctl status --no-pager dnsmasq.service
     set +eux
+    sudo systemctl enable --now dnsmasq.service
+    systemctl status --no-pager dnsmasq.service
     systemctl is-active --quiet dnsmasq.service
 }
