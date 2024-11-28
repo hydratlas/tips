@@ -135,6 +135,17 @@ EOS
 setup_nftables () {
     set -eux &&
     local JSON="${1}" &&
+    local host_index="" &&
+    while read -r index element; do
+        if [ "${element}" = "${HOSTNAME}" ]; then
+            host_index=${index}
+        fi
+    done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
+    if [ -z "${host_index}" ]; then
+        echo "There is no corresponding host name in the JSON." &&
+        exit 1
+    fi
+    local outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
     local sysctl_conf_lines=() &&
     sysctl_conf_lines+=("net.ipv4.ip_forward=1") &&
     while read -r index element; do
@@ -149,17 +160,6 @@ setup_nftables () {
     sudo apt-get install -y nftables ipcalc &&
     sudo systemctl stop nftables.service &&
     sudo nft flush ruleset &&
-    local host_index="" &&
-    while read -r index element; do
-        if [ "${element}" = "${HOSTNAME}" ]; then
-            host_index=${index}
-        fi
-    done <<< "$(echo "${JSON}" | jq -c -r ".router_host[]" | nl -v 0)" &&
-    if [ -z "${host_index}" ]; then
-        echo "There is no corresponding host name in the JSON." &&
-        exit 1
-    fi
-    local outside_interface="$(echo "${JSON}" | jq -c -r ".outside.interface[${host_index}]")" &&
     sudo nft add table inet filter &&
     sudo nft add chain inet filter INPUT { type filter hook input priority 0 \; policy accept\; } &&
     sudo nft add chain inet filter FORWARD { type filter hook forward priority 0 \; policy accept\; } &&
@@ -284,7 +284,6 @@ EOS
         subnet_mask="${subnet_mask#"${subnet_mask%%[![:space:]]*}"}" &&
         local virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")" &&
         local dhcp_range="$(echo "${element}" | jq -r ".dhcp_range[${host_index}] | join(\",\")")" &&
-        local dhcp_host_strings=() &&
         conf_lines+=("interface=${interface}") && # インターフェース
         conf_lines+=("dhcp-range=${interface},${dhcp_range},${subnet_mask},24h") && # DHCPのアドレスの範囲
         conf_lines+=("dhcp-option=${interface},option:router,${virtual_ip_address}") && # デフォルトルート
