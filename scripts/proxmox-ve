@@ -53,16 +53,54 @@ EOS
 update-grub &&
 timedatectl set-timezone ${TZ} &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
-tee -a "/etc/apt/apt.conf.d/99progressbar" << EOS > /dev/null &&
+tee -a "/etc/apt/apt.conf.d/99progressbar" << EOS > /dev/null
 Dpkg::Progress-Fancy "0";
 EOS
-apt-get update
 EOF
   ) &&
   qm start "${VMID}" &&
   while ! qm guest cmd "${VMID}" ping; do
     sleep 1s
-  done &&
+  done
+  set +eux
+}
+vm_exec_timezone () {
+  set -eux
+  local VMID="${1}"
+  local TZ="$(timedatectl show --property=Timezone | cut -d= -f2)"
+  local SCRIPT=$(cat << EOF
+timedatectl set-timezone ${TZ} &&
+dpkg-reconfigure --frontend noninteractive tzdata
+EOF
+  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
+  )
+  set +eux
+}
+vm_exec_apt () {
+  set -eux
+  local VMID="${1}"
+  local SCRIPT=$(cat << EOF
+tee -a "/etc/apt/apt.conf.d/99progressbar" << EOS > /dev/null
+Dpkg::Progress-Fancy "0";
+EOS
+EOF
+  )
+  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
+  set +eux
+}
+vm_exec_grub () {
+  set -eux
+  local VMID="${1}"
+  local SCRIPT=$(cat << EOF
+tee -a "/etc/default/grub" << EOS > /dev/null &&
+GRUB_CMDLINE_LINUX="quiet console=tty0 console=ttyS0,115200"
+GRUB_TERMINAL_INPUT="console serial"
+GRUB_TERMINAL_OUTPUT="gfxterm serial"
+GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
+EOS
+update-grub
+EOF
+  )
   qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
   set +eux
 }
