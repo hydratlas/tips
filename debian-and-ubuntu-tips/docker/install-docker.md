@@ -11,14 +11,14 @@ else
   echo "Error: Could not confirm that the OS is Ubuntu or Debian."
 fi &&
 sudo apt-get update &&
-sudo apt-get install -y ca-certificates curl &&
+sudo apt-get install -y ca-certificates &&
 sudo install -m 0755 -d /etc/apt/keyrings &&
-sudo curl -fsSL "https://download.docker.com/linux/${DISTRIBUTION_NAME}/gpg" -o /etc/apt/keyrings/docker.asc &&
+sudo wget -qO /etc/apt/keyrings/docker.asc "https://download.docker.com/linux/${DISTRIBUTION_NAME}/gpg" &&
 sudo chmod a+r /etc/apt/keyrings/docker.asc &&
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
   https://download.docker.com/linux/${DISTRIBUTION_NAME} \
-  $(. /etc/os-release && echo "${VERSION_CODENAME}") stable" | \
+  $(grep -oP '(?<=^VERSION_CODENAME=).+(?=$)' /etc/os-release) stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
 

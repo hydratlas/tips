@@ -15,6 +15,10 @@ image_downloader () {
   set +eux
 }
 vm_create () {
+  if [ ! -e ./test ]; then
+    echo "File does not exist: ${4}" >&2
+    exit 1
+  fi
   set -eux &&
   local VMID="${1}" &&
   local STORAGE="${2}" &&
