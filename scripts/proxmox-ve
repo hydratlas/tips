@@ -15,7 +15,7 @@ image_downloader () {
   set +eux
 }
 vm_create () {
-  if [ ! -e ./test ]; then
+  if [ ! -e "${4}" ]; then
     echo "File does not exist: ${4}" >&2
   else
     set -eux &&
