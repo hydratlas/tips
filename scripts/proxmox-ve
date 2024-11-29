@@ -17,27 +17,27 @@ image_downloader () {
 vm_create () {
   if [ ! -e ./test ]; then
     echo "File does not exist: ${4}" >&2
-    exit 1
+  else
+    set -eux &&
+    local VMID="${1}" &&
+    local STORAGE="${2}" &&
+    local SNIPPET_STORAGE="${3}" &&
+    local IMAGE_PATH="${4}" &&
+    qm create "${VMID}" \
+      --cpu x86-64-v3 \
+      --virtio0 "${STORAGE}:0,import-from=${IMAGE_PATH}" \
+      --machine q35 \
+      --bios ovmf --efidisk0 "${STORAGE}:0" \
+      --vga virtio \
+      --scsihw virtio-scsi-single \
+      --serial0 socket \
+      --ostype l26 \
+      --boot order=virtio0 \
+      --scsi0 "${STORAGE}:cloudinit,size=4M" \
+      --agent enabled=1 \
+      --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
+    set +eux
   fi
-  set -eux &&
-  local VMID="${1}" &&
-  local STORAGE="${2}" &&
-  local SNIPPET_STORAGE="${3}" &&
-  local IMAGE_PATH="${4}" &&
-  qm create "${VMID}" \
-    --cpu x86-64-v3 \
-    --virtio0 "${STORAGE}:0,import-from=${IMAGE_PATH}" \
-    --machine q35 \
-    --bios ovmf --efidisk0 "${STORAGE}:0" \
-    --vga virtio \
-    --scsihw virtio-scsi-single \
-    --serial0 socket \
-    --ostype l26 \
-    --boot order=virtio0 \
-    --scsi0 "${STORAGE}:cloudinit,size=4M" \
-    --agent enabled=1 \
-    --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
-  set +eux
 }
 vm_start () {
   set -eux &&
