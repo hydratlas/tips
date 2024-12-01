@@ -23,19 +23,21 @@ vm_create () {
     local STORAGE="${2}" &&
     local SNIPPET_STORAGE="${3}" &&
     local IMAGE_PATH="${4}" &&
+    local SIZE="${5}" &&
     qm create "${VMID}" \
       --cpu x86-64-v3 \
-      --virtio0 "${STORAGE}:0,import-from=${IMAGE_PATH}" \
+      --scsi1 "${STORAGE}:0,import-from=${IMAGE_PATH},ssd=1" \
       --machine q35 \
       --bios ovmf --efidisk0 "${STORAGE}:0" \
       --vga virtio \
       --scsihw virtio-scsi-single \
       --serial0 socket \
       --ostype l26 \
-      --boot order=virtio0 \
+      --boot order='scsi1' \
       --scsi0 "${STORAGE}:cloudinit,size=4M" \
       --agent enabled=1 \
-      --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
+      --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml" &&
+    qm resize "${VMID}" scsi1 "${SIZE}"
     set +eux
   fi
 }
