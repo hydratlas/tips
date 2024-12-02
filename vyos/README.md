@@ -110,7 +110,7 @@ if [ -z "\${NEW_IMAGE_URL}" ]; then
     exit 0
 fi
 echo "Download URL: \${NEW_IMAGE_URL}"
-DATA='{"op": "add", "url": "\${NEW_IMAGE_URL}"}'
+DATA='{"op": "add", "url": "'"\${NEW_IMAGE_URL}"'"}'
 curl --silent -k --location --request POST 'https://localhost/image' --form data="\${DATA}" --form key="\${REST_KEY}" > /dev/null || exit 0
 echo "Download Completed"
 
@@ -133,7 +133,7 @@ systemctl enable ${TIMER_FILENAME}
 EOS
 sudo chmod 775 "/config/scripts/${SETUP_SCRIPT_FILENAME}" &&
 sudo tee "/config/scripts/${ENV_FILENAME}" << EOS > /dev/null &&
-REST_KEY="${KEY}"
+REST_KEY="${REST_KEY}"
 EOS
 sudo chmod 600 "/config/scripts/${ENV_FILENAME}" &&
 sudo tee "/config/scripts/${SERVICE_FILENAME}" << EOS > /dev/null &&
@@ -143,7 +143,7 @@ Description=Update VyOS to the latest rolling release
 [Service]
 Type=oneshot
 EnvironmentFile=/config/scripts/${ENV_FILENAME}
-ExecStart=/bin/bash /config/scripts/${SCRIPT_FILENAME}
+ExecStart=/bin/vbash /config/scripts/${SCRIPT_FILENAME}
 StandardOutput=journal
 StandardError=journal
 EOS
