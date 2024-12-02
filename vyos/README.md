@@ -109,21 +109,19 @@ NEW_IMAGE_URL=\$(wget -q -O - "https://api.github.com/repos/vyos/vyos-rolling-ni
 if [ -z "\${NEW_IMAGE_URL}" ]; then
     exit 0
 fi
-echo "download URL: \${NEW_IMAGE_URL}"
-curl --silent -k --location --request POST 'https://localhost/image' \\
-    --form data='{"op": "add", "url": "'"\${NEW_IMAGE_URL}"'"}' \\
-    --form key="\${REST_KEY}" > /dev/null || exit 0
+echo "Download URL: \${NEW_IMAGE_URL}"
+DATA='{"op": "add", "url": "\${NEW_IMAGE_URL}"}'
+curl --silent -k --location --request POST 'https://localhost/image' --form data="\${DATA}" --form key="\${REST_KEY}" > /dev/null || exit 0
 echo "Download Completed"
 
 OLD_IMAGE_NAME="\$(run show system image | tail -n 1 | grep -iv "yes" | sed 's/^ *//;s/ *$//')"
 if [ -n "\${OLD_IMAGE_NAME}" ]; then
-    curl --silent -k --location --request POST 'https://localhost/image' \\
-        --form data='{"op": "delete", "name": "'"\${OLD_IMAGE_NAME}"'"}' \\
-        --form key="\${REST_KEY}" > /dev/null
+    DATA='{"op": "delete", "name": "'"\${OLD_IMAGE_NAME}"'"}'
+    curl --silent -k --location --request POST 'https://localhost/image' --form data="\${DATA}" --form key="\${REST_KEY}" > /dev/null
     echo "Delete: \${OLD_IMAGE_NAME}"
 fi
 
-run reboot now
+#run reboot now
 EOS
 sudo chmod 775 "/config/scripts/${SCRIPT_FILENAME}" &&
 sudo tee "/config/scripts/${SETUP_SCRIPT_FILENAME}" << EOS > /dev/null &&
@@ -145,7 +143,7 @@ Description=Update VyOS to the latest rolling release
 [Service]
 Type=oneshot
 EnvironmentFile=/config/scripts/${ENV_FILENAME}
-ExecStart=/config/scripts/${SCRIPT_FILENAME}
+ExecStart=/bin/bash /config/scripts/${SCRIPT_FILENAME}
 StandardOutput=journal
 StandardError=journal
 EOS
@@ -161,12 +159,12 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOS
-sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<<  "/config/scripts/${SETUP_SCRIPT_FILENAME}" > /dev/null
+sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts/${SETUP_SCRIPT_FILENAME}" > /dev/null
 ```
 
-### すぐに実行
+### 再起動して設定を完了させる
 ```sh
-sudo systemctl start vyos-updater.service
+reboot now
 ```
 
 ### 確認
@@ -174,4 +172,9 @@ sudo systemctl start vyos-updater.service
 systemctl status vyos-updater.timer
 systemctl status vyos-updater.service
 show system image
+```
+
+### すぐに実行
+```sh
+sudo systemctl start vyos-updater.service
 ```
