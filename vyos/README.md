@@ -54,6 +54,34 @@ The image installed successfully; please reboot now.<br>
 ↳「poweroff now」と入力してエンター
 
 ## 初期設定
+### シリアルコンソールが太字になってしまうのを解除
+```sh
+sudo tee "/config/scripts/setup_unbold_the_console.sh" << EOS > /dev/null &&
+#!/bin/bash
+cp /config/scripts/unbold_the_console.sh /etc/profile.d/unbold_the_console.sh
+EOS
+sudo chmod 755 "/config/scripts/setup_unbold_the_console.sh" &&
+sudo tee "/config/scripts/unbold_the_console.sh" << EOS > /dev/null &&
+#!/bin/bash
+echo -e "\e[0m"
+EOS
+sudo chmod 644 /config/scripts/unbold_the_console.sh &&
+sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts/setup_unbold_the_console.sh" > /dev/null
+```
+
+### 基礎設定
+```sh
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+set system host-name 'router-01'
+set system time-zone 'Asia/Tokyo'
+commit
+save
+exit
+EOS
+```
+
 ### eth0にDHCPを設定
 ```sh
 /bin/vbash << EOS
@@ -71,6 +99,22 @@ EOS
 ### 通信を確認
 ```sh
 ping google.com
+```
+
+## インターフェースのオフ、オン
+```sh
+IF_NAME=eth0 &&
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+set interfaces ethernet ${IF_NAME} disable
+commit
+save
+delete interfaces ethernet ${IF_NAME} disable
+commit
+save
+exit
+EOS
 ```
 
 ## 自動アップデートの設定
@@ -121,9 +165,9 @@ if [ -n "\${OLD_IMAGE_NAME}" ]; then
     echo "Delete: \${OLD_IMAGE_NAME}"
 fi
 
-#run reboot now
+run reboot now
 EOS
-sudo chmod 775 "/config/scripts/${SCRIPT_FILENAME}" &&
+sudo chmod 755 "/config/scripts/${SCRIPT_FILENAME}" &&
 sudo tee "/config/scripts/${SETUP_SCRIPT_FILENAME}" << EOS > /dev/null &&
 #!/bin/bash
 set -e
@@ -131,7 +175,7 @@ cp /config/scripts/${SERVICE_FILENAME} /etc/systemd/system/${SERVICE_FILENAME}
 cp /config/scripts/${TIMER_FILENAME} /etc/systemd/system/${TIMER_FILENAME}
 systemctl enable ${TIMER_FILENAME}
 EOS
-sudo chmod 775 "/config/scripts/${SETUP_SCRIPT_FILENAME}" &&
+sudo chmod 755 "/config/scripts/${SETUP_SCRIPT_FILENAME}" &&
 sudo tee "/config/scripts/${ENV_FILENAME}" << EOS > /dev/null &&
 REST_KEY="${REST_KEY}"
 EOS
