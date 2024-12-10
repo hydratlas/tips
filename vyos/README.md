@@ -2,46 +2,37 @@
 ## インストール
 まずライブ実行する。ログイン時のデフォルト名とパスワードはともに`vyos`である。ログインしたら`install image`コマンドを実行する。
 
-Welcome to VyOS installation!<br>
+1. Welcome to VyOS installation!<br>
 This command will install VyOS to your permanent storage.<br>
 Would you like to continue? [y/N]<br>
 ↳「y」と入力してエンター
-
-What would you like to name this image? (Default: 1.5-rolling-202411270007)<br>
+1. What would you like to name this image? (Default: 1.5-rolling-202411270007)<br>
 ↳無入力でエンター
-
-Please enter a password for the "vyos" user:<br>
+1. Please enter a password for the "vyos" user:<br>
 ↳パスワードを入力してエンター
-
-Please confirm password for the "vyos" user:<br>
+1. Please confirm password for the "vyos" user:<br>
 ↳パスワードを入力してエンター
-
-What console should be used by default? (K: KVM, S: Serial)? (Default: S)<br>
+1. What console should be used by default? (K: KVM, S: Serial)? (Default: S)<br>
 ↳無入力でエンター
-
-Probing disks<br>
+1. Probing disks<br>
 1 disk(s) found<br>
 The following disks were found:<br>
 Drive: /dev/sda (16.0 GB)<br>
 Which one should be used for installation? (Default: /dev/sda)<br>
 ↳無入力でエンター
-
-Installation will delete all data on the drive. Continue? [y/N]<br>
+1. Installation will delete all data on the drive. Continue? [y/N]<br>
 ↳「y」と入力してエンター
-
-Searching for data from previous installations<br>
+1. Searching for data from previous installations<br>
 No previous installation found<br>
 Would you like to use all the free space on the drive? [Y/n]<br>
 ↳「y」と入力してエンター
-
-Creating partition table...<br>
+1. Creating partition table...<br>
 The following config files are available for boot:<br>
         1: /opt/vyatta/etc/config/config.boot<br>
         2: /opt/vyatta/etc/config.boot.default<br>
 Which file would you like as boot config? (Default: 1)<br>
 ↳無入力でエンター
-
-Creating temporary directories<br>
+1. Creating temporary directories<br>
 Mounting new partitions<br>
 Creating a configuration file<br>
 Copying system image files<br>
@@ -115,6 +106,13 @@ commit
 save
 exit
 EOS
+```
+
+## 現在の設定を確認
+```sh
+show configuration
+
+show configuration commands
 ```
 
 ## 自動アップデートの設定

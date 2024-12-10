@@ -10,23 +10,24 @@ elif [ "${DISTRIBUTION_ID}" = "debian" ]; then
 else
   echo "Error: Could not confirm that the OS is Ubuntu or Debian."
 fi &&
-sudo apt-get update &&
-sudo apt-get install -y ca-certificates &&
+sudo apt-get install -U -y ca-certificates &&
 sudo install -m 0755 -d /etc/apt/keyrings &&
-sudo wget -qO /etc/apt/keyrings/docker.asc "https://download.docker.com/linux/${DISTRIBUTION_NAME}/gpg" &&
-sudo chmod a+r /etc/apt/keyrings/docker.asc &&
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-  https://download.docker.com/linux/${DISTRIBUTION_NAME} \
-  $(grep -oP '(?<=^VERSION_CODENAME=).+(?=$)' /etc/os-release) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+wget -q -O - "https://download.docker.com/linux/${DISTRIBUTION_NAME}/gpg" | \
+sudo tee /etc/apt/keyrings/docker.asc > /dev/null &&
+sudo tee "/etc/apt/sources.list.d/docker.sources" > /dev/null << EOF
+Types: deb
+URIs: https://download.docker.com/linux/${DISTRIBUTION_NAME}
+Suites: $(grep -oP '(?<=^VERSION_CODENAME=).+(?=$)' /etc/os-release)
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+Architectures: $(dpkg --print-architecture)
+EOF
 ```
 
 ## DockerおよびDocker Composeのインストール
 ### パッケージをインストール
 ```sh
-sudo apt-get update &&
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install -U -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 - [Install Docker Engine on Ubuntu | Docker Docs](https://docs.docker.com/engine/install/ubuntu/)
 - [Install Docker Engine on Debian | Docker Docs](https://docs.docker.com/engine/install/debian/)

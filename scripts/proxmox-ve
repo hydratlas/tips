@@ -58,8 +58,8 @@ vm_exec_timezone () {
 timedatectl set-timezone ${TZ} &&
 dpkg-reconfigure --frontend noninteractive tzdata
 EOF
-  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
   )
+  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
   set +eux
 }
 vm_exec_apt () {

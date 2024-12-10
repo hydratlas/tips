@@ -60,28 +60,35 @@ eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/head
 ### 実行
 適宜変更して使用する。
 ```sh
-VMID="<vmid>" &&
-vm_create "${VMID}" "local-zfs" "local" "/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64-custom.img" &&
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
+VMID="$((RANDOM % 9900 + 100))" &&
+RANDOM_HEX=$(printf '%06X' $((RANDOM % 16777216))) &&
+MAC_ADDRESS_0="BC:24:11:$(echo "${RANDOM_HEX}" | sed 's/../&:/g; s/:$//')" &&
+vm_create "${VMID}" "local-zfs" "local" "/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64.img" "8G" &&
 qm set "${VMID}" \
-  --name "<name>" \
-  --cores 4 \
+  --name "ubuntu-${VMID}" \
+  --cores 6 \
   --memory 8192 \
-  --net0 virtio,bridge=vmbr0 \
+  --net0 "virtio=${MAC_ADDRESS_0},bridge=vmbr0" \
   --ipconfig0 ip=dhcp,ip6=dhcp \
   --ciuser "user" \
   --cipassword "$(openssl passwd -6 "p")" &&
-qm resize "${VMID}" virtio0 8G &&
 vm_start "${VMID}" &&
+vm_exec_timezone "${VMID}" &&
+vm_exec_apt "${VMID}" &&
+vm_exec_grub "${VMID}" &&
 qm guest exec "${VMID}" -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -yq \
   avahi-daemon libnss-mdns \
   less nano \
-  bash-completion command-not-found iputils-ping \
-  ' | jq -r '."out-data", ."err-data"'
+  bash-completion command-not-found \
+  ' | jq -r '."out-data", ."err-data"' &&
+qm guest exec "${VMID}" -- bash -c 'ip a && ip r' | jq -r '."out-data", ."err-data"' &&
+qm terminal "${VMID}"
 ```
-- `import-from`はイメージファイルによって規定された容量にしかできないため、後から容量を変更している
-- Cloud-initは`local-zfs:cloudinit`で設定しているが、これを`--ide0`で設定すると、`--machine pc --bios seabios`でないと動かない。`--scsi0`で設定すれば、`--machine pc --bios seabios`でも`--machine q35 --bios ovmf --efidisk0 local-zfs:0`でも動く
-- GRUBの設定を変更して、GRUBをコンソールに出力させている
-- タイムゾーンはホストと同じものを設定している
+- `import-from`はイメージファイルによって規定された容量にしかできないため、`vm_create`コマンド内で後から容量を変更している
+- Cloud-initは`vm_create`コマンド内で`local-zfs:cloudinit`として設定しているが、これを`--ide0`として設定すると、`--machine pc --bios seabios`でないと動かない。`--scsi0`で設定すれば、`--machine pc --bios seabios`でも`--machine q35 --bios ovmf --efidisk0 local-zfs:0`でも動く
+- `vm_exec_grub`コマンド内で、GRUBの設定を変更して、GRUBをコンソールに出力させている
+- `vm_exec_timezone`コマンド内で、タイムゾーンをホストと同じものに設定している
 
 ### 実行前にSSHを設定
 `START`の前に次のように実行すると、Cloud-initによってSSHの`authorized_keys`を設定できる。起動中に実行した場合は再起動が必要。
