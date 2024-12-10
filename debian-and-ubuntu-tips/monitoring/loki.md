@@ -12,6 +12,7 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  http_listen_address: 0.0.0.0
 
 common:
   instance_addr: 127.0.0.1
@@ -83,6 +84,9 @@ sudo systemctl start loki.service
 ```sh
 sudo systemctl status --no-pager --full loki.service
 journalctl --no-pager --lines=20 --unit=loki
+wget -O - http://localhost:3100/ready # If “ready” is returned, it is OK.
+wget --method=POST --header="Content-Type: application/json" --body-data='{}' \
+  http://localhost:3100/loki/api/v1/push # If “204 No Content” is returned, it is OK.
 ```
 
 ## 【デバッグ用】再起動
@@ -95,5 +99,5 @@ sudo systemctl restart loki.service
 sudo systemctl stop loki.service &&
 sudo rm /etc/containers/systemd/loki.container &&
 sudo systemctl daemon-reload &&
-suro rm -dr /var/lib/loki
+sudo rm -dr /var/lib/loki
 ```

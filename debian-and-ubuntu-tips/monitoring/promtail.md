@@ -36,11 +36,12 @@ scrape_configs:
       path: /var/log/journal
       labels:
         job: systemd-journal
-        host: "\${HOSTNAME}"
+        host: "${HOSTNAME}"
     relabel_configs:
       - source_labels: ['__journal__systemd_unit']
         target_label: 'unit'
 EOF
+sudo usermod -aG systemd-journal promtail &&
 sudo systemctl restart promtail.service
 ```
 - [Welcome to Grafana Labs's package repository](https://apt.grafana.com/)
@@ -49,11 +50,12 @@ sudo systemctl restart promtail.service
 ```sh
 sudo systemctl status --no-pager --full promtail.service
 journalctl --no-pager --lines=20 --unit=promtail
+journalctl --no-pager --unit=promtail | grep -i push
 ```
 
-## テスト送信
+## テスト実行
 ```sh
-sudo promtail -config.file=/etc/promtail/config.yml -dry-run
+sudo -u promtail promtail -config.file /etc/promtail/config.yml -dry-run
 ```
 
 ## 【デバッグ用】再起動
@@ -64,5 +66,6 @@ sudo systemctl restart promtail.service
 ## 【デバッグ用】停止・削除
 ```sh
 sudo systemctl disable --now promtail.service &&
-sudo apt-get purge -y promtail
+sudo apt-get purge -y promtail &&
+sudo rm /tmp/positions.yaml
 ```
