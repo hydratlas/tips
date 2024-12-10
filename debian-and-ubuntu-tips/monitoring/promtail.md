@@ -15,7 +15,7 @@ EOF
 ```
 
 ## インストール
-`loki_hostname`は適宜書き換えること。
+`loki_hostname`の値は適宜書き換えること。`localhost`は、localhostにLokiがあるという設定である。
 ```sh
 loki_hostname="localhost" &&
 sudo apt-get install -U -y promtail &&

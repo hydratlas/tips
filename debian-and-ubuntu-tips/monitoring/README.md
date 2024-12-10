@@ -21,7 +21,7 @@ Node Exporter + VictoriaMetrics (Single version) + Grafanaという構成で、�
 まず、ネットワークを作成し、次に各コンテナをインストールする。
 ```sh
 sudo mkdir -p /etc/containers/systemd &&
-sudo tee /etc/containers/systemd/monitoring.network << EOS > /dev/null &&
+sudo tee /etc/containers/systemd/monitoring.network << EOS > /dev/null
 [Unit]
 Description=Monitoring Container Network
 
