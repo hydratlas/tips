@@ -21,14 +21,14 @@ loki_hostname="localhost" &&
 sudo apt-get install -U -y promtail &&
 sudo tee "/etc/promtail/config.yml" > /dev/null << EOF &&
 server:
-  http_listen_port: 9080
+  http_listen_port: 0
   grpc_listen_port: 0
 
 positions:
   filename: /tmp/positions.yaml
 
 clients:
-- url: http://${loki_hostname}:3100/loki/api/v1/push
+  - url: http://${loki_hostname}:3100/loki/api/v1/push
 
 scrape_configs:
   - job_name: systemd-journal
@@ -47,12 +47,13 @@ sudo systemctl restart promtail.service
 
 ## 確認
 ```sh
-sudo systemctl status promtail.service
+sudo systemctl status --no-pager --full promtail.service
+journalctl --no-pager --lines=20 --unit=promtail
 ```
 
 ## テスト送信
 ```sh
-sudo promtail -dry-run
+sudo promtail -config.file=/etc/promtail/config.yml -dry-run
 ```
 
 ## 【デバッグ用】再起動

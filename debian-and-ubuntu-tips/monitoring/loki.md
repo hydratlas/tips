@@ -64,8 +64,9 @@ LogDriver=journald
 PublishPort=3100:3100
 Volume=${host_conf_file}:${container_conf_file}:z
 Volume=${host_dir}:${container_dir}:Z
+Volume=/etc/localtime:/etc/localtime:ro
 User=0
-Exec=-config.file=${container_conf_file}
+Exec='-config.file=${container_conf_file}'
 
 [Service]
 Restart=on-failure
@@ -80,7 +81,8 @@ sudo systemctl start loki.service
 
 ## 確認
 ```sh
-sudo systemctl status loki.service
+sudo systemctl status --no-pager --full loki.service
+journalctl --no-pager --lines=20 --unit=loki
 ```
 
 ## 【デバッグ用】再起動
@@ -92,5 +94,6 @@ sudo systemctl restart loki.service
 ```sh
 sudo systemctl stop loki.service &&
 sudo rm /etc/containers/systemd/loki.container &&
-sudo systemctl daemon-reload
+sudo systemctl daemon-reload &&
+suro rm -dr /var/lib/loki
 ```

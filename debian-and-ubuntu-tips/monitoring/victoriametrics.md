@@ -42,6 +42,7 @@ LogDriver=journald
 
 Volume=${host_conf_file}:${container_conf_file}:z
 Volume=${host_dir}:${container_dir}:Z
+Volume=/etc/localtime:/etc/localtime:ro
 User=0
 Exec='-promscrape.config=${container_conf_file}'
 
@@ -60,7 +61,8 @@ sudo systemctl start victoria-metrics.service
 
 ## 確認
 ```sh
-sudo systemctl status victoria-metrics.service
+sudo systemctl status --no-pager --full victoria-metrics.service
+journalctl --no-pager --lines=20 --unit=victoria-metrics
 ```
 
 ## 【デバッグ用】再起動

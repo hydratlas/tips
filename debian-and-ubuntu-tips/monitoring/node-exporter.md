@@ -122,7 +122,7 @@ sudo systemctl enable --now node_exporter.service
 
 ### 確認
 ```sh
-sudo systemctl status node_exporter.service
+sudo systemctl status --no-pager --full node_exporter.service
 
 node_exporter --version
 
