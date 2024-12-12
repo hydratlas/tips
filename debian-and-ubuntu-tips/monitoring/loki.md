@@ -36,21 +36,21 @@ schema_config:
         prefix: index_
         period: 24h
 
-ruler:
-  alertmanager_url: http://localhost:9093
+#ruler:
+#  alertmanager_url: http://localhost:9093
 
-# By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
-# analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
-#
-# Statistics help us better understand how Loki is used, and they show us performance
-# levels for most users. This helps us prioritize features and documentation.
-# For more information on what's sent, look at
-# https://github.com/grafana/loki/blob/main/pkg/usagestats/stats.go
-# Refer to the buildReport method to see what goes into a report.
-#
-# If you would like to disable reporting, uncomment the following lines:
-#analytics:
-#  reporting_enabled: false
+limits_config:
+  retention_period: 336h # 14 days
+  retention_stream:
+    - selector: '{appname="kernel"}'
+      period: 13140h # 1.5 year
+      priority: 1
+    - selector: '{level="error"}'
+      period: 1440h # 60 days
+      priority: 0
+
+analytics:
+  reporting_enabled: false
 EOS
 sudo mkdir -p "${host_dir}" &&
 sudo mkdir -p "$(dirname "${quadlet_file}")" &&

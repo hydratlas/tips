@@ -92,7 +92,7 @@ EOS
 ping google.com
 ```
 
-## インターフェースのオフ、オン
+### インターフェースのオフ、オン
 ```sh
 IF_NAME=eth0 &&
 /bin/vbash << EOS
@@ -108,12 +108,55 @@ exit
 EOS
 ```
 
-## 現在の設定を確認
+### 現在の設定を確認
 ```sh
 show configuration
 
 show configuration commands
 ```
+
+### ログを表示
+```sh
+monitor log
+show log tail
+```
+
+## Lokiにログを送信
+```sh
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+set service monitoring telegraf loki url http://<hostname>
+set service monitoring telegraf loki metric-name-label metric
+commit
+save
+exit
+EOS
+```
+`metric-name-label`の値にハイフン(-)は使えない。
+
+Telegrafに渡っている設定は`/run/telegraf/telegraf.conf`から確認できる。
+
+## Node Exporter
+```sh
+add container image quay.io/prometheus/node-exporter:latest &&
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+set container name node-exporter allow-host-networks
+set container name node-exporter description 'Node Exporter'
+set container name node-exporter image 'quay.io/prometheus/node-exporter:latest'
+set container name node-exporter port node-exporter destination '9100'
+set container name node-exporter port node-exporter source '9100'
+set container name node-exporter port node-exporter protocol 'tcp'
+set container name node-exporter volume hostroot destination '/host'
+set container name node-exporter volume hostroot source '/'
+commit
+save
+exit
+EOS
+```
+`http://<hostname>:9100/metrics`にアクセスして動作を確認できる。
 
 ## 自動アップデートの設定
 ### REST API用のキーのセットアップ

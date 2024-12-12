@@ -40,6 +40,8 @@ Network=monitoring.network
 AutoUpdate=registry
 LogDriver=journald
 
+
+PublishPort=8428:8428
 Volume=${host_conf_file}:${container_conf_file}:z
 Volume=${host_dir}:${container_dir}:Z
 Volume=/etc/localtime:/etc/localtime:ro

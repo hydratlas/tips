@@ -36,7 +36,7 @@ scrape_configs:
       path: /var/log/journal
       labels:
         job: systemd-journal
-        host: "${HOSTNAME}"
+        host: ${HOSTNAME}
     relabel_configs:
       - source_labels: ['__journal__systemd_unit']
         target_label: 'unit'
@@ -50,7 +50,6 @@ sudo systemctl restart promtail.service
 ```sh
 sudo systemctl status --no-pager --full promtail.service
 journalctl --no-pager --lines=20 --unit=promtail
-journalctl --no-pager --unit=promtail | grep -i push
 ```
 
 ## テスト実行

@@ -15,6 +15,8 @@ GF_SECURITY_ADMIN_USER=${user}
 GF_SECURITY_ADMIN_PASSWORD=${password}
 GF_USERS_ALLOW_SIGN_UP=false
 GF_USERS_ALLOW_ORG_CREATE=false
+GF_AUTH_ANONYMOUS_ENABLED=true
+GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
 EOS
 sudo chmod 600 "${env_file}" &&
 sudo mkdir -p "${host_datasources_dir}" &&
