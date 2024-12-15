@@ -43,12 +43,6 @@ else
   SWAP2_PART="${DISK2}2"
 fi
 
-if [ -e "${DISK2}p3" ]; then
-  ROOTFS2_PART="${DISK2}p3"
-else
-  ROOTFS2_PART="${DISK2}3"
-fi
-
 # UUIDを取得
 EFI1_UUID="$(lsblk -dno UUID ${EFI1_PART})"
 SWAP1_UUID="$(lsblk -dno UUID ${SWAP1_PART})"

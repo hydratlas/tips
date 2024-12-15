@@ -13,11 +13,15 @@ setup_netplan () {
         exit 1
     fi
     while read -r index element; do
-        local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")" &&
-        local mac_address="$(echo "${element}" | jq -c -r ".mac_address[${host_index}]")" &&
-        local ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")" &&
-        local cidr="$(echo "${element}" | jq -c -r ".cidr")" &&
-        sudo tee "/etc/netplan/70-${interface}.yaml" << EOS > /dev/null &&
+        local interface
+        interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")"
+        local mac_address
+        mac_address="$(echo "${element}" | jq -c -r ".mac_address[${host_index}]")"
+        local ip_address
+        ip_address="$(echo "${element}" | jq -c -r ".ip_address[${host_index}]")"
+        local cidr
+        cidr="$(echo "${element}" | jq -c -r ".cidr")"
+        sudo tee "/etc/netplan/70-${interface}.yaml" << EOS > /dev/null
 network:
   version: 2
   ethernets:
@@ -29,13 +33,13 @@ network:
       set-name: "${interface}"
 EOS
         sudo chmod go= "/etc/netplan/70-${interface}.yaml"
-    done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)" &&
-    set +u &&
+    done <<< "$(echo "${JSON}" | jq -c -r ".inside[]" | nl -v 0)"
+    set +u
     if [ "${SSH_CONNECTION-}" ]; then
         sudo netplan try --timeout 30
     else
         sudo netplan apply
-    fi &&
+    fi
     ip a
     set +eux
 }

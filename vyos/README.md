@@ -73,7 +73,8 @@ exit
 EOS
 ```
 
-### eth0にDHCPを設定
+## 基本的な設定
+### eth0にIPv4のDHCPを設定
 ```sh
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
@@ -85,6 +86,17 @@ commit
 save
 exit
 EOS
+```
+
+### eth0にIPv6のRAを設定
+```sh
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+set interfaces ethernet eth0 ipv6 address autoconf
+commit
+save
+exit
 ```
 
 ### 通信を確認
@@ -121,7 +133,8 @@ monitor log
 show log tail
 ```
 
-## Lokiにログを送信
+## 応用的な設定
+### Lokiにログを送信
 ```sh
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
@@ -137,7 +150,7 @@ EOS
 
 Telegrafに渡っている設定は`/run/telegraf/telegraf.conf`から確認できる。
 
-## Node Exporter
+### Node Exporter
 ```sh
 add container image quay.io/prometheus/node-exporter:latest &&
 /bin/vbash << EOS
@@ -158,8 +171,8 @@ EOS
 ```
 `http://<hostname>:9100/metrics`にアクセスして動作を確認できる。
 
-## 自動アップデートの設定
-### REST API用のキーのセットアップ
+### 自動アップデートの設定
+#### REST API用のキーのセットアップ
 ```sh
 REST_KEY="$(uuidgen)" &&
 KEY_NAME="main" &&
@@ -179,7 +192,7 @@ curl -k --location --request POST 'https://localhost/retrieve' \
     --form key="${REST_KEY}"
 ```
 
-### アップデーター一式の設定
+#### アップデーター一式の設定
 ```sh
 SCRIPT_FILENAME="vyos-updater.sh" &&
 SETUP_SCRIPT_FILENAME="setup-vyos-updater.sh" &&
@@ -247,19 +260,19 @@ EOS
 sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts/${SETUP_SCRIPT_FILENAME}" > /dev/null
 ```
 
-### 再起動して設定を完了させる
+#### 再起動して設定を完了させる
 ```sh
 reboot now
 ```
 
-### 確認
+#### 確認
 ```sh
 systemctl status vyos-updater.timer
 systemctl status vyos-updater.service
 show system image
 ```
 
-### すぐに実行
+#### すぐに実行
 ```sh
 sudo systemctl start vyos-updater.service
 ```

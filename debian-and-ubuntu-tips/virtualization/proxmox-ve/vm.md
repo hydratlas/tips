@@ -62,8 +62,10 @@ eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/head
 ```sh
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 VMID="$((RANDOM % 9900 + 100))" &&
-RANDOM_HEX=$(printf '%06X' $((RANDOM % 16777216))) &&
+echo "VMID: ${VMID}" &&
+RANDOM_HEX=$(printf '%06X\n' $((RANDOM * 256 + RANDOM % 256))) &&
 MAC_ADDRESS_0="BC:24:11:$(echo "${RANDOM_HEX}" | sed 's/../&:/g; s/:$//')" &&
+echo "MAC address 0: ${MAC_ADDRESS_0}" &&
 vm_create "${VMID}" "local-zfs" "local" "/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64.img" "8G" &&
 qm set "${VMID}" \
   --name "ubuntu-${VMID}" \
@@ -85,6 +87,7 @@ qm guest exec "${VMID}" -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get insta
 qm guest exec "${VMID}" -- bash -c 'ip a && ip r' | jq -r '."out-data", ."err-data"' &&
 qm terminal "${VMID}"
 ```
+- `--cores`は設定しない場合、そのマシンの物理コア数となる
 - `import-from`はイメージファイルによって規定された容量にしかできないため、`vm_create`コマンド内で後から容量を変更している
 - Cloud-initは`vm_create`コマンド内で`local-zfs:cloudinit`として設定しているが、これを`--ide0`として設定すると、`--machine pc --bios seabios`でないと動かない。`--scsi0`で設定すれば、`--machine pc --bios seabios`でも`--machine q35 --bios ovmf --efidisk0 local-zfs:0`でも動く
 - `vm_exec_grub`コマンド内で、GRUBの設定を変更して、GRUBをコンソールに出力させている
