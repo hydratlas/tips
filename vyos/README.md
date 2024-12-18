@@ -44,6 +44,8 @@ Removing temporary files<br>
 The image installed successfully; please reboot now.<br>
 ↳「poweroff now」と入力してエンター
 
+シャットダウンしたら、ISOイメージを取り外す。
+
 ## 初期設定
 ### シリアルコンソールが太字になってしまうのを解除
 ```sh
@@ -60,7 +62,7 @@ sudo chmod 644 /config/scripts/unbold_the_console.sh &&
 sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts/setup_unbold_the_console.sh" > /dev/null
 ```
 
-### 基礎設定
+### 設定
 ```sh
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
@@ -97,6 +99,7 @@ set interfaces ethernet eth0 ipv6 address autoconf
 commit
 save
 exit
+EOS
 ```
 
 ### 通信を確認
@@ -131,6 +134,18 @@ show configuration commands
 ```sh
 monitor log
 show log tail
+```
+
+### 初期化
+```sh
+/bin/vbash << EOS
+source /opt/vyatta/etc/functions/script-template
+configure
+load /opt/vyatta/etc/config.boot.default
+commit
+save
+exit
+EOS
 ```
 
 ## 応用的な設定
