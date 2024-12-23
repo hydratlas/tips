@@ -48,6 +48,7 @@ Root passwordおよびConfirmは任意の値を入力する。Emailは「root@ho
 
 - Management interfaceは任意のインターフェースを選択
 - Hostname (FQDN)は「\<hostname\>.home.arpa」を入力（\<hostname\>部分は任意の値）
+    - home.arpaというドメインはグローバルではなくローカルで使えるドメインとしてRFC 8375で定義されている
 - IP address (CIDR)は任意の値
 - Gateway addressは任意の値
 - DNS server addressは任意の値
