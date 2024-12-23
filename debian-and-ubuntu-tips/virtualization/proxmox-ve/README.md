@@ -3,7 +3,7 @@
 1. Target harddisk
 1. Advanced optiosから、ZFS (RAID 1)（1台だけの場合はRAID 0）
 1. compressはzstd
-1. ARC max sizeは、搭載している物理メモリの3/4もしくは、1GBを残した全部
+1. ARC max sizeは、ストレージの1TBあたり1GiBが目安。上限は搭載している物理メモリの3/4もしくは、1GBを残した全部
 1. CountryはJapan
 1. TimezoneはAsia/Tokyo
 1. Keyboard layoutはJapanese
