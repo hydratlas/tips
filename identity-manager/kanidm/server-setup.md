@@ -9,9 +9,9 @@ SERVER_DIR="/opt/kanidm" &&
 SERVER_DATA_DIR="/opt/kanidm/data" &&
 SERVER_USER="kanidm" &&
 CA_FILENAME="ca" &&
-SERVER_FILENAME="idm-01-server" &&
+SERVER_FILENAME="idm-server" &&
 CA_FQDN="ca.home.arpa" &&
-SERVER_FQDN="idm-01.int.home.arpa" &&
+SERVER_FQDN="idm.int.home.arpa" &&
 CA_SUBJ="/C=JP/CN=${CA_FQDN}" &&
 SERVER_SUBJ="/C=JP/CN=${SERVER_FQDN}" &&
 cd ~/ &&

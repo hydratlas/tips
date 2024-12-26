@@ -11,6 +11,7 @@ kanidm login --name admin
 adminユーザーはKanidmサーバー全体の管理者である。
 
 ### LDAPのDNを変更
+SSHジャンプサーバーに使う分には不要。
 ```sh
 kanidm system domain set-ldap-basedn --name admin dc=home,dc=arpa
 ```

@@ -64,6 +64,9 @@ KerberosAuthentication no
 PermitTTY no
 X11Forwarding no
 ForceCommand /sbin/nologin
+
+PermitTunnel yes
+AllowTcpForwarding yes
 EOS
 sudo systemctl restart ssh.service
 ```

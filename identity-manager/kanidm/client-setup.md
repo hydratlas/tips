@@ -11,9 +11,9 @@ sudo chmod 644 "${FILEPATH}"
 ```
 
 ### サーバーの証明書をコピー
-サーバー側では例えば`cat /opt/kanidm/idm-01-server.crt`コマンドで証明書を表示する。
+サーバー側では例えば`cat /opt/kanidm/idm-server.crt`コマンドで証明書を表示する。
 ```sh
-FILEPATH="/usr/local/share/ca-certificates/idm-01-server.crt" &&
+FILEPATH="/usr/local/share/ca-certificates/idm-server.crt" &&
 sudo tee "${FILEPATH}" << EOS > /dev/null &&
 ...
 EOS
