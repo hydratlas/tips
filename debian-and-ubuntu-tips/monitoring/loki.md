@@ -65,7 +65,7 @@ LogDriver=journald
 PublishPort=3100:3100
 Volume=${host_conf_file}:${container_conf_file}:z
 Volume=${host_dir}:${container_dir}:Z
-Volume=/etc/localtime:/etc/localtime:ro
+Volume=/etc/localtime:/etc/localtime:ro,z
 User=0
 Exec='-config.file=${container_conf_file}'
 

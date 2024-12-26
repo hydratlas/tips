@@ -3,14 +3,13 @@
 ### Debian系
 ```sh
 sudo apt-get install -U -y gpg &&
-sudo install -m 0755 -d /etc/apt/keyrings &&
-wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null &&
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/grafana.gpg > /dev/null &&
 sudo tee "/etc/apt/sources.list.d/grafana.sources" > /dev/null << EOF
 Types: deb
 URIs: https://apt.grafana.com
 Suites: stable
 Components: main
-Signed-By: /etc/apt/keyrings/grafana.gpg
+Signed-By: /usr/share/keyrings/grafana.gpg
 EOF
 ```
 

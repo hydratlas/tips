@@ -43,7 +43,7 @@ LogDriver=journald
 PublishPort=8428:8428
 Volume=${host_conf_file}:${container_conf_file}:z
 Volume=${host_dir}:${container_dir}:Z
-Volume=/etc/localtime:/etc/localtime:ro
+Volume=/etc/localtime:/etc/localtime:ro,z
 User=0
 Exec='-promscrape.config=${container_conf_file}'
 

@@ -56,7 +56,7 @@ LogDriver=journald
 PublishPort=3000:3000
 Volume=${host_dir}:${container_dir}:Z
 Volume=${host_datasources_dir}:${container_datasources_dir}:z
-Volume=/etc/localtime:/etc/localtime:ro
+Volume=/etc/localtime:/etc/localtime:ro,z
 User=0
 
 [Service]
