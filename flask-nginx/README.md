@@ -82,7 +82,7 @@ processes = 5
 socket = $PROJECT_NAME.sock
 uid = www-data
 gid = www-data
-chmod-socket = 660
+chmod-socket = 666
 vacuum = true
 
 die-on-term = true
@@ -107,7 +107,7 @@ sudo systemctl daemon-reload &&
 sudo systemctl enable --now "$PROJECT_NAME.service" &&
 sudo chgrp www-data "$HOME/$PROJECT_NAME/$PROJECT_NAME.sock"
 ```
-本当はchmod-socket = 660が望ましいが、.sockファイルのGIDがwww-dataにならないため、妥協している。nginxをDockerで起動させた場合はバインドしているため660でよいと思われる。
+本当はchmod-socket = 660が望ましいが、.sockファイルのGIDがwww-dataにならないため、妥協している。nginxをDockerで起動させた場合はバインドしているため666でよいと思われる。
 
 ## nginxのインストール・構成
 ### 直接インストールする場合
