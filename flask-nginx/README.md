@@ -129,7 +129,7 @@ sudo ln -s /etc/nginx/sites-available/$PROJECT_NAME.conf /etc/nginx/sites-enable
 sudo unlink /etc/nginx/sites-enabled/default &&
 sudo systemctl restart nginx.service
 ```
-http://your_server_ip/にアクセスする。nginxのエラーログは`/var/log/nginx/error.log`にある。
+http://your_server_ip/にアクセスする（5000番ポートではない）。nginxのエラーログは`/var/log/nginx/error.log`にある。
 
 ### Dockerでインストールする場合
 #### 前提
