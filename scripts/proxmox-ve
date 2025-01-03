@@ -49,25 +49,9 @@ vm_start () {
   set -eux
   local VMID="${1}"
   qm start "${VMID}"
-  while ! qm guest exec "${VMID}" -- bash; do
+  while ! qm guest cmd "${VMID}" ping; do
     sleep 1s
   done
-  set +eux
-}
-vm_exec_timezone () {
-  set -eux
-  local VMID="${1}"
-  local TZ
-  TZ="$(timedatectl show --property=Timezone | cut -d= -f2)"
-  local SCRIPT
-  SCRIPT=$(cat << EOF
-timedatectl set-timezone ${TZ} &&
-if hash dpkg-reconfigure 2>/dev/null; then
-  dpkg-reconfigure --frontend noninteractive tzdata
-fi
-EOF
-  )
-  qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
   set +eux
 }
 vm_exec_apt () {

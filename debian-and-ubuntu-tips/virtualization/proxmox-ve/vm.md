@@ -41,9 +41,9 @@ image_downloader https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/Alma
 ```sh
 tee "/var/lib/vz/snippets/qemu-guest-agent.yaml" << EOS > /dev/null
 #cloud-config
+timezone: $(timedatectl show --property=Timezone | cut -d= -f2)
 packages: [qemu-guest-agent]
 runcmd: 
-  - "if [ -f /etc/sysconfig/qemu-ga ]; then sed -i '/^FILTER_RPC_ARGS=\"--allow-rpcs=/ s/\"$/,guest-exec,guest-exec-status\"/' /etc/sysconfig/qemu-ga; fi"
   - "systemctl enable qemu-guest-agent"
   - "systemctl restart qemu-guest-agent"
 EOS
@@ -54,10 +54,8 @@ EOS
   - 適当なマシン構成（あとから`qm set`コマンドで変更可能）
   - スニペット`qemu-guest-agent.yaml`を追加
 - vm_start
-  - ホストと同じタイムゾーンの設定
   - GRUBをシリアルコンソールに出力
   - シリアルコンソール向けに`apt`コマンドのプログレスバーを無効化
-  - 初回の`apt-get update`コマンドを実行
 ```sh
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
 ```
@@ -82,7 +80,6 @@ qm set "${VMID}" \
   --ciuser "user" \
   --cipassword "$(openssl passwd -6 "p")" &&
 vm_start "${VMID}" &&
-vm_exec_timezone "${VMID}" &&
 vm_exec_apt "${VMID}" &&
 vm_exec_grub "${VMID}" &&
 qm guest exec "${VMID}" -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -yq \
