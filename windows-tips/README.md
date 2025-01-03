@@ -1,4 +1,11 @@
 # Windows
+## インストール
+### VSCodium
+```shell
+winget install -e --id VSCodium.VSCodium
+```
+サイドバーのExtensionsアイコンから、「Japanese Language Pack」をインストールする。
+
 ## SSHクライアントキーの生成
 ```shell
 $FILE = "$HOME/.ssh/id_rsa"

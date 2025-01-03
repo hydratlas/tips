@@ -44,6 +44,11 @@ gsettings set org.gnome.gedit.preferences.print print-font-numbers-pango 'Monosp
 gsettings set org.gnome.gedit.preferences.print print-header false # ヘッダーを印刷しない
 ```
 
+## Zedのインストール（各ユーザー）
+```sh
+wget -q -O - https://zed.dev/install.sh | sh 
+```
+
 ## Geanyのインストール（管理者）
 ```sh
 sudo apt install -yq geany

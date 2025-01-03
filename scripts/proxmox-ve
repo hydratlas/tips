@@ -62,7 +62,9 @@ vm_exec_timezone () {
   local SCRIPT
   SCRIPT=$(cat << EOF
 timedatectl set-timezone ${TZ} &&
-dpkg-reconfigure --frontend noninteractive tzdata
+if hash dpkg-reconfigure 2>/dev/null; then
+  dpkg-reconfigure --frontend noninteractive tzdata
+fi
 EOF
   )
   qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
@@ -92,7 +94,11 @@ GRUB_TERMINAL_INPUT="console serial"
 GRUB_TERMINAL_OUTPUT="gfxterm serial"
 GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200"
 EOS
-update-grub
+if hash update-grub 2>/dev/null; then
+  update-grub
+else
+  grub2-mkconfig -o /boot/grub2/grub.cfg
+fi
 EOF
   )
   qm guest exec "${VMID}" -- bash -c "${SCRIPT}" | jq -r '."out-data", ."err-data"'
