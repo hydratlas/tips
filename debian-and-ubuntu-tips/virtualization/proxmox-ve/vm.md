@@ -42,7 +42,10 @@ image_downloader https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/Alma
 tee "/var/lib/vz/snippets/qemu-guest-agent.yaml" << EOS > /dev/null
 #cloud-config
 packages: [qemu-guest-agent]
-runcmd: [systemctl enable --now qemu-guest-agent]
+runcmd: 
+  - "if [ -f /etc/sysconfig/qemu-ga ]; then sed -i '/^FILTER_RPC_ARGS=\"--allow-rpcs=/ s/\"$/,guest-exec,guest-exec-status\"/' /etc/sysconfig/qemu-ga; fi"
+  - "systemctl enable qemu-guest-agent"
+  - "systemctl restart qemu-guest-agent"
 EOS
 ```
 

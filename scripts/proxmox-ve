@@ -49,7 +49,7 @@ vm_start () {
   set -eux
   local VMID="${1}"
   qm start "${VMID}"
-  while ! qm guest cmd "${VMID}" ping; do
+  while ! qm guest exec "${VMID}" -- bash -c 'echo'; do
     sleep 1s
   done
   set +eux
