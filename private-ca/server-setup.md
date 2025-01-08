@@ -45,8 +45,7 @@ sudo -u "step-ca" openssl req -x509 -new \
   -days 7300 \
   -config "/opt/ca/root/openssl.cnf" &&
 sudo chmod 644 "${OUT_FILEPATH}" &&
-sudo chown "root:step-ca" "${OUT_FILEPATH}" &&
-sudo cp "/opt/ca/root/root_ca.crt"
+sudo chown "root:step-ca" "${OUT_FILEPATH}"
 ```
 
 ### 【オプション】ほかのプライベート認証局サーバーのルート証明書の追加

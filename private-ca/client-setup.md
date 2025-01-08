@@ -19,25 +19,25 @@ rm step-cli_amd64.deb
 
 ## ルートCA証明書を取得
 ```sh
-crt_path="/usr/local/share/ca-certificates/private-ca.crt" &&
-crt_temp_path="/usr/local/share/ca-certificates/private-ca-temp.crt" &&
+root_crt_path="/usr/local/share/ca-certificates/private-ca.crt" &&
+root_crt_temp_path="/usr/local/share/ca-certificates/private-ca-temp.crt" &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   fingerprint=${fingerprints[$i]} &&
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  sudo step ca root "${crt_temp_path}" \
+  sudo step ca root "${root_crt_temp_path}" \
     --ca-url "https://${hostname}:${port}" \
     --fingerprint "${fingerprint}" \
     --force &&
-  sudo chmod 644 "${crt_temp_path}" &&
-  sudo step ca federation "${crt_path}" \
+  sudo chmod 644 "${root_crt_temp_path}" &&
+  sudo step ca federation "${root_crt_path}" \
     --ca-url "https://${hostname}:${port}" \
-    --root "${crt_temp_path}" \
+    --root "${root_crt_temp_path}" \
     --force &&
-  sudo chmod 644 "${crt_path}" &&
-  sudo rm "${crt_temp_path}" &&
-  openssl crl2pkcs7 -nocrl -certfile "${crt_path}" | openssl pkcs7 -print_certs -noout
+  sudo chmod 644 "${root_crt_path}" &&
+  sudo rm "${root_crt_temp_path}" &&
+  openssl crl2pkcs7 -nocrl -certfile "${root_crt_path}" | openssl pkcs7 -print_certs -noout
 done &&
 sudo update-ca-certificates
 ```
@@ -110,6 +110,7 @@ done
 ```
 
 ## サーバー証明書の更新のサービス化
+### スクリプトファイルの作成
 ```sh
 length=${#urls[@]} &&
 hostnames_output="" &&
@@ -126,27 +127,44 @@ sudo tee "/usr/local/bin/step-ca-renew" << EOS > /dev/null &&
 #!/bin/bash
 hostnames=(${hostnames_output})
 ports=(${ports_output})
+root_crt_path="/usr/local/share/ca-certificates/private-ca.crt"
 crt_dir="/etc/ssl/certs"
 key_dir="/etc/ssl/private"
 length=\${#hostnames[@]}
 for ((i=0; i<length; i++)); do
   hostname=\${hostnames[\$i]} &&
   port=\${ports[\$i]} &&
+  step ca federation "\${root_crt_path}" \
+    --ca-url "https://\${hostname}:\${port}" \
+    --root "\${root_crt_path}" \
+    --force &&
+  chmod 644 "\${root_crt_path}"
+  update-ca-certificates
   hosts=(\$(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{\$1=""; print \$0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
-  sudo step ca renew \
+  step ca renew \
     "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${key_dir}/\$(hostname)-\${hostname}.key" \
     --ca-url "https://\${hostname}:\${port}" \
     --root "/usr/local/share/ca-certificates/private-ca.crt" \
     --force &&
   if test "\${crt_dir}/\$(hostname)-\${hostname}.crt" -nt "\${crt_dir}/\$(hostname).crt"; then
-    sudo install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
+    install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
   fi &&
   if test "\${key_dir}/\$(hostname)-\${hostname}.key" -nt "\${key_dir}/\$(hostname).key"; then
-    sudo install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
+    install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
   fi
 done
 EOS
-sudo chmod 755 "/usr/local/bin/step-ca-renew" &&
+sudo chmod 755 "/usr/local/bin/step-ca-renew"
+```
+
+### スクリプトファイルの動作確認
+```sh
+sudo bash /usr/local/bin/step-ca-renew
+sudo bash -x /usr/local/bin/step-ca-renew
+```
+
+### サービスおよびタイマーファイルの作成
+```sh
 sudo tee "/etc/systemd/system/step-ca-renew.service" << EOS > /dev/null &&
 [Unit]
 Description=Renew ACME certificate using Step CA renewal process
