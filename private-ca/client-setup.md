@@ -1,4 +1,11 @@
 # step-cli（クライアント）
+## 変数の準備
+```sh
+fingerprints=("abc" "abc") &&
+hostnames=("ca-01.home.arpa" "ca-02.home.arpa") &&
+ports=("8443" "8443")
+```
+
 ## インストール
 ### Debian系
 ```sh
@@ -7,78 +14,180 @@ sudo dpkg -i step-cli_amd64.deb &&
 rm step-cli_amd64.deb
 ```
 
-## 変数の準備
-```sh
-FINGERPRINT="..." &&
-CA_HOSTNAME="ca-01.int.home.arpa"
-```
+## コマンドラインリファレンス
+[step ca federation](https://smallstep.com/docs/step-cli/reference/)
 
-## 初期設定
+## ルートCA証明書を取得
 ```sh
-sudo step ca bootstrap \
-  --ca-url "https://${CA_HOSTNAME}:8443" \
-  --fingerprint "${FINGERPRINT}" \
-  --install \
-  --force \
-  --context "${CA_HOSTNAME}"
+crt_path="/usr/local/share/ca-certificates/private-ca.crt" &&
+crt_temp_path="/usr/local/share/ca-certificates/private-ca-temp.crt" &&
+length=${#hostnames[@]} &&
+for ((i=0; i<length; i++)); do
+  fingerprint=${fingerprints[$i]} &&
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  sudo step ca root "${crt_temp_path}" \
+    --ca-url "https://${hostname}:${port}" \
+    --fingerprint "${fingerprint}" \
+    --force &&
+  sudo chmod 644 "${crt_temp_path}" &&
+  sudo step ca federation "${crt_path}" \
+    --ca-url "https://${hostname}:${port}" \
+    --root "${crt_temp_path}" \
+    --force &&
+  sudo chmod 644 "${crt_path}" &&
+  sudo rm "${crt_temp_path}" &&
+  openssl crl2pkcs7 -nocrl -certfile "${crt_path}" | openssl pkcs7 -print_certs -noout
+done &&
+sudo update-ca-certificates
 ```
 
 ### 【デバッグ】HTTPSの確認
 ```sh
-wget -O - "https://${CA_HOSTNAME}:8443/health"
-```
-
-## 初期設定の削除
-```sh
-sudo rm -dr /root/.step
+length=${#hostnames[@]} &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  wget -O - "https://${hostname}:${port}/health"
+done
 ```
 
 ## サーバー証明書の作成（複数ドメイン対応）
 ```sh
-hostnames=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
-sudo step ca certificate \
-  "${hostnames[0]}" "/etc/ssl/certs/server.${CA_HOSTNAME}.crt" "/etc/ssl/private/server.${CA_HOSTNAME}.key" \
-  --provisioner acme \
-  --force \
-  --context "${CA_HOSTNAME}" \
-  ${hostnames[@]/#/--san }
+crt_dir="/etc/ssl/certs" &&
+key_dir="/etc/ssl/private" &&
+length=${#hostnames[@]} &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+  sudo step ca certificate \
+    "${hosts[0]}" "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
+    --provisioner acme \
+    --ca-url "https://${hostname}:${port}" \
+    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --force \
+    ${hosts[@]/#/--san } &&
+  sudo chmod 644 "${crt_dir}/$(hostname)-${hostname}.crt" &&
+  sudo chmod 600 "${key_dir}/$(hostname)-${hostname}.key" &&
+  sudo install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt" &&
+  sudo install -m 600 "${key_dir}/$(hostname)-${hostname}.key" "${key_dir}/$(hostname).key"
+done
 ```
 `.vip.`を含むものは除外している（仮想IPアドレスに対応するドメインにはサブドメインとして「vip」を含むようにすることを想定）。
 
-## 証明書の概要の確認
+## 【デバッグ】証明書の概要の確認
 ```sh
-sudo openssl x509 -text -noout -in "/etc/ssl/certs/server.${CA_HOSTNAME}.crt"
+openssl x509 -text -noout -in "${crt_path}"
 ```
 
-## サーバー証明書の更新
+## 【デバッグ】証明書のチェーンの確認
 ```sh
-sudo step ca renew "/etc/ssl/certs/server.${CA_HOSTNAME}.crt" "/etc/ssl/private/server.${CA_HOSTNAME}.key" --force --context "${CA_HOSTNAME}"
+openssl crl2pkcs7 -nocrl -certfile "${crt_path}" | openssl pkcs7 -print_certs -noout
+```
+
+## 証明書の更新
+```sh
+crt_dir="/etc/ssl/certs" &&
+key_dir="/etc/ssl/private" &&
+length=${#hostnames[@]} &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+  sudo step ca renew \
+    "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
+    --ca-url "https://${hostname}:${port}" \
+    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --force &&
+  if test "${crt_dir}/$(hostname)-${hostname}.crt" -nt "${crt_dir}/$(hostname).crt"; then
+    sudo install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt"
+  fi &&
+  if test "${key_dir}/$(hostname)-${hostname}.key" -nt "${key_dir}/$(hostname).key"; then
+    sudo install -m 600 "${key_dir}/$(hostname)-${hostname}.key" "${key_dir}/$(hostname).key"
+  fi
+done
 ```
 
 ## サーバー証明書の更新のサービス化
 ```sh
-sudo tee "/etc/systemd/system/step-ca-renew.${CA_HOSTNAME}.service" << EOS > /dev/null &&
+length=${#urls[@]} &&
+hostnames_output="" &&
+for element in "${hostnames[@]}"; do
+  escaped_element="$(printf '%q' "${element}")" &&
+  hostnames_output+="\"${escaped_element}\" "
+done &&
+ports_output="" &&
+for element in "${ports[@]}"; do
+  escaped_element="$(printf '%q' "${element}")" &&
+  ports_output+="\"${escaped_element}\" "
+done &&
+sudo tee "/usr/local/bin/step-ca-renew" << EOS > /dev/null &&
+#!/bin/bash
+hostnames=(${hostnames_output})
+ports=(${ports_output})
+crt_dir="/etc/ssl/certs"
+key_dir="/etc/ssl/private"
+length=\${#hostnames[@]}
+for ((i=0; i<length; i++)); do
+  hostname=\${hostnames[\$i]} &&
+  port=\${ports[\$i]} &&
+  hosts=(\$(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{\$1=""; print \$0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+  sudo step ca renew \
+    "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${key_dir}/\$(hostname)-\${hostname}.key" \
+    --ca-url "https://\${hostname}:\${port}" \
+    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --force &&
+  if test "\${crt_dir}/\$(hostname)-\${hostname}.crt" -nt "\${crt_dir}/\$(hostname).crt"; then
+    sudo install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
+  fi &&
+  if test "\${key_dir}/\$(hostname)-\${hostname}.key" -nt "\${key_dir}/\$(hostname).key"; then
+    sudo install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
+  fi
+done
+EOS
+sudo chmod 755 "/usr/local/bin/step-ca-renew" &&
+sudo tee "/etc/systemd/system/step-ca-renew.service" << EOS > /dev/null &&
 [Unit]
-Description=Step CA Certificate Renewal Service
-After=network-online.target
+Description=Renew ACME certificate using Step CA renewal process
 Wants=network-online.target
+After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/step ca renew "/etc/ssl/certs/server.${CA_HOSTNAME}.crt" "/etc/ssl/private/server.${CA_HOSTNAME}.key" --daemon --context "${CA_HOSTNAME}"
-Restart=always
-KillSignal=SIGINT
+Type=oneshot
+ExecStart=/usr/local/bin/step-ca-renew
+StandardOutput=journal
+StandardError=journal
+EOS
+sudo tee "/etc/systemd/system/step-ca-renew.timer" << EOS > /dev/null &&
+[Unit]
+Description=Trigger Step CA certificate renewal periodically
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+Persistent=true
+RandomizedDelaySec=11h
+Unit=step-ca-renew.service
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=timers.target
 EOS
 sudo systemctl daemon-reload &&
-sudo systemctl enable --now "step-ca-renew.${CA_HOSTNAME}.service" &&
-sudo systemctl status --no-pager --full step-ca-renew.${CA_HOSTNAME}.service
+sudo systemctl enable --now step-ca-renew.timer &&
+sudo systemctl status --no-pager --full step-ca-renew.service &&
+sudo systemctl status --no-pager --full step-ca-renew.timer
+```
+
+## 【デバッグ】サーバー証明書の更新のサービスのログを確認
+```sh
+journalctl --no-pager --lines=20 --unit=step-ca-renew.service
+journalctl --no-pager --lines=20 --unit=step-ca-renew.timer
 ```
 
 ## 【元に戻す】サーバー証明書の更新のサービス化
 ```sh
-sudo systemctl disable --now "step-ca-renew.${CA_HOSTNAME}.service" &&
-sudo rm "/etc/systemd/system/step-ca-renew.${CA_HOSTNAME}.service" &&
+sudo systemctl disable --now step-ca-renew.timer &&
+sudo rm "/etc/systemd/system/step-ca-renew.timer" &&
+sudo rm "/etc/systemd/system/step-ca-renew.service" &&
 sudo systemctl daemon-reload
 ```
