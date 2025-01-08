@@ -79,8 +79,10 @@ ls -la /boot/efi/EFI/BOOT
 設定の確認は`debconf-get-selections | grep grub`でできる。Ubuntuの場合はデフォルトで`grub-efi-amd64 grub2/no_efi_extra_removable boolean false`となっている。`true`と`false`の意味が逆になっていることに注意。
 
 ## GRUBの待ち時間をなくす（管理者）
+/bootがlvmまたはbtrfsであり、なおかつUEFIブートの場合、GRUBのタイムアウトが30秒になる。それを0秒にする設定。
 ```sh
-sudo tee -a "/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null
+sudo tee "/etc/default/grub.d/timeout-recordfail.cfg" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null &&
+sudo update-grub
 ```
 
 ## Nanoをインストールする（管理者）

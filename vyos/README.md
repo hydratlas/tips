@@ -46,6 +46,8 @@ The image installed successfully; please reboot now.<br>
 
 シャットダウンしたら、ISOイメージを取り外す。
 
+なお、`qemu-guest-agent`は2024年12月にデフォルトでは入っていないようになった。 [⚓ T6942 Remove VM guest agents from the generic flavor for the rolling release](https://vyos.dev/T6942)
+
 ## 初期設定
 ### シリアルコンソールが太字になってしまうのを解除
 ```sh
@@ -59,7 +61,8 @@ sudo tee "/config/scripts/unbold_the_console.sh" << EOS > /dev/null &&
 echo -e "\e[0m"
 EOS
 sudo chmod 644 /config/scripts/unbold_the_console.sh &&
-sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts/setup_unbold_the_console.sh" > /dev/null
+sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" \
+  <<< "/config/scripts/setup_unbold_the_console.sh" > /dev/null
 ```
 
 ### 設定
@@ -134,6 +137,18 @@ show configuration commands
 ```sh
 monitor log
 show log tail
+```
+
+### DHCPサーバーのリース情報を表示
+```sh
+show dhcp server leases
+```
+
+### DHCPサーバーのリース情報を削除
+```sh
+show dhcp server leases | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | while read -r ip; do
+    clear dhcp-server lease "$ip"
+done
 ```
 
 ### 初期化
