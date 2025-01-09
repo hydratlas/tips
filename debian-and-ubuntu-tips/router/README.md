@@ -143,7 +143,7 @@ ip a
 ip r
 sudo netplan ip leases eth0
 cat /run/systemd/resolve/resolv.conf
-dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" client1.home.apra
-watch dig "@$(resolvectl status | grep 'DNS Servers' | awk '{print $3}')" google.com
+dig "@$(resolvectl status | grep 'DNS Servers' | head -n 1 | awk '{print $3}')" google.com
+watch dig "@$(resolvectl status | grep 'DNS Servers' | head -n 1 | awk '{print $3}')" google.com
 ```
 `watch `を前に付けると1秒間隔で自動的に取得できる。

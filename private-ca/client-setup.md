@@ -17,7 +17,8 @@ rm step-cli_amd64.deb
 ## コマンドラインリファレンス
 [step ca federation](https://smallstep.com/docs/step-cli/reference/)
 
-## ルートCA証明書を取得
+## ルートCA証明書の取得
+### 取得
 ```sh
 root_crt_path="/usr/local/share/ca-certificates/private-ca.crt" &&
 root_crt_temp_path="/usr/local/share/ca-certificates/private-ca-temp.crt" &&
@@ -42,7 +43,12 @@ done &&
 sudo update-ca-certificates
 ```
 
-### 【デバッグ】HTTPSの確認
+### 【デバッグ】取得した証明書の概要の表示
+```sh
+openssl x509 -text -noout -in "/usr/local/share/ca-certificates/private-ca.crt"
+```
+
+### 【デバッグ】HTTPS通信の確認
 ```sh
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
@@ -53,19 +59,20 @@ done
 ```
 
 ## サーバー証明書の作成（複数ドメイン対応）
+### 作成
 ```sh
+hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
 crt_dir="/etc/ssl/certs" &&
 key_dir="/etc/ssl/private" &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
   sudo step ca certificate \
     "${hosts[0]}" "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
-    --provisioner acme \
     --ca-url "https://${hostname}:${port}" \
     --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --provisioner acme \
     --force \
     ${hosts[@]/#/--san } &&
   sudo chmod 644 "${crt_dir}/$(hostname)-${hostname}.crt" &&
@@ -76,14 +83,43 @@ done
 ```
 `.vip.`を含むものは除外している（仮想IPアドレスに対応するドメインにはサブドメインとして「vip」を含むようにすることを想定）。
 
-## 【デバッグ】証明書の概要の確認
+### 【デバッグ】証明書の概要の確認
 ```sh
 openssl x509 -text -noout -in "${crt_path}"
 ```
 
-## 【デバッグ】証明書のチェーンの確認
+### 【デバッグ】証明書のチェーンの確認
 ```sh
 openssl crl2pkcs7 -nocrl -certfile "${crt_path}" | openssl pkcs7 -print_certs -noout
+```
+
+## 【オプション】SSHホストキーへの署名用
+```sh
+hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+IFS=',' &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  sudo step ssh certificate "${hosts[*]}" "$HOME/id_ed25519" \
+    --ca-url="https://${hostname}:${port}" \
+    --root="/usr/local/share/ca-certificates/private-ca.crt" \
+    --provisioner=x5c \
+    --x5c-cert="${crt_dir}/$(hostname)-${hostname}.crt" \
+    --x5c-key="${key_dir}/$(hostname)-${hostname}.key" \
+    --host \
+    --kty=OKP --curve=Ed25519 \
+    --no-password \
+    --insecure \
+    --force 
+done &&
+unset IFS
+```
+「cannot create a new token: the CA does not have any provisioner configured」とエラーが出てうまくいかない。
+
+```sh
+step ca provisioner list \
+  --ca-url https://ca-02.int.home.arpa:8443 \
+  --root "/usr/local/share/ca-certificates/private-ca.crt"
 ```
 
 ## 証明書の更新
@@ -109,21 +145,21 @@ for ((i=0; i<length; i++)); do
 done
 ```
 
-## サーバー証明書の更新のサービス化
+## ルートCA証明書およびサーバー証明書の更新のサービス化
 ### スクリプトファイルの作成
 ```sh
-length=${#urls[@]} &&
-hostnames_output="" &&
+length=${#urls[@]}
+hostnames_output=""
 for element in "${hostnames[@]}"; do
-  escaped_element="$(printf '%q' "${element}")" &&
+  escaped_element="$(printf '%q' "${element}")"
   hostnames_output+="\"${escaped_element}\" "
-done &&
-ports_output="" &&
+done
+ports_output=""
 for element in "${ports[@]}"; do
-  escaped_element="$(printf '%q' "${element}")" &&
+  escaped_element="$(printf '%q' "${element}")"
   ports_output+="\"${escaped_element}\" "
-done &&
-sudo tee "/usr/local/bin/step-ca-renew" << EOS > /dev/null &&
+done
+sudo tee "/usr/local/bin/step-ca-renew" << EOS > /dev/null
 #!/bin/bash
 hostnames=(${hostnames_output})
 ports=(${ports_output})
@@ -132,12 +168,12 @@ crt_dir="/etc/ssl/certs"
 key_dir="/etc/ssl/private"
 length=\${#hostnames[@]}
 for ((i=0; i<length; i++)); do
-  hostname=\${hostnames[\$i]} &&
-  port=\${ports[\$i]} &&
+  hostname=\${hostnames[\$i]}
+  port=\${ports[\$i]}
   step ca federation "\${root_crt_path}" \
     --ca-url "https://\${hostname}:\${port}" \
     --root "\${root_crt_path}" \
-    --force &&
+    --force
   chmod 644 "\${root_crt_path}"
   update-ca-certificates
   hosts=(\$(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{\$1=""; print \$0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
@@ -145,10 +181,10 @@ for ((i=0; i<length; i++)); do
     "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${key_dir}/\$(hostname)-\${hostname}.key" \
     --ca-url "https://\${hostname}:\${port}" \
     --root "/usr/local/share/ca-certificates/private-ca.crt" \
-    --force &&
+    --force
   if test "\${crt_dir}/\$(hostname)-\${hostname}.crt" -nt "\${crt_dir}/\$(hostname).crt"; then
     install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
-  fi &&
+  fi
   if test "\${key_dir}/\$(hostname)-\${hostname}.key" -nt "\${key_dir}/\$(hostname).key"; then
     install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
   fi
