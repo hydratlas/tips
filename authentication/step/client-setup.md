@@ -1,9 +1,16 @@
 # step-cli（クライアント）
 ## 変数の準備
 ```sh
-fingerprints=("abc" "abc") &&
-hostnames=("ca-01.home.arpa" "ca-02.home.arpa") &&
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.env" << EOS > /dev/null
+fingerprints=("abc" "abc")
+hostnames=("ca-01.home.arpa" "ca-02.home.arpa")
 ports=("8443" "8443")
+ca_certificates_dir="/usr/local/share/ca-certificates"
+root_crt_file="private-ca.crt"
+root_crt_temp_file="private-ca-temp.crt"
+crt_dir="/etc/ssl/certs"
+key_dir="/etc/ssl/private"
+EOS
 ```
 
 ## インストール
@@ -20,36 +27,37 @@ rm step-cli_amd64.deb
 ## ルートCA証明書の取得
 ### 取得
 ```sh
-root_crt_path="/usr/local/share/ca-certificates/private-ca.crt" &&
-root_crt_temp_path="/usr/local/share/ca-certificates/private-ca-temp.crt" &&
+source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   fingerprint=${fingerprints[$i]} &&
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  sudo step ca root "${root_crt_temp_path}" \
+  sudo step ca root "${ca_certificates_dir}/${root_crt_temp_file}" \
     --ca-url "https://${hostname}:${port}" \
     --fingerprint "${fingerprint}" \
     --force &&
-  sudo chmod 644 "${root_crt_temp_path}" &&
-  sudo step ca federation "${root_crt_path}" \
+  sudo chmod 644 "${ca_certificates_dir}/${root_crt_temp_file}" &&
+  sudo step ca federation "${ca_certificates_dir}/${root_crt_file}" \
     --ca-url "https://${hostname}:${port}" \
-    --root "${root_crt_temp_path}" \
+    --root "${ca_certificates_dir}/${root_crt_temp_file}" \
     --force &&
-  sudo chmod 644 "${root_crt_path}" &&
-  sudo rm "${root_crt_temp_path}" &&
-  openssl crl2pkcs7 -nocrl -certfile "${root_crt_path}" | openssl pkcs7 -print_certs -noout
+  sudo chmod 644 "${ca_certificates_dir}/${root_crt_file}" &&
+  sudo rm "${ca_certificates_dir}/${root_crt_temp_file}" &&
+  openssl crl2pkcs7 -nocrl -certfile "${ca_certificates_dir}/${root_crt_file}" | openssl pkcs7 -print_certs -noout
 done &&
 sudo update-ca-certificates
 ```
 
 ### 【デバッグ】取得した証明書の概要の表示
 ```sh
-openssl x509 -text -noout -in "/usr/local/share/ca-certificates/private-ca.crt"
+source /usr/local/etc/step-cli.env &&
+openssl x509 -text -noout -in "${ca_certificates_dir}/${root_crt_file}"
 ```
 
 ### 【デバッグ】HTTPS通信の確認
 ```sh
+source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
@@ -61,9 +69,8 @@ done
 ## サーバー証明書の作成（複数ドメイン対応）
 ### 作成
 ```sh
+source /usr/local/etc/step-cli.env &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
-crt_dir="/etc/ssl/certs" &&
-key_dir="/etc/ssl/private" &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
@@ -71,7 +78,7 @@ for ((i=0; i<length; i++)); do
   sudo step ca certificate \
     "${hosts[0]}" "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
     --ca-url "https://${hostname}:${port}" \
-    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --root "${ca_certificates_dir}/${root_crt_file}" \
     --provisioner acme \
     --force \
     ${hosts[@]/#/--san } &&
@@ -85,16 +92,20 @@ done
 
 ### 【デバッグ】証明書の概要の確認
 ```sh
-openssl x509 -text -noout -in "${crt_path}"
+source /usr/local/etc/step-cli.env &&
+openssl x509 -text -noout -in "${crt_dir}/$(hostname).crt"
 ```
 
 ### 【デバッグ】証明書のチェーンの確認
 ```sh
-openssl crl2pkcs7 -nocrl -certfile "${crt_path}" | openssl pkcs7 -print_certs -noout
+source /usr/local/etc/step-cli.env &&
+openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 -print_certs -noout
 ```
 
-## 【オプション】SSHホストキーへの署名用
+## 【オプション】SSHホストキーへの署名
+### 署名する
 ```sh
+source /usr/local/etc/step-cli.env &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
 IFS=',' &&
 for ((i=0; i<length; i++)); do
@@ -102,7 +113,7 @@ for ((i=0; i<length; i++)); do
   port=${ports[$i]} &&
   sudo step ssh certificate "${hosts[*]}" "$HOME/id_ed25519" \
     --ca-url="https://${hostname}:${port}" \
-    --root="/usr/local/share/ca-certificates/private-ca.crt" \
+    --root="${ca_certificates_dir}/${root_crt_file}" \
     --provisioner=x5c \
     --x5c-cert="${crt_dir}/$(hostname)-${hostname}.crt" \
     --x5c-key="${key_dir}/$(hostname)-${hostname}.key" \
@@ -116,16 +127,21 @@ unset IFS
 ```
 「cannot create a new token: the CA does not have any provisioner configured」とエラーが出てうまくいかない。
 
+### 【デバッグ】X5Cプロビジョナーの確認
 ```sh
-step ca provisioner list \
-  --ca-url https://ca-02.int.home.arpa:8443 \
-  --root "/usr/local/share/ca-certificates/private-ca.crt"
+source /usr/local/etc/step-cli.env &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  step ca provisioner list \
+    --ca-url "https://${hostname}:${port}" \
+    --root "${ca_certificates_dir}/${root_crt_file}"
+done
 ```
 
 ## 証明書の更新
 ```sh
-crt_dir="/etc/ssl/certs" &&
-key_dir="/etc/ssl/private" &&
+source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
@@ -134,7 +150,7 @@ for ((i=0; i<length; i++)); do
   sudo step ca renew \
     "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
     --ca-url "https://${hostname}:${port}" \
-    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --root "${ca_certificates_dir}/${root_crt_file}" \
     --force &&
   if test "${crt_dir}/$(hostname)-${hostname}.crt" -nt "${crt_dir}/$(hostname).crt"; then
     sudo install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt"
@@ -148,39 +164,36 @@ done
 ## ルートCA証明書およびサーバー証明書の更新のサービス化
 ### スクリプトファイルの作成
 ```sh
-length=${#urls[@]}
-hostnames_output=""
+source /usr/local/etc/step-cli.env &&
+length=${#urls[@]} &&
+hostnames_output="" &&
 for element in "${hostnames[@]}"; do
-  escaped_element="$(printf '%q' "${element}")"
+  escaped_element="$(printf '%q' "${element}")" &&
   hostnames_output+="\"${escaped_element}\" "
-done
-ports_output=""
+done &&
+ports_output="" &&
 for element in "${ports[@]}"; do
-  escaped_element="$(printf '%q' "${element}")"
+  escaped_element="$(printf '%q' "${element}")" &&
   ports_output+="\"${escaped_element}\" "
-done
-sudo tee "/usr/local/bin/step-ca-renew" << EOS > /dev/null
+done &&
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/bin/step-cli-renew" << EOS > /dev/null
 #!/bin/bash
-hostnames=(${hostnames_output})
-ports=(${ports_output})
-root_crt_path="/usr/local/share/ca-certificates/private-ca.crt"
-crt_dir="/etc/ssl/certs"
-key_dir="/etc/ssl/private"
+source /usr/local/etc/step-cli.env
 length=\${#hostnames[@]}
 for ((i=0; i<length; i++)); do
   hostname=\${hostnames[\$i]}
   port=\${ports[\$i]}
-  step ca federation "\${root_crt_path}" \
+  step ca federation "\${ca_certificates_dir}/\${root_crt_file}" \
     --ca-url "https://\${hostname}:\${port}" \
-    --root "\${root_crt_path}" \
+    --root "\${ca_certificates_dir}/\${root_crt_file}" \
     --force
-  chmod 644 "\${root_crt_path}"
+  chmod 644 "\${ca_certificates_dir}/\${root_crt_file}"
   update-ca-certificates
   hosts=(\$(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{\$1=""; print \$0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
   step ca renew \
     "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${key_dir}/\$(hostname)-\${hostname}.key" \
     --ca-url "https://\${hostname}:\${port}" \
-    --root "/usr/local/share/ca-certificates/private-ca.crt" \
+    --root "\${ca_certificates_dir}/\${root_crt_file}" \
     --force
   if test "\${crt_dir}/\$(hostname)-\${hostname}.crt" -nt "\${crt_dir}/\$(hostname).crt"; then
     install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
@@ -190,18 +203,18 @@ for ((i=0; i<length; i++)); do
   fi
 done
 EOS
-sudo chmod 755 "/usr/local/bin/step-ca-renew"
 ```
 
 ### スクリプトファイルの動作確認
 ```sh
-sudo bash /usr/local/bin/step-ca-renew
-sudo bash -x /usr/local/bin/step-ca-renew
+sudo bash /usr/local/bin/step-cli-renew
+sudo bash -x /usr/local/bin/step-cli-renew
 ```
 
 ### サービスおよびタイマーファイルの作成
 ```sh
-sudo tee "/etc/systemd/system/step-ca-renew.service" << EOS > /dev/null &&
+source /usr/local/etc/step-cli.env &&
+sudo tee "/etc/systemd/system/step-cli-renew.service" << EOS > /dev/null &&
 [Unit]
 Description=Renew ACME certificate using Step CA renewal process
 Wants=network-online.target
@@ -209,11 +222,11 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/step-ca-renew
+ExecStart=/usr/local/bin/step-cli-renew
 StandardOutput=journal
 StandardError=journal
 EOS
-sudo tee "/etc/systemd/system/step-ca-renew.timer" << EOS > /dev/null &&
+sudo tee "/etc/systemd/system/step-cli-renew.timer" << EOS > /dev/null &&
 [Unit]
 Description=Trigger Step CA certificate renewal periodically
 
@@ -221,27 +234,27 @@ Description=Trigger Step CA certificate renewal periodically
 OnCalendar=*-*-* 00,12:00:00
 Persistent=true
 RandomizedDelaySec=11h
-Unit=step-ca-renew.service
+Unit=step-cli-renew.service
 
 [Install]
 WantedBy=timers.target
 EOS
 sudo systemctl daemon-reload &&
-sudo systemctl enable --now step-ca-renew.timer &&
-sudo systemctl status --no-pager --full step-ca-renew.service &&
-sudo systemctl status --no-pager --full step-ca-renew.timer
+sudo systemctl enable --now step-cli-renew.timer &&
+sudo systemctl status --no-pager --full step-cli-renew.service &&
+sudo systemctl status --no-pager --full step-cli-renew.timer
 ```
 
 ## 【デバッグ】サーバー証明書の更新のサービスのログを確認
 ```sh
-journalctl --no-pager --lines=20 --unit=step-ca-renew.service
-journalctl --no-pager --lines=20 --unit=step-ca-renew.timer
+journalctl --no-pager --lines=20 --unit=step-cli-renew.service
+journalctl --no-pager --lines=20 --unit=step-cli-renew.timer
 ```
 
 ## 【元に戻す】サーバー証明書の更新のサービス化
 ```sh
-sudo systemctl disable --now step-ca-renew.timer &&
-sudo rm "/etc/systemd/system/step-ca-renew.timer" &&
-sudo rm "/etc/systemd/system/step-ca-renew.service" &&
+sudo systemctl disable --now step-cli-renew.timer &&
+sudo rm "/etc/systemd/system/step-cli-renew.timer" &&
+sudo rm "/etc/systemd/system/step-cli-renew.service" &&
 sudo systemctl daemon-reload
 ```

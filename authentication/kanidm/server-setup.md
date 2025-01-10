@@ -77,7 +77,7 @@ schedule = "00 22 * * *"
 EOS
 sudo chown root:kanidm "${SERVER_DATA_DIR}/server.toml" &&
 sudo chmod 640 "${SERVER_DATA_DIR}/server.toml" &&
-sudo docker run --user "$(id -u kanidm):$(id -g kanidm)" --userns=keep-id --rm -it -v "${KANIDM_DATA}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
+sudo docker run --user "$(id -u kanidm):$(id -g kanidm)" --userns=keep-id --rm -it -v "${SERVER_DIR}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
 ```
 
 ## サービス化
@@ -90,7 +90,7 @@ AutoUpdate=registry
 LogDriver=journald
 
 PublishPort=8443:8443
-Volume=${KANIDM_DATA}:/data:Z
+Volume=${SERVER_DIR}:/data:Z
 Volume=/etc/localtime:/etc/localtime:ro,z
 User=$(id -u kanidm)
 Group=$(id -g kanidm)

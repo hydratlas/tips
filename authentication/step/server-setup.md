@@ -41,7 +41,7 @@ OUT_FILEPATH="/opt/ca/root/root_ca.crt" &&
 sudo -u "step-ca" openssl req -x509 -new \
   -key "/opt/ca/root/root_ca_key" -nodes \
   -out "${OUT_FILEPATH}" \
-  -subj "/CN=Private $(hostname) Root CA" \
+  -subj "/O=CN=Private $(hostname)/CN=Private $(hostname) Root CA" \
   -days 7300 \
   -config "/opt/ca/root/openssl.cnf" &&
 sudo chmod 644 "${OUT_FILEPATH}" &&
@@ -146,6 +146,7 @@ fi
 - [Step v0.8.3: Federation and Root Rotation for step Certificates](https://smallstep.com/blog/step-v0.8.3-federation-root-rotation/)
 
 ### 【オプション】X5Cプロビジョナーの追加
+#### 追加
 ```sh
 sudo find "/opt/step-ca/certs" -type f -name "*root_ca*.crt" -exec cat {} + | \
   sudo tee "/opt/step-ca/certs/federation.crt" > /dev/null &&
@@ -161,12 +162,12 @@ sudo podman run \
       # "${STEPCA_CONTAINER_DATAPATH}/certs/federation.crt"
 ```
 
-### 【デバッグ】X5Cプロビジョナーの確認
+#### 【デバッグ】X5Cプロビジョナーの確認
 ```sh
 wget -O - https://localhost:8443/provisioners
 ```
 
-### 【元に戻す】X5Cプロビジョナーの削除
+#### 【元に戻す】X5Cプロビジョナーの削除
 ```sh
 sudo podman run \
   --user "$(id -u step-ca):$(id -g step-ca)" \
