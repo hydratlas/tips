@@ -202,6 +202,23 @@ for ((i=0; i<length; i++)); do
     install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
   fi
 done
+
+script_dir="/usr/local/etc/step-cli.d"
+for script in "${script_dir}"/*; do
+  if [ -x "${script}" ]; then
+    "${script}" "\${crt_dir}/\$(hostname).crt" "\${key_dir}/\$(hostname).key"
+  fi
+done
+EOS
+```
+
+### 【オプション】nginx用のスクリプト（例）
+```sh
+sudo mkdir -p "/usr/local/etc/step-cli.d" &&
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.d/nginx" << EOS > /dev/null
+#!/bin/bash
+install -m 644 -o "root" -g "www-data" "\$1" "/etc/nginx/ssl/yourdomain.com.crt"
+install -m 640 -o "root" -g "www-data" "\$2" "/etc/nginx/ssl/yourdomain.com.key"
 EOS
 ```
 
