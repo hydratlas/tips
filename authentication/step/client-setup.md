@@ -204,9 +204,9 @@ for ((i=0; i<length; i++)); do
 done
 
 script_dir="/usr/local/etc/step-cli.d"
-for script in "${script_dir}"/*; do
-  if [ -x "${script}" ]; then
-    "${script}" "\${crt_dir}/\$(hostname).crt" "\${key_dir}/\$(hostname).key"
+for script in "\${script_dir}"/*; do
+  if [ -x "\${script}" ]; then
+    "\${script}" "\${crt_dir}/\$(hostname).crt" "\${key_dir}/\$(hostname).key"
   fi
 done
 EOS

@@ -1,8 +1,14 @@
 # Podman周りのインストール
 ## Podmanのインストール
 ### パッケージをインストール・確認
+#### 最小限
 ```sh
 sudo apt-get install -y podman &&
+podman version
+```
+
+#### 【オプション】Dockerとの互換性を高める
+```sh
 sudo apt-get install --no-install-recommends -y podman-docker &&
 sudo perl -p -i -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g' /etc/containers/registries.conf &&
 sudo touch /etc/containers/nodocker &&

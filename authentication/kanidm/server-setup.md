@@ -1,83 +1,41 @@
 # Kanidm Serverのセットアップ
 ## 前提
-Podmanをインストールしておく必要がある。
+Podmanをインストール、step-cli（クライアント）をインストールしてサーバー証明書を取得しておく必要がある。
 
 ## ユーザー・ディレクトリー・鍵の準備
 ```sh
-CA_DIR="/opt/ca" &&
-SERVER_DIR="/opt/kanidm" &&
-SERVER_DATA_DIR="/opt/kanidm/data" &&
+SERVER_DATA_DIR="/opt/kanidm" &&
 SERVER_USER="kanidm" &&
-CA_FILENAME="ca" &&
-SERVER_FILENAME="idm-server" &&
-CA_FQDN="ca.home.arpa" &&
-SERVER_FQDN="idm.int.home.arpa" &&
-CA_SUBJ="/C=JP/CN=${CA_FQDN}" &&
-SERVER_SUBJ="/C=JP/CN=${SERVER_FQDN}" &&
-cd ~/ &&
 if ! id "${SERVER_USER}" &>/dev/null; then
-    sudo useradd --create-home --user-group "${SERVER_USER}"
-fi &&
-if [ ! -e "${CA_DIR}/${CA_FILENAME}.crt" ]; then
-  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out "${CA_FILENAME}.key" &&
-  openssl req -x509 -new -nodes -key "${CA_FILENAME}.key" -sha256 -days 7300 -out "${CA_FILENAME}.crt" -subj "${CA_SUBJ}" &&
-  sudo install -o root -g root -m 755 -d "${CA_DIR}" &&
-  sudo install -o root -g root -m 600 -t "${CA_DIR}" "${CA_FILENAME}.key" &&
-  rm "${CA_FILENAME}.key" &&
-  sudo install -o root -g root -m 644 -t "${CA_DIR}" "${CA_FILENAME}.crt" &&
-  rm "${CA_FILENAME}.crt" &&
-fi &&
-if [ ! -e "${SERVER_DIR}/${SERVER_FILENAME}.crt" ]; then
-  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "${SERVER_FILENAME}.key" &&
-  openssl req -new -key "${SERVER_FILENAME}.key" -out "${SERVER_FILENAME}.csr" -subj "${SERVER_SUBJ}" &&
-  tee "${SERVER_FILENAME}.cnf" << EOS > /dev/null &&
-[ req ]
-x509_extensions = v3_ca
-
-[ v3_ca ]
-basicConstraints = CA:false
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid,issuer
-subjectAltName = @alt_names
-
-[alt_names]
-DNS.1 = ${SERVER_FQDN}
-EOS
-  sudo openssl x509 -req -in "${SERVER_FILENAME}.csr" -CA "${CA_DIR}/${CA_FILENAME}.crt" -CAkey "${CA_DIR}/${CA_FILENAME}.key" -CAcreateserial -out "${SERVER_FILENAME}.crt" -days 7300 -sha256 -extensions v3_ca -extfile "${SERVER_FILENAME}.cnf" &&
-  sudo chown "${USER}:${USER}" "${SERVER_FILENAME}.crt" &&
-  rm "${SERVER_FILENAME}.cnf" &&
-  sudo install -o root -g "${SERVER_USER}" -m 775 -d "${SERVER_DIR}" &&
-  sudo install -o root -g "${SERVER_USER}" -m 640 -t "${SERVER_DIR}" "${SERVER_FILENAME}.key" &&
-  rm "${SERVER_FILENAME}.key" &&
-  sudo install -o root -g root -m 644 -t "${SERVER_DIR}" "${SERVER_FILENAME}.csr" &&
-  rm "${SERVER_FILENAME}.csr" &&
-  sudo install -o root -g root -m 644 -t "${SERVER_DIR}" "${SERVER_FILENAME}.crt" &&
-  rm "${SERVER_FILENAME}.crt"
+    sudo useradd --system --create-home --user-group "${SERVER_USER}"
 fi &&
 sudo install -o root -g "${SERVER_USER}" -m 770 -d "${SERVER_DATA_DIR}" &&
-sudo install -o root -g "${SERVER_USER}" -m 640 -t "${SERVER_DATA_DIR}" "${SERVER_DIR}/${SERVER_FILENAME}.key" &&
-sudo install -o root -g "${SERVER_USER}" -m 644 -t "${SERVER_DATA_DIR}" "${SERVER_DIR}/${SERVER_FILENAME}.crt"
+sudo mkdir -p "/usr/local/etc/step-cli.d" &&
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.d/kanidm" << EOS > /dev/null
+#!/bin/bash
+install -m 644 -o "root" -g "${SERVER_USER}" "\$1" "${SERVER_DATA_DIR}/server.crt"
+install -m 640 -o "root" -g "${SERVER_USER}" "\$2" "${SERVER_DATA_DIR}/server.key"
+EOS
+sudo bash /usr/local/bin/step-cli-renew
 ```
 
 ## インストール・テスト
 ```sh
-sudo tee "${SERVER_DATA_DIR}/server.toml" << EOS > /dev/null &&
+SERVER_FQDN="idm-01.int.home.arpa" &&
+sudo install -m 640 -o "root" -g "${SERVER_USER}" /dev/stdin "${SERVER_DATA_DIR}/server.toml" << EOS > /dev/null &&
 bindaddress = "[::]:8443"
 db_path = "/data/kanidm.db"
 db_fs_type = "zfs"
-tls_chain = "/data/${SERVER_FILENAME}.crt"
-tls_key = "/data/${SERVER_FILENAME}.key"
+tls_chain = "/data/server.crt"
+tls_key = "/data/server.key"
 domain = "${SERVER_FQDN}"
 origin = "https://${SERVER_FQDN}/"
 
 [online_backup]
-path = "/data/kanidm/backups/"
+path = "/data/backups/"
 schedule = "00 22 * * *"
 EOS
-sudo chown root:kanidm "${SERVER_DATA_DIR}/server.toml" &&
-sudo chmod 640 "${SERVER_DATA_DIR}/server.toml" &&
-sudo docker run --user "$(id -u kanidm):$(id -g kanidm)" --userns=keep-id --rm -it -v "${SERVER_DIR}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
+sudo podman run --user "$(id -u "${SERVER_USER}"):$(id -g "${SERVER_USER}")" --userns=keep-id --rm -it -v "${SERVER_DATA_DIR}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
 ```
 
 ## サービス化
@@ -90,10 +48,10 @@ AutoUpdate=registry
 LogDriver=journald
 
 PublishPort=8443:8443
-Volume=${SERVER_DIR}:/data:Z
+Volume=${SERVER_DATA_DIR}:/data:Z
 Volume=/etc/localtime:/etc/localtime:ro,z
-User=$(id -u kanidm)
-Group=$(id -g kanidm)
+User=$(id -u "${SERVER_USER}")
+Group=$(id -g "${SERVER_USER}")
 UserNS=keep-id
 
 [Service]
@@ -123,8 +81,8 @@ openssl x509 -noout -text -in "${SERVER_DIR}/${SERVER_FILENAME}.crt"
 
 ## 管理者アカウントの初期化
 ```sh
-sudo docker exec -i -t kanidm-server kanidmd recover-account admin
-sudo docker exec -i -t kanidm-server kanidmd recover-account idm_admin
+sudo podman exec -i -t kanidm-server kanidmd recover-account admin
+sudo podman exec -i -t kanidm-server kanidmd recover-account idm_admin
 ```
 ランダムなパスワードが生成されるので控えておく。
 
