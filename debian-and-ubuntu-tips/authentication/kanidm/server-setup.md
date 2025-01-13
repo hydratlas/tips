@@ -35,7 +35,7 @@ origin = "https://${SERVER_FQDN}/"
 path = "/data/backups/"
 schedule = "00 22 * * *"
 EOS
-sudo podman run --user "$(id -u "${SERVER_USER}"):$(id -g "${SERVER_USER}")" --userns=keep-id --rm -it -v "${SERVER_DATA_DIR}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
+sudo podman run --user "$(id -u "${SERVER_USER}"):$(id -g "${SERVER_USER}")" --rm -it -v "${SERVER_DATA_DIR}:/data" docker.io/kanidm/server:latest /sbin/kanidmd configtest
 ```
 
 ## サービス化
@@ -52,7 +52,6 @@ Volume=${SERVER_DATA_DIR}:/data:Z
 Volume=/etc/localtime:/etc/localtime:ro,z
 User=$(id -u "${SERVER_USER}")
 Group=$(id -g "${SERVER_USER}")
-UserNS=keep-id
 
 [Service]
 Restart=on-failure
@@ -65,7 +64,6 @@ sudo systemctl start kanidm-server.service &&
 sudo systemctl status --no-pager --full kanidm-server.service
 ```
 - [Installing the Server - Kanidm Administration](https://kanidm.github.io/kanidm/stable/installing_the_server.html)
-
 
 ## 確認
 ```sh

@@ -2,26 +2,42 @@
 ## 準備
 Podmanをインストールしておく。
 
+## 変数の準備
+```sh
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/opt/ca/ca.env" << EOS > /dev/null
+user_name="step-ca"
+ca_dir="/opt/ca"
+step_ca_dir="/opt/step-ca"
+ca_container_dir="/home/ca"
+step_ca_container_dir="/home/step"
+PROVISIONER_PASSWORD_FILENAME="provisioner-password"
+PASSWORD_FILENAME="password"
+EOS
+```
+
 ## ルートCA証明書の作成
 ### ユーザーおよびディレクトリーの作成
 ```sh
-if ! id "step-ca" &>/dev/null; then
-  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "step-ca"
+source "/opt/ca/ca.env" &&
+if ! id "${user_name}" &>/dev/null; then
+  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${user_name}"
 fi &&
-sudo install -o "root" -g "step-ca" -m 775 -d "/opt/ca/root" "/opt/ca/federated-roots"
+sudo install -o "root" -g "${user_name}" -m 775 -d "${ca_dir}/root" "${ca_dir}/federated-roots"
 ```
 
 ### 秘密鍵の作成
 ```sh
-OUT_FILEPATH="/opt/ca/root/root_ca_key" &&
-sudo -u "step-ca" openssl genpkey -algorithm ED25519 -out "${OUT_FILEPATH}" &&
+source "/opt/ca/ca.env" &&
+OUT_FILEPATH="${ca_dir}/root/root_ca_key" &&
+sudo -u "${user_name}" openssl genpkey -algorithm ED25519 -out "${OUT_FILEPATH}" &&
 sudo chmod 640 "${OUT_FILEPATH}" &&
-sudo chown "root:step-ca" "${OUT_FILEPATH}"
+sudo chown "root:${user_name}" "${OUT_FILEPATH}"
 ```
 
 ### 設定ファイルの作成
 ```sh
-sudo install -m 644 -o "root" -g "step-ca" /dev/stdin "/opt/ca/root/openssl.cnf" << EOS > /dev/null
+source "/opt/ca/ca.env" &&
+sudo install -m 644 -o "root" -g "${user_name}" /dev/stdin "${ca_dir}/root/openssl.cnf" << EOS > /dev/null
 [ req ]
 default_md              = sha512
 prompt                  = no
@@ -37,24 +53,26 @@ EOS
 
 ### 証明書の作成
 ```sh
-OUT_FILEPATH="/opt/ca/root/root_ca.crt" &&
-sudo -u "step-ca" openssl req -x509 -new \
-  -key "/opt/ca/root/root_ca_key" -nodes \
+source "/opt/ca/ca.env" &&
+OUT_FILEPATH="${ca_dir}/root/root_ca.crt" &&
+sudo -u "${user_name}" openssl req -x509 -new \
+  -key "${ca_dir}/root/root_ca_key" -nodes \
   -out "${OUT_FILEPATH}" \
-  -subj "/O=CN=Private $(hostname)/CN=Private $(hostname) Root CA" \
+  -subj "/O=Private $(hostname)/CN=Private $(hostname) Root CA" \
   -days 7300 \
-  -config "/opt/ca/root/openssl.cnf" &&
+  -config "${ca_dir}/root/openssl.cnf" &&
 sudo chmod 644 "${OUT_FILEPATH}" &&
-sudo chown "root:step-ca" "${OUT_FILEPATH}"
+sudo chown "root:${user_name}" "${OUT_FILEPATH}"
 ```
 
 ### 【オプション】ほかのプライベート認証局サーバーのルート証明書の追加
 #### ファイルの作成
 ```sh
-OUT_FILEPATH="/opt/ca/federated-roots/peer_root_ca.crt" &&
-sudo -u "step-ca" touch "${OUT_FILEPATH}" &&
+source "/opt/ca/ca.env" &&
+OUT_FILEPATH="${ca_dir}/federated-roots/peer_root_ca.crt" &&
+sudo -u "${user_name}" touch "${OUT_FILEPATH}" &&
 sudo chmod 644 "${OUT_FILEPATH}" &&
-sudo chown "root:step-ca" "${OUT_FILEPATH}"
+sudo chown "root:${user_name}" "${OUT_FILEPATH}"
 ```
 
 #### ファイルの編集
@@ -66,7 +84,8 @@ sudo nano "${OUT_FILEPATH}"
 ### 【デバッグ】確認
 #### 秘密鍵の表示
 ```sh
-sudo -u "step-ca" cat "/opt/ca/root/root_ca_key"
+source "/opt/ca/ca.env" &&
+sudo -u "${user_name}" cat "${ca_dir}/root/root_ca_key"
 ```
 
 #### 証明書の概要
@@ -83,48 +102,46 @@ cat "/usr/local/share/ca-certificates/peer-private-ca.crt"
 
 ### 【元に戻す】削除
 ```sh
-sudo rm -dr "/opt/ca" &&
-sudo userdel "step-ca"
+source "/opt/ca/ca.env" &&
+sudo rm -dr "${ca_dir}" &&
+sudo userdel "${user_name}"
 ```
 
 ## step-caのインストール
 ### 変数の設定、ならびにユーザーおよびディレクトリーの作成
 ```sh
-STEPCA_CONTAINER_DATAPATH="/home/step" &&
-PROVISIONER_PASSWORD_FILENAME="provisioner-password" &&
-PASSWORD_FILENAME="password" &&
-CA_CONTAINER_DATAPATH="/home/ca" &&
-sudo install -o "root" -g "step-ca" -m 775 -d "/opt/step-ca" &&
-sudo install -o "step-ca" -g "step-ca" -m 700 -d "/opt/step-ca/secrets"
+source "/opt/ca/ca.env" &&
+sudo install -o "root" -g "${user_name}" -m 775 -d "${step_ca_dir}" &&
+sudo install -o "${user_name}" -g "${user_name}" -m 700 -d "${step_ca_dir}/secrets"
 ```
 
 ### step-caのインストール
 ```sh
-OUT_FILEPATH="/opt/step-ca/secrets/${PROVISIONER_PASSWORD_FILENAME}" &&
-sudo -u "step-ca" openssl rand -base64 -out "${OUT_FILEPATH}" 32 &&
+source "/opt/ca/ca.env" &&
+OUT_FILEPATH="${step_ca_dir}/secrets/${PROVISIONER_PASSWORD_FILENAME}" &&
+sudo -u "${user_name}" openssl rand -base64 -out "${OUT_FILEPATH}" 32 &&
 sudo chmod 600 "${OUT_FILEPATH}" &&
-sudo chown "step-ca:step-ca" "${OUT_FILEPATH}" &&
-OUT_FILEPATH="/opt/step-ca/secrets/${PASSWORD_FILENAME}" &&
-sudo -u "step-ca" openssl rand -base64 -out "${OUT_FILEPATH}" 32 &&
+sudo chown "${user_name}:${user_name}" "${OUT_FILEPATH}" &&
+OUT_FILEPATH="${step_ca_dir}/secrets/${PASSWORD_FILENAME}" &&
+sudo -u "${user_name}" openssl rand -base64 -out "${OUT_FILEPATH}" 32 &&
 sudo chmod 600 "${OUT_FILEPATH}" &&
-sudo chown "step-ca:step-ca" "${OUT_FILEPATH}" &&
+sudo chown "${user_name}:${user_name}" "${OUT_FILEPATH}" &&
 sudo podman run \
-  --user "$(id -u step-ca):$(id -g step-ca)" \
+  --user "$(id -u "${user_name}"):$(id -g "${user_name}")" \
   --interactive --tty \
-  --userns=keep-id \
-  --volume "/opt/step-ca:${STEPCA_CONTAINER_DATAPATH}:Z" \
-  --volume "/opt/ca:${CA_CONTAINER_DATAPATH}:ro,z" \
+  --volume "${step_ca_dir}:${step_ca_container_dir}:Z" \
+  --volume "/opt/ca:${ca_container_dir}:ro,z" \
   docker.io/smallstep/step-ca \
     step ca init \
     --deployment-type="standalone" \
     --name="Private $(hostname)" \
     --dns="$(hostname -A | tr ' ' '\n' | grep -F '.' | paste -sd ',' -),localhost" \
     --address=":8443" \
-    --root="${CA_CONTAINER_DATAPATH}/root/root_ca.crt" \
-    --key="${CA_CONTAINER_DATAPATH}/root/root_ca_key" \
-    --password-file="${STEPCA_CONTAINER_DATAPATH}/secrets/${PASSWORD_FILENAME}" \
+    --root="${ca_container_dir}/root/root_ca.crt" \
+    --key="${ca_container_dir}/root/root_ca_key" \
+    --password-file="${step_ca_container_dir}/secrets/${PASSWORD_FILENAME}" \
     --provisioner="admin" \
-    --provisioner-password-file="${STEPCA_CONTAINER_DATAPATH}/secrets/${PROVISIONER_PASSWORD_FILENAME}" \
+    --provisioner-password-file="${step_ca_container_dir}/secrets/${PROVISIONER_PASSWORD_FILENAME}" \
     --acme \
     --ssh \
     --remote-management
@@ -132,15 +149,16 @@ sudo podman run \
 
 ### 【オプション】ほかのプライベート認証局サーバーのルート証明書の追加
 ```sh
-if [ -f /opt/ca/federated-roots/peer_root_ca.crt ]; then
-  sudo install -m 700 -o "step-ca" -g "step-ca" "/opt/ca/federated-roots/peer_root_ca.crt" "/opt/step-ca/certs/peer_root_ca.crt" &&
+source "/opt/ca/ca.env" &&
+if [ -f "${ca_dir}${ca_dir}s/federated-roots/peer_root_ca.crt" ]; then
+  sudo install -m 700 -o "${user_name}" -g "${user_name}" "${ca_dir}/federated-roots/peer_root_ca.crt" "${step_ca_dir}/certs/peer_root_ca.crt" &&
   sudo apt-get install -y jq &&
-  TARGET_FILEPATH="/opt/step-ca/config/ca.json" &&
-  sudo -u "step-ca" cat "${TARGET_FILEPATH}" | \
-    jq ". + {\"federatedRoots\": [\"${STEPCA_CONTAINER_DATAPATH}/certs/peer_root_ca.crt\"]}" | \
-    sudo -u "step-ca" tee "${TARGET_FILEPATH}.tmp" > /dev/null &&
-  sudo -u "step-ca" mv "${TARGET_FILEPATH}.tmp" "${TARGET_FILEPATH}" &&
-  sudo -u "step-ca" chmod 644 "${TARGET_FILEPATH}"
+  TARGET_FILEPATH="${step_ca_dir}/config/ca.json" &&
+  sudo -u "${user_name}" cat "${TARGET_FILEPATH}" | \
+    jq ". + {\"federatedRoots\": [\"${step_ca_container_dir}/certs/peer_root_ca.crt\"]}" | \
+    sudo -u "${user_name}" tee "${TARGET_FILEPATH}.tmp" > /dev/null &&
+  sudo -u "${user_name}" mv "${TARGET_FILEPATH}.tmp" "${TARGET_FILEPATH}" &&
+  sudo -u "${user_name}" chmod 644 "${TARGET_FILEPATH}"
 fi
 ```
 - [Step v0.8.3: Federation and Root Rotation for step Certificates](https://smallstep.com/blog/step-v0.8.3-federation-root-rotation/)
@@ -148,18 +166,18 @@ fi
 ### 【オプション】X5Cプロビジョナーの追加
 #### 追加
 ```sh
-sudo find "/opt/step-ca/certs" -type f -name "*root_ca*.crt" -exec cat {} + | \
-  sudo tee "/opt/step-ca/certs/federation.crt" > /dev/null &&
+source "/opt/ca/ca.env" &&
+sudo find "${step_ca_dir}/certs" -type f -name "*root_ca*.crt" -exec cat {} + | \
+  sudo tee "${step_ca_dir}/certs/federation.crt" > /dev/null &&
 sudo podman run \
-  --user "$(id -u step-ca):$(id -g step-ca)" \
+  --user "$(id -u "${user_name}"):$(id -g "${user_name}")" \
   --interactive --tty \
-  --userns=keep-id \
-  --volume "/opt/step-ca:${STEPCA_CONTAINER_DATAPATH}:Z" \
+  --volume "${step_ca_dir}:${step_ca_container_dir}:Z" \
   docker.io/smallstep/step-ca \
-    step ca provisioner add x5c-provisioner \
+    step ca provisioner add x5c \
       --type=X5C \
-      --x5c-roots "${STEPCA_CONTAINER_DATAPATH}/certs/root_ca.crt"
-      # "${STEPCA_CONTAINER_DATAPATH}/certs/federation.crt"
+      --x5c-roots "${step_ca_container_dir}/certs/root_ca.crt"
+      # "${step_ca_container_dir}/certs/federation.crt"
 ```
 
 #### 【デバッグ】X5Cプロビジョナーの確認
@@ -170,10 +188,9 @@ wget -O - https://localhost:8443/provisioners
 #### 【元に戻す】X5Cプロビジョナーの削除
 ```sh
 sudo podman run \
-  --user "$(id -u step-ca):$(id -g step-ca)" \
+  --user "$(id -u "${user_name}"):$(id -g "${user_name}")" \
   --interactive --tty \
-  --userns=keep-id \
-  --volume "/opt/step-ca:${STEPCA_CONTAINER_DATAPATH}:Z" \
+  --volume "${step_ca_dir}:${STEPCA_CONTAINER_DATAPATH}:Z" \
   docker.io/smallstep/step-ca \
     step ca provisioner remove x5c
 ```
@@ -189,40 +206,41 @@ and send the output to info@smallstep.com
 #### ファイルリスト
 ```sh
 cd / &&
-sudo -u "step-ca" find "/opt/step-ca" -exec ls -ld {} +
+sudo -u "${user_name}" find "${step_ca_dir}" -exec ls -ld {} +
 ```
 `find`コマンドは、カレントディレクトリーに実行権限がないと、カレントディレクトリーに対して「Permission denied」エラーとなるため、カレントディレクトリーを`/`にしている。
 
 #### 設定
 ```sh
-sudo -u "step-ca" cat "/opt/step-ca/config/ca.json"
-sudo -u "step-ca" cat "/opt/step-ca/config/defaults.json"
+sudo -u "${user_name}" cat "${step_ca_dir}/config/ca.json"
+sudo -u "${user_name}" cat "${step_ca_dir}/config/defaults.json"
 ```
 
 #### 秘密鍵
 ```sh
-sudo -u "step-ca" cat "/opt/step-ca/secrets/intermediate_ca_key"
+sudo -u "${user_name}" cat "${step_ca_dir}/secrets/intermediate_ca_key"
 ```
 
 #### 証明書
 ```sh
-sudo -u "step-ca" openssl x509 -text -noout -in "/opt/step-ca/certs/root_ca.crt"
-sudo -u "step-ca" openssl x509 -text -noout -in "/opt/step-ca/certs/intermediate_ca.crt"
+sudo -u "${user_name}" openssl x509 -text -noout -in "${step_ca_dir}/certs/root_ca.crt"
+sudo -u "${user_name}" openssl x509 -text -noout -in "${step_ca_dir}/certs/intermediate_ca.crt"
 ```
 
 #### SSHホスト秘密鍵
 ```sh
-sudo -u "step-ca" cat "/opt/step-ca/secrets/ssh_host_ca_key"
+sudo -u "${user_name}" cat "${step_ca_dir}/secrets/ssh_host_ca_key"
 ```
 
 ### 【元に戻す】削除
 ```sh
-sudo rm -dr "/opt/step-ca"
+sudo rm -dr "${step_ca_dir}"
 ```
 
 ## サービス化
 ### サービスの作成・起動
 ```sh
+source "/opt/ca/ca.env" &&
 sudo tee "/etc/containers/systemd/step-ca.container" << EOS > /dev/null &&
 [Container]
 Image=docker.io/smallstep/step-ca
@@ -231,10 +249,9 @@ AutoUpdate=registry
 LogDriver=journald
 
 PublishPort=8443:8443
-Volume=/opt/step-ca:${STEPCA_CONTAINER_DATAPATH}:Z
-User=$(id -u step-ca)
-Group=$(id -g step-ca)
-UserNS=keep-id
+Volume=${step_ca_dir}:${step_ca_container_dir}:Z
+User=$(id -u "${user_name}")
+Group=$(id -g "${user_name}")
 
 [Service]
 Restart=on-failure
