@@ -139,14 +139,22 @@ monitor log
 show log tail
 ```
 
-### DHCPサーバーのリース情報を表示
+### DHCPサーバーに関して、リース情報を表示
 ```sh
 show dhcp server leases
 ```
 
-### DHCPサーバーのリース情報を削除
+### DHCPサーバーに関して、リース情報を削除
 ```sh
 show dhcp server leases | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | while read -r ip; do
+    clear dhcp-server lease "$ip"
+done
+```
+
+### DHCPサーバーに関して、特定のホストのリース情報を削除
+```sh
+hostname="aaa" &&
+show dhcp server leases | awk '$10 == '"\"${hostname}\""' {print $1}' | while read -r ip; do
     clear dhcp-server lease "$ip"
 done
 ```

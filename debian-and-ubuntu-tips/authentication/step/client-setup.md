@@ -7,7 +7,6 @@ hostnames=("ca-01.home.arpa" "ca-02.home.arpa")
 ports=("8443" "8443")
 ca_certificates_dir="/usr/local/share/ca-certificates"
 root_crt_file="private-ca.crt"
-root_crt_temp_file="private-ca-temp.crt"
 crt_dir="/etc/ssl/certs"
 key_dir="/etc/ssl/private"
 EOS
@@ -33,17 +32,16 @@ for ((i=0; i<length; i++)); do
   fingerprint=${fingerprints[$i]} &&
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  sudo step ca root "${ca_certificates_dir}/${root_crt_temp_file}" \
+  sudo step ca root "${ca_certificates_dir}/${hostname}.crt" \
     --ca-url "https://${hostname}:${port}" \
     --fingerprint "${fingerprint}" \
     --force &&
-  sudo chmod 644 "${ca_certificates_dir}/${root_crt_temp_file}" &&
+  sudo chmod 644 "${ca_certificates_dir}/${hostname}.crt" &&
   sudo step ca federation "${ca_certificates_dir}/${root_crt_file}" \
     --ca-url "https://${hostname}:${port}" \
-    --root "${ca_certificates_dir}/${root_crt_temp_file}" \
+    --root "${ca_certificates_dir}/${hostname}.crt" \
     --force &&
   sudo chmod 644 "${ca_certificates_dir}/${root_crt_file}" &&
-  sudo rm "${ca_certificates_dir}/${root_crt_temp_file}" &&
   openssl crl2pkcs7 -nocrl -certfile "${ca_certificates_dir}/${root_crt_file}" | openssl pkcs7 -print_certs -noout
 done &&
 sudo update-ca-certificates
@@ -107,13 +105,14 @@ openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 
 ```sh
 source /usr/local/etc/step-cli.env &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+conf_array=() &&
 IFS=',' &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  sudo step ssh certificate "${hosts[*]}" "$HOME/id_ed25519" \
+  sudo step ssh certificate "${hosts[*]}" "/etc/ssh/${hostname}_id_ed25519" \
     --ca-url="https://${hostname}:${port}" \
-    --root="${ca_certificates_dir}/${root_crt_file}" \
+    --root="${ca_certificates_dir}/${hostname}.crt" \
     --provisioner=x5c \
     --x5c-cert="${crt_dir}/$(hostname)-${hostname}.crt" \
     --x5c-key="${key_dir}/$(hostname)-${hostname}.key" \
@@ -121,23 +120,20 @@ for ((i=0; i<length; i++)); do
     --kty=OKP --curve=Ed25519 \
     --no-password \
     --insecure \
-    --force 
-done &&
-unset IFS
-```
-「cannot create a new token: the CA does not have any provisioner configured」とエラーが出てうまくいかない。
-
-### 【デバッグ】X5Cプロビジョナーの確認
-```sh
-source /usr/local/etc/step-cli.env &&
-for ((i=0; i<length; i++)); do
-  hostname=${hostnames[$i]} &&
-  port=${ports[$i]} &&
-  step ca provisioner list \
-    --ca-url "https://${hostname}:${port}" \
-    --root "${ca_certificates_dir}/${root_crt_file}"
+    --force &&
+  if [ -f "/etc/ssh/${hostname}_id_ed25519" ]; then
+    conf_array+=("HostKey /etc/ssh/${hostname}_id_ed25519")
+  fi &&
+  if [ -f "/etc/ssh/${hostname}_id_ed25519-cert.pub" ]; then
+    conf_array+=("HostCertificate /etc/ssh/${hostname}_id_ed25519-cert.pub")
+  fi
 done
+unset IFS &&
+sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" << EOS > /dev/null
+$(printf "%s\n" "${conf_array[@]}")
+EOS
 ```
+`--root`オプションには単一の証明書しか設定できない。
 
 ## 証明書の更新
 ```sh
@@ -154,7 +150,7 @@ for ((i=0; i<length; i++)); do
     --force &&
   if test "${crt_dir}/$(hostname)-${hostname}.crt" -nt "${crt_dir}/$(hostname).crt"; then
     sudo install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt"
-  fi &&
+  fi
   if test "${key_dir}/$(hostname)-${hostname}.key" -nt "${key_dir}/$(hostname).key"; then
     sudo install -m 600 "${key_dir}/$(hostname)-${hostname}.key" "${key_dir}/$(hostname).key"
   fi
