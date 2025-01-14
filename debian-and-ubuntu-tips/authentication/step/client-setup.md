@@ -108,7 +108,7 @@ source /usr/local/etc/step-cli.env &&
 openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 -print_certs -noout
 ```
 
-## SSHホストキーへの署名
+## SSHホストキーへの署名とSSHサーバーの設定
 ```sh
 source /usr/local/etc/step-cli.env &&
 sudo mkdir -p "/etc/ssh" "/etc/ssh/sshd_config.d" &&
@@ -137,9 +137,26 @@ for ((i=0; i<length; i++)); do
   fi
 done
 unset IFS &&
-sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")"
+sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")" &&
+sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/pubkey_auth.conf" << EOS > /dev/null
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitRootLogin no
+EOS
+sudo systemctl enable --now ssh.service &&
+sudo systemctl reload ssh.service
 ```
-`--root`オプションには単一の証明書しか設定できない。
+`step ssh certificate`コマンドの`--root`オプションには単一の証明書しか設定できない。
+
+## 【デバッグ】SSHサーバーの設定の確認
+```sh
+sudo sshd -T 
+```
+
+## 【デバッグ】SSHサーバーのログの確認
+```sh
+journalctl --no-pager --lines=20 --unit=ssh.service
+```
 
 ## 証明書の更新
 ```sh
@@ -238,6 +255,7 @@ for ((i=0; i<length; i++)); do
 done
 unset IFS
 install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")"
+systemctl reload ssh.service
 
 # 一時ディレクトリを削除
 rm -rf "${temp_dir}"
