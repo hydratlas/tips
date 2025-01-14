@@ -111,9 +111,6 @@ sudo userdel "${root_ca_user_name}"
 ```
 
 ## step-caのインストール
-### 準備
-Podmanをインストールしておく。
-
 ### 変数の準備
 ```sh
 sudo install -D -m 755 -o "root" -g "root" /dev/stdin "/opt/step-ca/step-ca.env" << EOS > /dev/null
@@ -149,6 +146,7 @@ sudo chown "${step_ca_user_name}:${step_ca_user_name}" "${OUT_FILEPATH}"
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 sudo chown "root:${step_ca_user_name}" "${root_ca_dir}/root/root_ca_key" &&
+sudo apt-get install -y podman &&
 sudo podman run \
   --user "$(id -u "${step_ca_user_name}"):$(id -g "${step_ca_user_name}")" \
   --interactive --tty \
@@ -268,11 +266,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOS
 sudo systemctl daemon-reload &&
-sudo systemctl start step-ca.service
-```
-
-#### 【デバッグ】サービスの状態の確認
-```sh
+sudo systemctl start step-ca.service &&
 sudo systemctl status --no-pager --full step-ca.service
 ```
 

@@ -6,7 +6,7 @@ fingerprints=("abc" "abc")
 hostnames=("ca-01.home.arpa" "ca-02.home.arpa")
 ports=("8443" "8443")
 ca_certificates_dir="/usr/local/share/ca-certificates"
-root_crt_file="private-ca.crt"
+federation_crt_file="private-ca.crt"
 crt_dir="/etc/ssl/certs"
 key_dir="/etc/ssl/private"
 EOS
@@ -36,21 +36,29 @@ for ((i=0; i<length; i++)); do
     --ca-url "https://${hostname}:${port}" \
     --fingerprint "${fingerprint}" \
     --force &&
-  sudo chmod 644 "${ca_certificates_dir}/${hostname}.crt" &&
-  sudo step ca federation "${ca_certificates_dir}/${root_crt_file}" \
+  sudo chmod 644 "${ca_certificates_dir}/${hostname}.crt"
+done &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  port=${ports[$i]} &&
+  sudo step ca federation "${ca_certificates_dir}/${federation_crt_file}" \
     --ca-url "https://${hostname}:${port}" \
     --root "${ca_certificates_dir}/${hostname}.crt" \
     --force &&
-  sudo chmod 644 "${ca_certificates_dir}/${root_crt_file}" &&
-  openssl crl2pkcs7 -nocrl -certfile "${ca_certificates_dir}/${root_crt_file}" | openssl pkcs7 -print_certs -noout
-done &&
+  sudo chmod 644 "${ca_certificates_dir}/${federation_crt_file}"
+done
 sudo update-ca-certificates
 ```
 
 ### 【デバッグ】取得した証明書の概要の表示
 ```sh
 source /usr/local/etc/step-cli.env &&
-openssl x509 -text -noout -in "${ca_certificates_dir}/${root_crt_file}"
+length=${#hostnames[@]} &&
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]} &&
+  openssl x509 -text -noout -in "${ca_certificates_dir}/${hostname}.crt"
+done &&
+openssl crl2pkcs7 -nocrl -certfile "${ca_certificates_dir}/${federation_crt_file}" | openssl pkcs7 -print_certs -noout
 ```
 
 ### 【デバッグ】HTTPS通信の確認
@@ -76,7 +84,7 @@ for ((i=0; i<length; i++)); do
   sudo step ca certificate \
     "${hosts[0]}" "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
     --ca-url "https://${hostname}:${port}" \
-    --root "${ca_certificates_dir}/${root_crt_file}" \
+    --root "${ca_certificates_dir}/${federation_crt_file}" \
     --provisioner acme \
     --force \
     ${hosts[@]/#/--san } &&
@@ -100,10 +108,10 @@ source /usr/local/etc/step-cli.env &&
 openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 -print_certs -noout
 ```
 
-## 【オプション】SSHホストキーへの署名
-### 署名する
+## SSHホストキーへの署名
 ```sh
 source /usr/local/etc/step-cli.env &&
+sudo mkdir -p "/etc/ssh" "/etc/ssh/sshd_config.d" &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
 conf_array=() &&
 IFS=',' &&
@@ -129,9 +137,7 @@ for ((i=0; i<length; i++)); do
   fi
 done
 unset IFS &&
-sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" << EOS > /dev/null
-$(printf "%s\n" "${conf_array[@]}")
-EOS
+sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")"
 ```
 `--root`オプションには単一の証明書しか設定できない。
 
@@ -142,11 +148,10 @@ length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
   sudo step ca renew \
     "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
     --ca-url "https://${hostname}:${port}" \
-    --root "${ca_certificates_dir}/${root_crt_file}" \
+    --root "${ca_certificates_dir}/${federation_crt_file}" \
     --force &&
   if test "${crt_dir}/$(hostname)-${hostname}.crt" -nt "${crt_dir}/$(hostname).crt"; then
     sudo install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt"
@@ -160,49 +165,88 @@ done
 ## ルートCA証明書およびサーバー証明書の更新のサービス化
 ### スクリプトファイルの作成
 ```sh
-source /usr/local/etc/step-cli.env &&
-length=${#urls[@]} &&
-hostnames_output="" &&
-for element in "${hostnames[@]}"; do
-  escaped_element="$(printf '%q' "${element}")" &&
-  hostnames_output+="\"${escaped_element}\" "
-done &&
-ports_output="" &&
-for element in "${ports[@]}"; do
-  escaped_element="$(printf '%q' "${element}")" &&
-  ports_output+="\"${escaped_element}\" "
-done &&
-sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/bin/step-cli-renew" << EOS > /dev/null
+sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/bin/step-cli-renew" << 'EOS' > /dev/null
 #!/bin/bash
 source /usr/local/etc/step-cli.env
-length=\${#hostnames[@]}
+length=${#hostnames[@]}
+
+# フェデレーションCA証明書を取得
 for ((i=0; i<length; i++)); do
-  hostname=\${hostnames[\$i]}
-  port=\${ports[\$i]}
-  step ca federation "\${ca_certificates_dir}/\${root_crt_file}" \
-    --ca-url "https://\${hostname}:\${port}" \
-    --root "\${ca_certificates_dir}/\${root_crt_file}" \
+  hostname=${hostnames[$i]}
+  port=${ports[$i]}
+  step ca federation "${ca_certificates_dir}/${federation_crt_file}" \
+    --ca-url "https://${hostname}:${port}" \
+    --root "${ca_certificates_dir}/${federation_crt_file}" \
     --force
-  chmod 644 "\${ca_certificates_dir}/\${root_crt_file}"
-  update-ca-certificates
-  hosts=(\$(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{\$1=""; print \$0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
+  chmod 644 "${ca_certificates_dir}/${federation_crt_file}"
+done
+
+# システムの証明書をアップデート
+update-ca-certificates
+
+# サーバー証明書を取得
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]}
+  port=${ports[$i]}
   step ca renew \
-    "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${key_dir}/\$(hostname)-\${hostname}.key" \
-    --ca-url "https://\${hostname}:\${port}" \
-    --root "\${ca_certificates_dir}/\${root_crt_file}" \
+    "${crt_dir}/$(hostname)-${hostname}.crt" "${key_dir}/$(hostname)-${hostname}.key" \
+    --ca-url "https://${hostname}:${port}" \
+    --root "${ca_certificates_dir}/${federation_crt_file}" \
     --force
-  if test "\${crt_dir}/\$(hostname)-\${hostname}.crt" -nt "\${crt_dir}/\$(hostname).crt"; then
-    install -m 644 "\${crt_dir}/\$(hostname)-\${hostname}.crt" "\${crt_dir}/\$(hostname).crt"
+  if test "${crt_dir}/$(hostname)-${hostname}.crt" -nt "${crt_dir}/$(hostname).crt"; then
+    install -m 644 "${crt_dir}/$(hostname)-${hostname}.crt" "${crt_dir}/$(hostname).crt"
   fi
-  if test "\${key_dir}/\$(hostname)-\${hostname}.key" -nt "\${key_dir}/\$(hostname).key"; then
-    install -m 600 "\${key_dir}/\$(hostname)-\${hostname}.key" "\${key_dir}/\$(hostname).key"
+  if test "${key_dir}/$(hostname)-${hostname}.key" -nt "${key_dir}/$(hostname).key"; then
+    install -m 600 "${key_dir}/$(hostname)-${hostname}.key" "${key_dir}/$(hostname).key"
   fi
 done
 
+# 署名付きSSHホストキーを取得
+# 一時ディレクトリ作成
+temp_dir="$(mktemp -d)"
+
+# 証明書を一時ディレクトリに分割
+csplit -z -f "${temp_dir}/cert-" "${ca_certificates_dir}/${federation_crt_file}" '/-----BEGIN CERTIFICATE-----/' '{*}' > /dev/null
+
+# SSHホストキー取得
+mkdir -p "/etc/ssh" "/etc/ssh/sshd_config.d"
+hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip."))
+conf_array=()
+IFS=','
+for ((i=0; i<length; i++)); do
+  hostname=${hostnames[$i]}
+  port=${ports[$i]}
+  for cert_file in "${temp_dir}"/cert-*; do
+    step ssh certificate "${hosts[*]}" "/etc/ssh/${hostname}_id_ed25519" \
+      --ca-url="https://${hostname}:${port}" \
+      --root="${cert_file}" \
+      --provisioner=x5c \
+      --x5c-cert="${crt_dir}/$(hostname)-${hostname}.crt" \
+      --x5c-key="${key_dir}/$(hostname)-${hostname}.key" \
+      --host \
+      --kty=OKP --curve=Ed25519 \
+      --no-password \
+      --insecure \
+      --force
+  done
+  if [ -f "/etc/ssh/${hostname}_id_ed25519" ]; then
+    conf_array+=("HostKey /etc/ssh/${hostname}_id_ed25519")
+  fi
+  if [ -f "/etc/ssh/${hostname}_id_ed25519-cert.pub" ]; then
+    conf_array+=("HostCertificate /etc/ssh/${hostname}_id_ed25519-cert.pub")
+  fi
+done
+unset IFS
+install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")"
+
+# 一時ディレクトリを削除
+rm -rf "${temp_dir}"
+
+# 後処理のスクリプトを実行
 script_dir="/usr/local/etc/step-cli.d"
-for script in "\${script_dir}"/*; do
-  if [ -x "\${script}" ]; then
-    "\${script}" "\${crt_dir}/\$(hostname).crt" "\${key_dir}/\$(hostname).key"
+for script in "${script_dir}"/*; do
+  if [ -x "${script}" ]; then
+    "${script}" "${crt_dir}/$(hostname).crt" "${key_dir}/$(hostname).key"
   fi
 done
 EOS
