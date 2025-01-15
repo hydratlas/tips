@@ -1,4 +1,8 @@
 # step-ca（サーバー）
+step-ca本体で`step ca init`コマンド実行時に自動的にルートCA証明書が作成されるが、step-caを簡単に再インストールできるように、事前に別途、ルートCA証明書を作り、それを`step ca init`コマンド実行時に利用するようにする。
+
+しかし、SSH用のルートCA証明書については、事前に別途、作ることが面倒なため、
+
 ## ルートCA証明書の作成
 ### 変数の準備
 ```sh
@@ -14,7 +18,7 @@ source "/opt/root-ca/root-ca.env" &&
 if ! id "${root_ca_user_name}" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${root_ca_user_name}"
 fi &&
-sudo install -o "root" -g "${root_ca_user_name}" -m 775 -d "${root_ca_dir}/root" "${root_ca_dir}/federated-roots"
+sudo install -o "root" -g "${root_ca_user_name}" -m 775 -d "${root_ca_dir}/root" "${root_ca_dir}/federated-roots" "${root_ca_dir}/ssh"
 ```
 
 ### 秘密鍵の作成
@@ -125,9 +129,11 @@ EOS
 
 ### ユーザーおよびディレクトリーの作成
 ```sh
+source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 if ! id "${step_ca_user_name}" &>/dev/null; then
-  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${step_ca_user_name}"
+  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${step_ca_user_name}" &&
+  sudo usermod -aG "${root_ca_user_name}" "${step_ca_user_name}"
 fi &&
 sudo install -o "root" -g "${step_ca_user_name}" -m 775 -d "${step_ca_dir}" &&
 sudo install -o "${step_ca_user_name}" -g "${step_ca_user_name}" -m 700 -d "${step_ca_dir}/secrets"
@@ -185,7 +191,7 @@ fi
 ```
 - [Step v0.8.3: Federation and Root Rotation for step Certificates](https://smallstep.com/blog/step-v0.8.3-federation-root-rotation/)
 
-### X5Cプロビジョナーの追加
+### SSH用にX5Cプロビジョナーの追加
 ```sh
 source "/opt/step-ca/step-ca.env" &&
 sudo find "${step_ca_dir}/certs" -type f -name "*root_ca*.crt" -exec cat {} + | \
@@ -241,6 +247,31 @@ sudo -u "${step_ca_user_name}" cat "${step_ca_dir}/secrets/ssh_host_ca_key"
 source "/opt/step-ca/step-ca.env" &&
 sudo rm -dr "${step_ca_dir}" &&
 sudo userdel "${step_ca_user_name}"
+```
+
+### SSH用のルートCAキーおよび証明書の退避
+step-caを簡単に再インストールできるように、SSH用のルートCAキーおよび証明書を退避させておく。
+```sh
+source "/opt/root-ca/root-ca.env" &&
+source "/opt/step-ca/step-ca.env" &&
+sudo install -m 644 -o "root" -g "${root_ca_user_name}" "${step_ca_dir}/certs/ssh_host_ca_key.pub" "${root_ca_dir}/ssh/ssh_host_ca_key.pub" &&
+sudo install -m 644 -o "root" -g "${root_ca_user_name}" "${step_ca_dir}/certs/ssh_user_ca_key.pub" "${root_ca_dir}/ssh/ssh_user_ca_key.pub" &&
+sudo install -m 640 -o "root" -g "${root_ca_user_name}" "${step_ca_dir}/secrets/ssh_host_ca_key" "${root_ca_dir}/ssh/ssh_host_ca_key" &&
+sudo install -m 640 -o "root" -g "${root_ca_user_name}" "${step_ca_dir}/secrets/ssh_user_ca_key" "${root_ca_dir}/ssh/ssh_user_ca_key" &&
+sudo ls -la "${root_ca_dir}/ssh"
+```
+
+### 【オプション】退避させたSSH用のルートCAキーおよび証明書の書き戻し
+退避させておいたSSH用のルートCAキーおよび証明書を、書き戻す。
+```sh
+source "/opt/root-ca/root-ca.env" &&
+source "/opt/step-ca/step-ca.env" &&
+sudo -u "${step_ca_user_name}" install -m 600 "${root_ca_dir}/ssh/ssh_host_ca_key.pub" "${step_ca_dir}/certs/ssh_host_ca_key.pub" &&
+sudo -u "${step_ca_user_name}" install -m 600 "${root_ca_dir}/ssh/ssh_user_ca_key.pub" "${step_ca_dir}/certs/ssh_user_ca_key.pub" &&
+sudo -u "${step_ca_user_name}" install -m 600 "${root_ca_dir}/ssh/ssh_host_ca_key" "${step_ca_dir}/secrets/ssh_host_ca_key" &&
+sudo -u "${step_ca_user_name}" install -m 600 "${root_ca_dir}/ssh/ssh_user_ca_key" "${step_ca_dir}/secrets/ssh_user_ca_key" &&
+sudo -u "${step_ca_user_name}" ls -la "${step_ca_dir}/certs" &&
+sudo -u "${step_ca_user_name}" ls -la "${step_ca_dir}/secrets"
 ```
 
 ### サービス化
@@ -301,4 +332,17 @@ wget -O - https://localhost:8443/provisioners
 ### step-cli（クライアント）で使うルートCA証明書のフィンガープリントを表示
 ```sh
 openssl x509 -noout -fingerprint -sha256 -in "/usr/local/share/ca-certificates/root_ca.crt" | cut -d '=' -f 2 | tr -d ':'
+```
+
+### step-cli（クライアント）でSSHホストキーを署名した際に、SSHクライアントで使うSSH認証局の公開鍵を表示
+```sh
+sudo cat /opt/step-ca/certs/ssh_host_ca_key.pub
+```
+
+以下のように使用する。
+```sh
+tee -a "$HOME/.ssh/known_hosts" << EOS > /dev/null
+@cert-authority * ecdsa-sha2-nistp256 AAAA
+@cert-authority * ecdsa-sha2-nistp256 AAAA
+EOS
 ```

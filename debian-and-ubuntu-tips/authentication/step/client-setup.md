@@ -108,7 +108,7 @@ source /usr/local/etc/step-cli.env &&
 openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 -print_certs -noout
 ```
 
-## SSHホストキーへの署名とSSHサーバーの設定
+## 署名されたSSHホストキーの生成とSSHサーバーの設定
 ```sh
 source /usr/local/etc/step-cli.env &&
 sudo mkdir -p "/etc/ssh" "/etc/ssh/sshd_config.d" &&
@@ -138,15 +138,22 @@ for ((i=0; i<length; i++)); do
 done
 unset IFS &&
 sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")" &&
-sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/pubkey_auth.conf" << EOS > /dev/null
+sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/pubkey_auth.conf" << EOS > /dev/null &&
 PubkeyAuthentication yes
 PasswordAuthentication no
 PermitRootLogin no
 EOS
-sudo systemctl enable --now ssh.service &&
-sudo systemctl reload ssh.service
+UNIT_NAME="ssh.service" &&
+if systemctl list-unit-files | grep -q "^${UNIT_NAME}" && systemctl is-active --quiet "${UNIT_NAME}"; then
+  sudo systemctl reload "${UNIT_NAME}"
+fi
 ```
 `step ssh certificate`コマンドの`--root`オプションには単一の証明書しか設定できない。
+
+## 【デバッグ】SSHホストキーの確認
+```sh
+find /etc/ssh -iname "*-cert.pub" -exec ssh-keygen -L -f "{}" \;
+```
 
 ## 【デバッグ】SSHサーバーの設定の確認
 ```sh
@@ -255,7 +262,12 @@ for ((i=0; i<length; i++)); do
 done
 unset IFS
 install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/signed_host_keys.conf" <<< "$(printf "%s\n" "${conf_array[@]}")"
-systemctl reload ssh.service
+
+# SSHサーバーが実行中の場合は、設定を再読込させることによりホストキーを更新する
+UNIT_NAME="ssh.service"
+if systemctl list-unit-files | grep -q "^${UNIT_NAME}" && systemctl is-active --quiet "${UNIT_NAME}"; then
+  systemctl reload "${UNIT_NAME}"
+fi
 
 # 一時ディレクトリを削除
 rm -rf "${temp_dir}"
