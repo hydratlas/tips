@@ -132,3 +132,14 @@ sudo /usr/libexec/podman/quadlet -dryrun
 ```sh
 /usr/libexec/podman/quadlet -dryrun
 ```
+
+## 実行中のコンテナを表示
+### rootユーザーで実行中
+```sh
+sudo podman ps
+```
+
+### 現在のユーザーで実行中
+```sh
+podman ps
+```

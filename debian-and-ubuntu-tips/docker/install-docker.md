@@ -69,3 +69,14 @@ sudo gpasswd -d "$USER" docker
 sudo gpasswd -d "<username>" docker
 ```
 再度ログインした後に反映される。
+
+## 実行中のコンテナを表示
+### rootユーザーで実行中
+```sh
+sudo docker ps
+```
+
+### 現在のユーザーで実行中
+```sh
+docker ps
+```

@@ -13,7 +13,9 @@ sudo apt-get install -y podman &&
 if ! id "${container_user}" &>/dev/null; then
     sudo useradd --system --no-create-home --user-group "${container_user}"
 fi &&
-sudo install -m 750 -o "root" -g "${container_user}" /dev/stdin "/usr/local/etc/cloudflared.env" << EOS > /dev/null &&
+sudo install \
+  -m 750 -o "root" -g "${container_user}" \
+  /dev/stdin "/usr/local/etc/cloudflared.env" << EOS > /dev/null &&
 TUNNEL_TOKEN=${token}
 NO_AUTOUPDATE=true
 EOS
@@ -27,7 +29,7 @@ User=$(id -u "${container_user}")
 Group=$(id -g "${container_user}")
 EnvironmentFile=/usr/local/etc/cloudflared.env
 
-Exec=tunnel --no-autoupdate run
+Exec=tunnel run
 
 [Service]
 Restart=on-failure
@@ -91,19 +93,24 @@ HTTPSの場合にはTLS設定として「No TLS Verify」が選べる。内部�
 ### 8. 公開鍵の取得と保存
 SSHサーバー上で、トークンとアカウントIDを使って、`public_key`を取得する。`<API_TOKEN>`と`{account_id}`は記録しておいた値で書き換える。
 ```sh
-wget -O - --method=POST --header="Authorization: Bearer <API_TOKEN>" \
+wget -O - \
+  --method=POST \
+  --header="Authorization: Bearer <API_TOKEN>" \
   "https://api.cloudflare.com/client/v4/accounts/{account_id}/access/gateway_ca"
 ```
 
 2回目の取得の際はHTTPのPOSTメソッドではなくGETメソッドで取得する。
 ```sh
-wget -O - --header "Authorization: Bearer <API_TOKEN>" \
+wget -O - \
+  --header="Authorization: Bearer <API_TOKEN>" \
   "https://api.cloudflare.com/client/v4/accounts/{account_id}/access/gateway_ca"
 ```
 
 以下のコマンドで取得した公開鍵をファイルに書き込む。
 ```sh
-sudo install -m 600 -o "root" -g "root" /dev/stdin "/etc/ssh/ca.pub" << EOS > /dev/null
+sudo install \
+  -m 600 -o "root" -g "root" \
+  /dev/stdin "/etc/ssh/ca.pub" << EOS > /dev/null
 ecdsa-sha2-nistp256 <redacted> open-ssh-ca@cloudflareaccess.org
 EOS
 ```
@@ -112,7 +119,9 @@ EOS
 SSHサーバー上で、以下のコマンドを実行する。
 ```sh
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
-sudo install -m 644 -o "root" -g "root" /dev/stdin "/etc/ssh/sshd_config.d/pubkey_ca.conf" << EOS > /dev/null &&
+sudo install \
+  -m 644 -o "root" -g "root" \
+  /dev/stdin "/etc/ssh/sshd_config.d/pubkey_ca.conf" << EOS > /dev/null &&
 PubkeyAuthentication yes
 TrustedUserCAKeys /etc/ssh/ca.pub
 EOS

@@ -53,6 +53,7 @@ vm_start () {
     sleep 1s
   done
   set +eux
+  echo "The virtual machine has started up and is now ready to log in!"
 }
 vm_exec_apt () {
   set -eux

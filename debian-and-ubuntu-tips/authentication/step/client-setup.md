@@ -5,20 +5,39 @@ sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.env"
 fingerprints=("abc" "abc")
 hostnames=("ca-01.home.arpa" "ca-02.home.arpa")
 ports=("8443" "8443")
-ca_certificates_dir="/usr/local/share/ca-certificates"
 federation_crt_file="private-ca.crt"
 crt_dir="/etc/ssl/certs"
 key_dir="/etc/ssl/private"
+if test -e "/usr/local/share/ca-certificates"; then
+  ca_certificates_dir="/usr/local/share/ca-certificates"
+elif test -e "/usr/share/pki/ca-trust-source/anchors"; then
+  ca_certificates_dir="/usr/share/pki/ca-trust-source/anchors"
+fi
+if hash update-ca-certificates 2>/dev/null; then
+  ca_certificates_cmd="update-ca-certificates"
+elif hash update-ca-trust 2>/dev/null; then
+  ca_certificates_cmd="update-ca-trust"
+fi
 EOS
 ```
 
 ## インストール
+[`step` CLI Install step](https://smallstep.com/docs/step-cli/installation/)
+
 ### Debian系
 ```sh
-wget https://dl.smallstep.com/cli/docs-cli-install/latest/step-cli_amd64.deb &&
+wget "https://dl.smallstep.com/cli/docs-cli-install/latest/step-cli_amd64.deb" &&
 sudo dpkg -i step-cli_amd64.deb &&
 rm step-cli_amd64.deb
 ```
+
+### Red Hat系
+```sh
+curl -O -L "https://dl.smallstep.com/cli/docs-cli-install/latest/step-cli_amd64.rpm" &&
+sudo rpm -i step-cli_amd64.rpm &&
+rm step-cli_amd64.rpm
+```
+`warning: step-cli_amd64.rpm: Header V4 RSA/SHA256 Signature, key ID b855223c: NOKEY`という警告が表示されるが、インストールはできる。
 
 ## コマンドラインリファレンス
 [step ca federation](https://smallstep.com/docs/step-cli/reference/)
@@ -47,7 +66,7 @@ for ((i=0; i<length; i++)); do
     --force &&
   sudo chmod 644 "${ca_certificates_dir}/${federation_crt_file}"
 done
-sudo update-ca-certificates
+sudo "${ca_certificates_cmd}"
 ```
 
 ### 【デバッグ】取得した証明書の概要の表示
@@ -68,7 +87,11 @@ length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
   hostname=${hostnames[$i]} &&
   port=${ports[$i]} &&
-  wget -O - "https://${hostname}:${port}/health"
+  if hash wget 2>/dev/null; then
+    wget -O - "https://${hostname}:${port}/health"
+  elif hash update-ca-trust 2>/dev/null; then
+    curl "https://${hostname}:${port}/health"
+  fi
 done
 ```
 
@@ -94,6 +117,8 @@ for ((i=0; i<length; i++)); do
   sudo install -m 600 "${key_dir}/$(hostname)-${hostname}.key" "${key_dir}/$(hostname).key"
 done
 ```
+ファイアウォールの無効化が必要。
+
 `.vip.`を含むものは除外している（仮想IPアドレスに対応するドメインにはサブドメインとして「vip」を含むようにすることを想定）。
 
 ### 【デバッグ】証明書の概要の確認
@@ -206,7 +231,7 @@ for ((i=0; i<length; i++)); do
 done
 
 # システムの証明書をアップデート
-update-ca-certificates
+"${ca_certificates_cmd}"
 
 # サーバー証明書を取得
 for ((i=0; i<length; i++)); do

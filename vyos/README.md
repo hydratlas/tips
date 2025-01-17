@@ -72,9 +72,7 @@ source /opt/vyatta/etc/functions/script-template
 configure
 set system host-name 'router-01'
 set system time-zone 'Asia/Tokyo'
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 
@@ -87,9 +85,7 @@ configure
 set interfaces ethernet eth0 address dhcp
 set system name-server eth0
 run show interfaces
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 
@@ -99,9 +95,7 @@ EOS
 source /opt/vyatta/etc/functions/script-template
 configure
 set interfaces ethernet eth0 ipv6 address autoconf
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 
@@ -120,9 +114,7 @@ set interfaces ethernet ${IF_NAME} disable
 commit
 save
 delete interfaces ethernet ${IF_NAME} disable
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 
@@ -165,9 +157,7 @@ done
 source /opt/vyatta/etc/functions/script-template
 configure
 load /opt/vyatta/etc/config.boot.default
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 
@@ -179,9 +169,7 @@ source /opt/vyatta/etc/functions/script-template
 configure
 set service monitoring telegraf loki url http://<hostname>
 set service monitoring telegraf loki metric-name-label metric
-commit
-save
-exit
+commit && save && exit
 EOS
 ```
 `metric-name-label`の値にハイフン(-)は使えない。
@@ -202,12 +190,11 @@ set container name node-exporter port node-exporter source '9100'
 set container name node-exporter port node-exporter protocol 'tcp'
 set container name node-exporter volume hostroot destination '/host'
 set container name node-exporter volume hostroot source '/'
-commit
-save
-exit
+set container name node-exporter volume hostroot mode ro
+commit && save && exit
 EOS
 ```
-`http://<hostname>:9100/metrics`にアクセスして動作を確認できる。
+`http://<hostname>:9100/metrics`にアクセスして動作を確認できる。再起動するときは`restart container node-exporter`コマンドで再起動させる。
 
 ### 自動アップデートの設定
 #### REST API用のキーのセットアップ
@@ -221,9 +208,7 @@ set service https api rest
 set service https listen-address 127.0.0.1
 set service https api keys id ${KEY_NAME} key ${REST_KEY}
 show service https api keys
-commit
-save
-exit
+commit && save && exit
 EOS
 curl -k --location --request POST 'https://localhost/retrieve' \
     --form data='{"op": "showConfig", "path": []}' \
