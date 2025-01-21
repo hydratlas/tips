@@ -86,3 +86,5 @@ noVNCが開かないとき
 ```
 
 LinuxではディスプレーをVirtIO-GPUにする。
+
+Proxmox VEのroot@pamをLDAPで管理することはできない。緊急用アカウントとして使うとよい。

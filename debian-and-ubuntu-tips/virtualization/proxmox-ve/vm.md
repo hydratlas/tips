@@ -61,21 +61,28 @@ eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/head
 ```
 中身は[proxmox-ve](/scripts/proxmox-ve)を参照。
 
+
+### 固有値を決定
+```sh
+echo "VMID=\"$((RANDOM % 9900 + 100))\"" &&
+for i in {0..9} ; do
+  RANDOM_HEX=$(printf '%06X\n' $((RANDOM * 256 + RANDOM % 256))) &&
+  echo "  --net${i} \"virtio=BC:24:11:$(echo "${RANDOM_HEX}" | sed 's/../&:/g; s/:$//'),bridge=***\" \\"
+  echo "  --ipconfig${i} ip=dhcp,ip6=dhcp \\"
+done
+```
+
 ### 実行
-適宜変更して使用する。
+固有値をはじめ、ストレージ容量やメモリー容量などを適宜変更して使用する。
 ```sh
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
-VMID="$((RANDOM % 9900 + 100))" &&
-echo "VMID: ${VMID}" &&
-RANDOM_HEX=$(printf '%06X\n' $((RANDOM * 256 + RANDOM % 256))) &&
-MAC_ADDRESS_0="BC:24:11:$(echo "${RANDOM_HEX}" | sed 's/../&:/g; s/:$//')" &&
-echo "MAC address 0: ${MAC_ADDRESS_0}" &&
+VMID="2079" &&
+NAME="ubuntu-2079" &&
 vm_create "${VMID}" "local-zfs" "local" "/var/lib/vz/template/iso/ubuntu-24.04-minimal-cloudimg-amd64.img" "8G" &&
 qm set "${VMID}" \
-  --name "ubuntu-${VMID}" \
-  --cores 6 \
+  --name "${NAME}" \
   --memory 8192 \
-  --net0 "virtio=${MAC_ADDRESS_0},bridge=vmbr0" \
+  --net0 "virtio=BC:24:11:03:67:FC,bridge=vmbr0" \
   --ipconfig0 ip=dhcp,ip6=dhcp \
   --ciuser "user" \
   --cipassword "$(openssl passwd -6 "p")" &&

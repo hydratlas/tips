@@ -40,8 +40,8 @@ EOS
 sudo mkdir -p "$(dirname "${quadlet_file}")" &&
 sudo tee "${quadlet_file}" << EOS > /dev/null &&
 [Unit]
-Requires=victoria-metrics.service
-Requires=loki.service
+Wants=victoria-metrics.service
+Wants=loki.service
 After=victoria-metrics.service
 After=loki.service
 
