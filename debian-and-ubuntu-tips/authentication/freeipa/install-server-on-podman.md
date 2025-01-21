@@ -1,12 +1,9 @@
 # FreeIPAサーバーをPodmanコンテナとしてインストール
 ## 事前設定
-サーバーに割り当てられたIPアドレスが一つであることを前提にしている。二つ以上の場合は`host_name`および`ip_address`変数を手動で設定すること。
 ```sh
 ds_password="$(cat /dev/urandom | tr -dc 'A-Za-z0-9!"#$%&'"'"'()*+,-./:;<=>?@[]\^_`{|}~' | head -c 12)" &&
 admin_password="$(cat /dev/urandom | tr -dc 'A-Za-z0-9!"#$%&'"'"'()*+,-./:;<=>?@[]\^_`{|}~' | head -c 12)" &&
-domain="home.arpa" &&
-host_name="$(hostname -s).$(awk '/^search / {print $2; exit}' "/etc/resolv.conf")" &&
-ip_address="$(ip -4 addr show scope global | grep -m 1 "inet " | awk '{print $2}' | cut -d/ -f1)" &&
+base_domain="home.arpa" &&
 user_name="freeipa-server" &&
 echo "Directory Manager user password: ${ds_password}" &&
 echo "IPA admin user password: ${admin_password}" &&
@@ -15,6 +12,10 @@ if hash apt-get 2>/dev/null; then
 elif hash dnf 2>/dev/null; then
   sudo dnf install -y podman
 fi &&
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/freeipa")" &&
+chosen_domain &&
+chosen_nameserver &&
+chosen_ip_address &&
 if ! id "${user_name}" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group \
     --shell /usr/sbin/nologin "${user_name}"
@@ -39,12 +40,16 @@ EOS
 
 ### マスター
 ```sh
+# --read-only
+# -v 
 sudo podman run \
   --detach \
-  --name freeipa-server \
-  --hostname "${host_name}" \
-  --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-  --volume "/var/local/lib/ipa-data:/data:Z" \
+  --name=freeipa-server \
+  --hostname="${domain}" \
+  --dns="${nameserver}"
+  --sysctl=net.ipv6.conf.all.disable_ipv6=0 \
+  --volume="/var/local/lib/ipa-data:/data:Z" \
+  --volume="/sys/fs/cgroup:/sys/fs/cgroup:z,ro" \
   --env IPA_SERVER_IP="${ip_address}" \
   --publish 80:80 \
   --publish 443:443 \
@@ -54,10 +59,12 @@ sudo podman run \
   --publish 464:464/tcp --publish 464:464/udp \
   docker.io/freeipa/freeipa-server:almalinux-9 ipa-server-install \
   --unattended \
+  --read-only \
   --ds-password="${ds_password}" \
   --admin-password="${admin_password}" \
-  --domain="${domain,,}" \
-  --realm="${domain^^}" \
+  --domain="${base_domain,,}" \
+  --realm="${base_domain^^}" \
+  --setup-dns \
   --no-ntp &&
 sudo podman logs --follow freeipa-server
 ```
@@ -66,10 +73,11 @@ sudo podman logs --follow freeipa-server
 ```sh
 sudo podman run \
   --detach \
-  --name freeipa-server \
-  --hostname "${host_name}" \
-  --sysctl net.ipv6.conf.all.disable_ipv6=0 \
-  --volume "/var/local/lib/ipa-data:/data:Z" \
+  --name=freeipa-server \
+  --hostname="${domain}" \
+  --dns="${nameserver}"
+  --sysctl=net.ipv6.conf.all.disable_ipv6=0 \
+  --volume="/var/local/lib/ipa-data:/data:Z" \
   --env IPA_SERVER_IP="${ip_address}" \
   --publish 80:80 \
   --publish 443:443 \
@@ -79,6 +87,7 @@ sudo podman run \
   --publish 464:464/tcp --publish 464:464/udp \
   docker.io/freeipa/freeipa-server:almalinux-9 ipa-replica-install \
   --unattended \
+  --setup-dns \
   --no-ntp &&
 sudo podman logs --follow freeipa-server
 ```
@@ -107,6 +116,7 @@ After=network-online.target
 Image=docker.io/freeipa/freeipa-server:almalinux-9
 ContainerName=freeipa-server
 Network=freeipa.network
+DNS=${nameserver}
 Sysctl=net.ipv6.conf.all.disable_ipv6=0
 Volume=/var/local/lib/ipa-data:/data:Z
 PublishPort=80:80
@@ -121,6 +131,7 @@ PublishPort=464:464/udp
 [Service]
 Restart=on-failure
 Environment=IPA_SERVER_IP=${ip_address}
+Environment=FORWARDER=${nameserver}
 
 [Install]
 WantedBy=multi-user.target
@@ -183,9 +194,9 @@ http {
     location / {
       proxy_pass https://freeipa-server/;
 
-      # 内部サーバは "${host_name}" でアクセスされるほうがよいため固定値を指定する
-      proxy_set_header Host ${host_name};
-      proxy_set_header Referer "https://${host_name}/ipa/ui/";
+      # 内部サーバは "${domain}" でアクセスされるほうがよいため固定値を指定する
+      proxy_set_header Host ${domain};
+      proxy_set_header Referer "https://${domain}/ipa/ui/";
 
       # クライアントのIPアドレスを引き継ぎ
       proxy_set_header X-Forwarded-Proto https;
@@ -195,10 +206,10 @@ http {
       proxy_ssl_verify off;
       proxy_ssl_verify_depth 0;
 
-      # FreeIPAのリダイレクトURLが "http://${host_name}/..." のように返ってきたとき、
+      # FreeIPAのリダイレクトURLが "http://${domain}/..." のように返ってきたとき、
       # ブラウザ側で見えるURLを元のドメインに戻したいためproxy_redirectで書き換え
-      proxy_redirect  http://${host_name}/ https://\$host/;
-      proxy_redirect https://${host_name}/ https://\$host/;
+      proxy_redirect  http://${domain}/ https://\$host/;
+      proxy_redirect https://${domain}/ https://\$host/;
     }
   }
 }

@@ -1,9 +1,4 @@
 # FreeIPAクライアントをインストール
-## ドメインの決定
-```sh
-
-```
-
 ## インストール
 ```sh
 if hash apt-get 2>/dev/null; then
@@ -13,7 +8,8 @@ elif hash dnf 2>/dev/null; then
 fi &&
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/freeipa")" &&
 chosen_domain &&
-sudo ipa-client-install --hostname="${domain}" --no-ntp --mkhomedir
+sudo ipa-client-install --no-ntp --mkhomedir
+#  --hostname="${domain}"
 ```
 
 ## サーバーへの接続を確認
