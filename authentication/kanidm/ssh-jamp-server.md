@@ -1,4 +1,4 @@
-# SSHジャンプサーバーを構築する
+# SSHジャンプサーバーを構築する（Debian系）
 ## Kanidm Clientのセットアップ
 Kanidm Clientのセットアップを行う（参照：[Kanidm Clientのセットアップ](client-setup.md)）。
 
