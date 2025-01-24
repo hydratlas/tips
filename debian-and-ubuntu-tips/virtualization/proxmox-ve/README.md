@@ -77,6 +77,44 @@ nano /etc/pve/corosync.conf
 1. Proxmox VEで仮想マシンのコンソールをnoVNCで開く
 1. 右クリックから「貼り付け」を押す
 
+## Ansible実行用の準備
+### APIトークンの取得とアクセス権限の設定
+1. WebUIの「データセンター」→「アクセス権限」→「ユーザ」→「追加」からユーザーを作る
+    1. ユーザ名：`ansible-runner`
+    1. レルム：`Proxmox VE authentication server`
+    1. パスワード：（任意の値）
+    1. グループ：（なし）
+1. WebUIの「データセンター」→「アクセス権限」→「API トークン」→「追加」からAPIトークンを作る
+    1. ユーザ：`ansible-runner@pve`
+    1. トークンID：`ansible-runner-202501`
+    1. →APIトークンのIDとシークレットを記録
+1. WebUIの「データセンター」→「アクセス権限」→「追加」→「API トークンのアクセス権限」からAPIトークンのアクセス権限を作る
+    1. パス：`/`
+    1. API トークン：`ansible-runner@pve!ansible-runner-202501`
+    1. ロール：Administrator
+    1. 継承：チェック
+
+### Python環境の構築
+`uv`を使っている場合
+```sh
+uv add ansible proxmoxer requests
+```
+
+### Ansible Galaxyにおけるコレクションのインストール（不要？）
+```sh
+uv run ansible-galaxy collection install community.general
+```
+
+### Ansible Vaultの使用（インストール不要）
+```sh
+uvx --from ansible-core ansible-vault encrypt_string '<token_secret>' --name 'pve_token_secret'
+```
+
+### Ansible Playbookの実行
+```sh
+uv run ansible-playbook -vvvv playbooks/aaa.yml
+```
+
 ## その他
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 

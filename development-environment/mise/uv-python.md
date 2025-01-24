@@ -13,18 +13,18 @@ uvのインストールとともに、uvxが存在する場合にはpipxの代�
 ### シェル補完のインストール（bashの場合）
 ```sh
 mkdir -p ~/.local/share/bash-completion/completions &&
-tee ~/.local/share/bash-completion/completions/mise-uv << EOS > /dev/null &&
+tee ~/.local/share/bash-completion/completions/uv << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which uv 2>/dev/null; then
   eval "\$(uv generate-shell-completion bash)"
 fi
 EOS
-. ~/.local/share/bash-completion/completions/mise-uv &&
-tee ~/.local/share/bash-completion/completions/mise-uvx << EOS > /dev/null &&
+. ~/.local/share/bash-completion/completions/uv &&
+tee ~/.local/share/bash-completion/completions/uvx << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which uvx 2>/dev/null; then
   eval "\$(uvx --generate-shell-completion bash)"
 fi
 EOS
-. ~/.local/share/bash-completion/completions/mise-uvx
+. ~/.local/share/bash-completion/completions/uvx
 ```
 
 ### シェル補完のアンインストール（bashの場合）
@@ -65,6 +65,16 @@ uv run python3 --version
 uv add cowsay &&
 uv pip list &&
 uv run cowsay -t "Hello, world!"
+```
+
+### Pythonライブラリーのアンインストール
+```sh
+uv remove cowsay
+```
+
+### pipxの実行（インストール不要）
+```sh
+uvx pycowsay hello from uv
 ```
 
 ### 環境の再構築

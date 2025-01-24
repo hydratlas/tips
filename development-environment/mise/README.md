@@ -11,9 +11,9 @@ CODE_BLOCK=$(cat << EOS
 if [ -e ~/.local/bin/mise ]; then
   eval "\$(~/.local/bin/mise activate bash)"
 fi
-if [ -e ~/.local/share/mise/shims ]; then
-  export PATH="\$HOME/.local/share/mise/shims:\$PATH"
-fi
+#if [ -e ~/.local/share/mise/shims ]; then
+#  export PATH="\$HOME/.local/share/mise/shims:\$PATH"
+#fi
 EOS
 ) &&
 if ! grep -q "$START_MARKER" "$TARGET_FILE"; then
@@ -33,7 +33,11 @@ mise use -g jq
 ```sh
 mise use -g usage &&
 mkdir -p ~/.local/share/bash-completion/completions &&
-tee ~/.local/share/bash-completion/completions/mise <<< "$(mise completion bash)" > /dev/null &&
+tee ~/.local/share/bash-completion/completions/mise << EOS > /dev/null &&
+if hash mise 2>/dev/null; then
+  eval "\$(mise completion bash --include-bash-completion-lib)"
+fi
+EOS
 . ~/.local/share/bash-completion/completions/mise
 ```
 - [Not generating mise completions despite usage CLI is installed · Issue #1710 · jdx/mise](https://github.com/jdx/mise/issues/1710)
