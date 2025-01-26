@@ -11,7 +11,7 @@
 複数のアカウントを扱うにあたり、マシン全体に必要なパッケージをインストールし、環境設定を行います。
 
 ### パッケージのインストール
-GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導入してください。終わったら、ターミナルを再起動してください。
+GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導入してください。
 
 #### Windows
 ```powershell
@@ -22,6 +22,13 @@ winget install -e --id GNU.Nano
 $env:Path = [System.Environment]::GetEnvironmentVariable( `
   'Path', [System.EnvironmentVariableTarget]::Machine)
 ```
+
+終わったら、ターミナルを再起動してください。または、PowerShellのバージョンが上がった場合には、次の手順を実行します。
+
+1. Windows Terminalのタブの右側にある「▼」ボタンをクリックし、「設定」を選択します
+1. 「スタートアップ」設定の中の「既定のプロファイル」をクリックして変更します
+1. 一覧の中から、新しいPowerShell（例: `PowerShell`）を探して、選択します
+1. 新しいタブを開きます
 
 #### Linux（Debian系）
 ```sh
