@@ -67,9 +67,9 @@ sudo apt-get purge -y git gpg
 $connectionName = "abcde"
 $githubUsername = "username"
 $githubMail = "123456789+username@users.noreply.github.com"
-$firstThreeConnectionName = $connectionName.Substring( `
-  0, [Math]::Min($connectionName.Length, 3))
-$githubUserID = "$githubUsername <$githubMail>"
+$firstThreeConnectionName = ${connectionName}.Substring( `
+  0, [Math]::Min(${connectionName}.Length, 3))
+$githubUserID = "${githubUsername} <${githubMail}>"
 ```
 
 #### Linux
@@ -92,12 +92,12 @@ github_userid="${github_username} <${github_mail}>"
 
 #### Windows
 ```powershell
-$keyFile = "$HOME/.ssh/id_ed25519_$connectionName"
-ssh-keygen -t ed25519 -N '""' -C '""' -f "$keyFile"
+$keyFile = "$HOME/.ssh/id_ed25519_${connectionName}"
+ssh-keygen -t ed25519 -N '""' -C '""' -f "${keyFile}"
 @"
-Host github-$firstThreeConnectionName
+Host github-${firstThreeConnectionName}
     HostName github.com
-    IdentityFile ~/.ssh/id_ed25519_$connectionName
+    IdentityFile ~/.ssh/id_ed25519_${connectionName}
     User git
 "@ | Out-File -Append -FilePath "$HOME/.ssh/config" -Encoding utf8
 cat "$keyFile.pub"
@@ -150,8 +150,8 @@ nano "$HOME/.ssh/config"
 
 #### Windows
 ```powershell
-rm "$keyFile.pub"
-rm "$keyFile"
+rm "${keyFile}.pub"
+rm "${keyFile}"
 ```
 
 #### Linux
@@ -174,8 +174,8 @@ rm "${keyfile}"
 #### Windows
 ```powershell
 gpg --pinentry-mode loopback --passphrase '""' `
-  --quick-gen-key "$githubUserID" future-default - 0
-gpg --armor --export "$githubUserID"
+  --quick-gen-key "${githubUserID}" future-default - 0
+gpg --armor --export "${githubUserID}"
 ```
 
 #### Linux
@@ -198,8 +198,8 @@ GPGキーが不要になった場合や再作成したい場合は、以下の�
 
 #### Windows
 ```powershell
-gpg --delete-secret-keys "$githubUserID"
-gpg --delete-keys "$githubUserID"
+gpg --delete-secret-keys "${githubUserID}"
+gpg --delete-keys "${githubUserID}"
 ```
 
 #### Linux
@@ -223,9 +223,9 @@ gpg --delete-keys "${github_userid}"
 $connectionName = "abcde"
 $githubUsername = "username"
 $githubMail = "123456789+username@users.noreply.github.com"
-$firstThreeConnectionName = $connectionName.Substring( `
-  0, [Math]::Min($connectionName.Length, 3))
-$githubUserID = "$githubUsername <$githubMail>"
+$firstThreeConnectionName = ${connectionName}.Substring( `
+  0, [Math]::Min(${connectionName}.Length, 3))
+$githubUserID = "${githubUsername} <${githubMail}>"
 ```
 
 #### Linux
@@ -242,7 +242,7 @@ github_userid="${github_username} <${github_mail}>"
 
 #### Windows
 ```powershell
-git clone "git@github-$firstThreeConnectionName:<repository owner>/<repository name>.git" .
+git clone "git@github-${firstThreeConnectionName}:<repository owner>/<repository name>.git" .
 ```
 
 #### Linux
@@ -256,7 +256,7 @@ GitHub上に空のリポジトリーを作成してから、以下のコマン�
 #### Windows
 ```powershell
 git init --initial-branch=main
-git remote add origin "git@github-$firstThreeConnectionName:<repository owner>/<repository name>.git"
+git remote add origin "git@github-${firstThreeConnectionName}:<repository owner>/<repository name>.git"
 ```
 
 #### Linux
@@ -270,10 +270,10 @@ git remote add origin "git@github-${first_three_connection_name}:<repository own
 
 #### Windows
 ```powershell
-git config user.name "$githubUsername"
-git config user.email "$githubMail"
+git config user.name "${githubUsername}"
+git config user.email "${githubMail}"
 git config commit.gpgsign true
-git config user.signingkey "$githubUserID"
+git config user.signingkey "${githubUserID}"
 ```
 
 #### Linux
