@@ -15,7 +15,7 @@ GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導�
 
 #### Windows
 ```powershell
-winget install -e --id Microsoft.Powershell
+winget install -e --id Microsoft.PowerShell
 winget install -e --id Git.Git
 winget install -e --id GnuPG.GnuPG
 winget install -e --id GNU.Nano
@@ -92,7 +92,7 @@ Host github-$firstThreeConnectionName
     HostName github.com
     IdentityFile ~/.ssh/id_ed25519_$connectionName
     User git
-"@ | Out-File -Append -FilePath "$HOME/.ssh/config" -Encoding utf8NoBOM
+"@ | Out-File -Append -FilePath "$HOME/.ssh/config" -Encoding utf8
 cat "$keyFile.pub"
 ```
 
