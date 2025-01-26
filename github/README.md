@@ -3,7 +3,7 @@
 
 ## 対応環境
 - Windows
-    - Windows Terminal上のPowerShell コマンドライン
+    - Windows Terminal上のPowerShellコマンドライン
 - Linux
     - Bash
 
@@ -17,6 +17,7 @@ GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導�
 ```powershell
 winget install -e --id Git.Git
 winget install -e --id GnuPG.GnuPG
+winget install -e --id GNU.nano
 $env:Path = [System.Environment]::GetEnvironmentVariable( `
   'Path', [System.EnvironmentVariableTarget]::Machine)
 ```
@@ -126,6 +127,14 @@ SSHの設定ファイルが正しい内容になっているか確認します�
 #### Windows・Linux
 ```powershell
 cat "$HOME/.ssh/config"
+```
+
+### 【デバッグ】.ssh/configの編集
+SSHの設定ファイルを編集します。
+
+#### Windows・Linux
+```powershell
+nano "$HOME/.ssh/config"
 ```
 
 ### 【元に戻す】生成したSSHキーペアの削除
