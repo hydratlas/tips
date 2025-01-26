@@ -11,13 +11,13 @@
 複数のアカウントを扱うにあたり、マシン全体に必要なパッケージをインストールし、環境設定を行います。
 
 ### パッケージのインストール
-GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導入してください。
+GitやGnuPG(GPG)が未インストールの場合は以下のコマンドで導入してください。終わったら、ターミナルを再起動してください。
 
 #### Windows
 ```powershell
 winget install -e --id Git.Git
 winget install -e --id GnuPG.GnuPG
-winget install -e --id GNU.nano
+winget install -e --id GNU.Nano
 $env:Path = [System.Environment]::GetEnvironmentVariable( `
   'Path', [System.EnvironmentVariableTarget]::Machine)
 ```
@@ -91,7 +91,7 @@ Host github-$firstThreeConnectionName
     HostName github.com
     IdentityFile ~/.ssh/id_ed25519_$connectionName
     User git
-"@ | Out-File -Append -FilePath "$HOME/.ssh/config"
+"@ | Out-File -Encoding utf8NoBOM -Append -FilePath "$HOME/.ssh/config"
 cat "$keyFile.pub"
 ```
 
