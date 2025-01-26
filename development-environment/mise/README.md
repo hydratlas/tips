@@ -1,5 +1,6 @@
 # mise（プログラミング言語のバージョン管理）
-## インストール（bashの場合）
+## インストール
+### Bash
 ```sh
 wget -q -O - https://mise.run | sh &&
 ~/.local/bin/mise --version &&
@@ -21,6 +22,15 @@ if ! grep -q "$START_MARKER" "$TARGET_FILE"; then
 fi &&
 . "$TARGET_FILE" &&
 mise --version
+```
+
+### Windows
+```powershell
+winget install jdx.mise
+$shimPath = "$env:USERPROFILE\AppData\Local\mise\shims"
+$currentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$newPath = $currentPath + ";" + $shimPath
+[Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
 ```
 - [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 
