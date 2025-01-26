@@ -120,6 +120,14 @@ ls -l "$HOME/.ssh"
 ls -la "$HOME/.ssh"
 ```
 
+### 【デバッグ】.ssh/configの確認
+SSHの設定ファイルが正しい内容になっているか確認します。
+
+#### Windows・Linux
+```powershell
+cat "$HOME/.ssh/config"
+```
+
 ### 【元に戻す】生成したSSHキーペアの削除
 不要になったSSHキーや誤って作成してしまったキーは以下のコマンドで削除できます。合わせて~/.ssh/configの該当行も削除してください。
 
@@ -163,13 +171,8 @@ gpg --armor --export "${github_userid}"
 ### 【デバッグ】GPGキー（秘密鍵）のリストの確認
 生成したGPGキーが正しく登録されているかを確認するときは、秘密鍵のリストを確認します（公開鍵のみのリスト表示はできません）。
 
-#### Windows
+#### Windows・Linux
 ```powershell
-gpg --list-secret-keys
-```
-
-#### Linux
-```sh
 gpg --list-secret-keys
 ```
 
