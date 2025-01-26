@@ -83,28 +83,41 @@ github_userid="${github_username} <${github_mail}>"
 
 #### Windows
 ```powershell
-$keyFile = "~/.ssh/id_ed25519_$connectionName"
+$keyFile = "$HOME/.ssh/id_ed25519_$connectionName"
 ssh-keygen -t ed25519 -N '""' -C '""' -f "$keyFile"
 @"
 Host github-$firstThreeConnectionName
     HostName github.com
     IdentityFile ~/.ssh/id_ed25519_$connectionName
     User git
-"@ | Out-File -Append -FilePath "~/.ssh/config"
+"@ | Out-File -Append -FilePath "$HOME/.ssh/config"
 cat "$keyFile.pub"
 ```
 
 #### Linux
 ```sh
-keyfile="~/.ssh/id_ed25519_${connection_name}"
+keyfile="$HOME/.ssh/id_ed25519_${connection_name}"
 ssh-keygen -t ed25519 -N "" -C "" -f "${keyfile}" &&
-tee "~/.ssh/config" << EOS > /dev/null &&
+tee "$HOME/.ssh/config" << EOS > /dev/null &&
 Host github-${first_three_connection_name}
     HostName github.com
     IdentityFile ~/.ssh/id_ed25519_${connection_name}
     User git
 EOS
 cat "${keyfile}.pub"
+```
+
+### 【デバッグ】SSHキーペアの確認
+SSHキーが正しく生成されているかを確認するときは、ファイルリストを確認します。
+
+#### Windows
+```powershell
+ls -l "$HOME/.ssh"
+```
+
+#### Linux
+```sh
+ls -la "$HOME/.ssh"
 ```
 
 ### 【元に戻す】生成したSSHキーペアの削除
@@ -171,7 +184,7 @@ gpg --delete-keys "$githubUserID"
 
 #### Linux
 ```sh
-gpg --delete-secret-keys "${github_userid}"
+gpg --delete-secret-keys "${github_userid}" &&
 gpg --delete-keys "${github_userid}"
 ```
 
