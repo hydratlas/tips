@@ -285,5 +285,10 @@ git config commit.gpgsign true &&
 git config user.signingkey "${github_userid}"
 ```
 
+### 【デバッグ】メールアドレスなどの設定の確認
+```sh
+cat .git/config
+```
+
 ## まとめ
 上記の流れで設定を行うことで、複数のGitHubアカウントを安全かつ混乱なく扱うことができます。
