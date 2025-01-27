@@ -19,11 +19,12 @@ winget install -e --id Microsoft.PowerShell
 winget install -e --id Git.Git
 winget install -e --id GnuPG.GnuPG
 winget install -e --id GNU.Nano
-$env:Path = [System.Environment]::GetEnvironmentVariable( `
-  'Path', [System.EnvironmentVariableTarget]::Machine)
+$envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+           [System.Environment]::GetEnvironmentVariable("Path", "User")
+[System.Environment]::SetEnvironmentVariable("Path", $envPath, "Process")
 ```
 
-終わったら、ターミナルを再起動してください。または、PowerShellのバージョンが上がった場合には、次の手順を実行します。
+終わったら、PowerShellのバージョンが上がった場合には、次の手順を実行します。
 
 1. Windows Terminalのタブの右側にある「▼」ボタンをクリックし、「設定」を選択します
 1. 「スタートアップ」設定の中の「既定のプロファイル」をクリックして変更します

@@ -24,15 +24,29 @@ fi &&
 mise --version
 ```
 
-### Windows
+### PowerShell
+まず、miseをインストールします。
 ```powershell
-winget install jdx.mise
+winget install -e --id jdx.mise
+$envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+           [System.Environment]::GetEnvironmentVariable("Path", "User")
+[System.Environment]::SetEnvironmentVariable("Path", $envPath, "Process")
+mise --version
+```
+
+次にshimsを設定します。終わったらターミナルを開き直します。
+```powershell
 $shimPath = "$env:USERPROFILE\AppData\Local\mise\shims"
 $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 $newPath = $currentPath + ";" + $shimPath
 [Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
 ```
 - [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
+
+## 状態確認
+```sh
+mise doctor
+```
 
 ## 基本的なツールのインストール
 ```sh
@@ -51,11 +65,6 @@ EOS
 . ~/.local/share/bash-completion/completions/mise
 ```
 - [Not generating mise completions despite usage CLI is installed · Issue #1710 · jdx/mise](https://github.com/jdx/mise/issues/1710)
-
-## 状態確認
-```sh
-mise doctor
-```
 
 ## 使用
 miseでユーザーグローバルにツールをインストールして、そのツールで各プロジェクトのプログラミング言語のバージョンを管理する場合と、miseで直接各プロジェクトのプログラミング言語のバージョンを管理する場合がある。後者のほうがmise本来の使い方であるが、前者のほうがシェル補完がききやすく、使いやすい。
