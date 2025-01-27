@@ -5,7 +5,7 @@
 - Linux
     - Bash
 - Windows
-    - Windows Terminal上のPowerShellの→Git Bash
+    - Windows Terminal上のPowerShell→Git Bash
 
 ## システム全体の設定
 複数のアカウントを扱うにあたり、マシン全体に必要なパッケージをインストールし、環境設定を行います。
