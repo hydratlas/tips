@@ -89,3 +89,6 @@ sudo update-grub
 ```sh
 sudo apt-get install --no-install-recommends -y nano
 ```
+
+## Remmina
+「設定」→「RDP」→「キーボードレイアウト」に「00000411 – Japanese」を設定する。
