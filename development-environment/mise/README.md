@@ -1,6 +1,6 @@
 # mise（プログラミング言語のバージョン管理）
 ## インストール
-### Bash
+### Linux (Bash)
 ```sh
 wget -q -O - https://mise.run | sh &&
 ~/.local/bin/mise --version &&
@@ -24,24 +24,22 @@ fi &&
 mise --version
 ```
 
-### PowerShell
-まず、miseをインストールします。
+### Windows (PowerShell)
+まず、PowerShellでmiseをインストールします。
 ```powershell
 winget install -e --id jdx.mise
-$envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-           [System.Environment]::GetEnvironmentVariable("Path", "User")
-[System.Environment]::SetEnvironmentVariable("Path", $envPath, "Process")
 mise --version
 ```
 
-次にshimsを設定します。終わったらターミナルを開き直します。
+次にPowerShellのshimsを設定します。終わったらシェルを開き直します。
 ```powershell
 $shimPath = "$env:USERPROFILE\AppData\Local\mise\shims"
 $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 $newPath = $currentPath + ";" + $shimPath
-[Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
 ```
 - [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
+
+補足：Git Bashの設定はまだうまくいきません。 [mise does not operate well under GitBash on Windows · Issue #4011 · jdx/mise](https://github.com/jdx/mise/issues/4011)
 
 ## 状態確認
 ```sh
@@ -53,7 +51,7 @@ mise doctor
 mise use -g jq
 ```
 
-## シェル補完のインストール（bashの場合）
+## シェル補完のインストール（LinuxのBashの場合）
 ```sh
 mise use -g usage &&
 mkdir -p ~/.local/share/bash-completion/completions &&
@@ -65,6 +63,17 @@ EOS
 . ~/.local/share/bash-completion/completions/mise
 ```
 - [Not generating mise completions despite usage CLI is installed · Issue #1710 · jdx/mise](https://github.com/jdx/mise/issues/1710)
+
+## シェル補完のインストール（WindowsのGit Bashの場合）
+usageが入らないため、動かない。
+```sh
+tee "$HOME/.bash_completion.d/mise" << EOS > /dev/null &&
+if hash mise 2>/dev/null; then
+  eval "\$(mise completion bash --include-bash-completion-lib)"
+fi
+EOS
+. "$HOME/.bash_completion.d/mise"
+```
 
 ## 使用
 miseでユーザーグローバルにツールをインストールして、そのツールで各プロジェクトのプログラミング言語のバージョンを管理する場合と、miseで直接各プロジェクトのプログラミング言語のバージョンを管理する場合がある。後者のほうがmise本来の使い方であるが、前者のほうがシェル補完がききやすく、使いやすい。
@@ -101,30 +110,23 @@ mise upgrade
 mise cache clear
 ```
 
-## シェル補完のアンインストール（bashの場合）
+## シェル補完のアンインストール（LinuxのBashの場合）
 ```sh
 if [ -f ~/.local/share/bash-completion/completions/mise ]; then
   rm ~/.local/share/bash-completion/completions/mise
 fi
 ```
 
-## アンインストール（bashの場合）
+## アンインストール
+### Linux (Bash)
 ```sh
 mise implode -y
 ```
 アンインストール後にシェルに`-bash: /home/<username>/.local/bin/mise: No such file or directory`とエラーメッセージが表示されるようになるが、シェルを開き直せば解消される。
 
-## 各種ツールによるシェル補完のアンインストール（bashの場合）
-```sh
-TARGET_FILE="$HOME/.bashrc" &&
-START_MARKER="# BEGIN MISE BLOCK" &&
-END_MARKER="# END MISE BLOCK" &&
-if grep -q "$START_MARKER" "$TARGET_FILE"; then
-  sed -i "/$START_MARKER/,/$END_MARKER/d" "$TARGET_FILE"
-fi &&
-if [ -d "$HOME/.local/share/bash-completion/completions" ]; then
-  find "$HOME/.local/share/bash-completion/completions" -type f -iname 'mise-*' -exec rm {} +
-fi
+### Windows (PowerShell)
+```powershell
+winget uninstall -e --id jdx.mise
 ```
 
 ## ユーザーグローバルにインストールしたツールやシステムの再インストール

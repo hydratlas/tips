@@ -1,14 +1,14 @@
 # mise & uv & Python
 ## ユーザーグローバルでの設定
 ### インストール
-#### Bash
+#### LinuxのBash
 ```sh
 mise use -g -y uv &&
 mise settings set pipx_uvx true &&
 "$(mise which uv)" --version
 ```
 
-#### PowerShell
+#### WindowsのPowerShell
 ```powershell
 mise use -g -y uv
 mise settings set pipx_uvx true
@@ -20,7 +20,7 @@ mise settings set pipx_uvx true
 説明：uvのインストールとともに、uvxが存在する場合にはpipxの代わりにuvxを使うようにしている。pipxはPythonでできているコマンドラインツールを個別の環境に分離してインストールするもの。pipでは環境を分離しないため依存関係が破壊される可能性があるが、環境の分離によってそれを防ぐ。pipおよびuvは主に実行したいPythonコードから依存するライブラリーのインストールに使用するが、pipxおよびuvxはコマンドラインツールのインストールに使用する。
 
 ### シェル補完のインストール
-#### Bash
+#### LinuxのBash
 ```sh
 mkdir -p ~/.local/share/bash-completion/completions &&
 tee ~/.local/share/bash-completion/completions/uv << EOS > /dev/null &&
@@ -37,7 +37,7 @@ EOS
 . ~/.local/share/bash-completion/completions/uvx
 ```
 
-#### PowerShell
+#### WindowsのPowerShell
 ```powershell
 $profileDir = Split-Path -Path $PROFILE
 New-Item -ItemType Directory -Path $profileDir -Force
@@ -52,11 +52,11 @@ Add-Content -Path $PROFILE -Value '(& uvx --generate-shell-completion powershell
 
 ### シェル補完のアンインストール（bashの場合）
 ```sh
-if [ -e ~/.local/share/bash-completion/completions/mise-uv ]; then
-  rm ~/.local/share/bash-completion/completions/mise-uv
+if [ -e ~/.local/share/bash-completion/completions/uv ]; then
+  rm ~/.local/share/bash-completion/completions/uv
 fi &&
-if [ -e ~/.local/share/bash-completion/completions/mise-uvx ]; then
-  rm ~/.local/share/bash-completion/completions/mise-uvx
+if [ -e ~/.local/share/bash-completion/completions/uvx ]; then
+  rm ~/.local/share/bash-completion/completions/uvx
 fi
 ```
 

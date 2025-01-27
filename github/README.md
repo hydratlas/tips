@@ -5,7 +5,7 @@
 - Linux
     - Bash
 - Windows
-    - Windows Terminal上のPowerShell→Git Bash
+    - Windows Terminal上のGit Bash
 
 ## システム全体の設定
 複数のアカウントを扱うにあたり、マシン全体に必要なパッケージをインストールし、環境設定を行います。
@@ -17,24 +17,8 @@ GitやGPGが未インストールの場合は以下のコマンドで導入し�
 sudo apt-get install -y git gpg
 ```
 
-#### Windows。
-「Git Bash」をインストールすることにより、Windows TerminalでBashが使えるようにします。また、テキストエディターのnanoをインストールします。
-
-Windows TerminalのPowerShellを開き、次のコマンドを実行します。
-```powershell
-winget install -e --id Git.Git
-winget install -e --id GNU.Nano
-```
-
-終わったら、次の手順を実行します。
-
-1. Windows Terminalを開きなおします
-1. Windows Terminalのタブの右側にある「▼」ボタンをクリックし、「設定」を選択します
-1. 「スタートアップ」設定の中の「既定のプロファイル」をクリックして変更します
-1. 一覧の中から、「Git Bash」を探して、選択します
-1. 下部の「保存」ボタンを押し、設定を保存します
-1. 新しいタブを開きます
-1. `bash --version`コマンドを実行して、シェルがBashであることを確認します
+#### Windows
+Git Bashがインストールされていれば、GitとGPGは準備できている。
 
 ### 【元に戻す】パッケージをアンインストール
 インストールしたパッケージを削除する場合は、以下のコマンドを実行します。
@@ -42,12 +26,6 @@ winget install -e --id GNU.Nano
 #### Linux
 ```sh
 sudo apt-get purge -y git gpg
-```
-
-#### Windows
-```powershell
-winget uninstall -e --id Git.Git
-winget uninstall -e --id GNU.Nano
 ```
 
 ### 変数の準備

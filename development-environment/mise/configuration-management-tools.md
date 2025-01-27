@@ -1,20 +1,37 @@
 # 構成管理ツール
-## Terraform
+## Linux（Bash + mise + uv）
+### Terraformのインストール
 ```sh
 mise use terraform
 ```
 
-## Ansible
-### Bash
+### Ansibleのインストール
 ```sh
 uv init &&
 uv python pin 3.13 &&
 uv add ansible
 ```
 
-### PowerShell
-```powershell
-uv init
-uv python pin 3.13
+## Windows（Git Bash）
+### Terraformのインストール
+```sh
+winget install -e --id Hashicorp.Terraform
+```
+
+### uvのインストール
+```sh
+winget install -e --id astral-sh.uv
+```
+
+### Ansibleのインストール
+```sh
+uv init &&
+uv python pin 3.13 &&
 uv add ansible
+```
+
+### Ansibleの再インストール
+`pyproject.toml`にもとづいて再インストールします。
+```sh
+uv sync
 ```
