@@ -49,6 +49,16 @@ gsettings set org.gnome.gedit.preferences.print print-header false # ヘッダ�
 wget -q -O - https://zed.dev/install.sh | sh 
 ```
 
+設定に以下の行を追加する。
+```json
+  "buffer_font_family": "Noto Sans Mono CJK JP",
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 1000
+    }
+  },
+```
+
 ## Geanyのインストール（管理者）
 ```sh
 sudo apt install -yq geany
@@ -169,3 +179,24 @@ flatpak install flathub org.gnome.TextEditor
 | |org.mozilla.firefox|firefox|
 | |org.zotero.Zotero|zotero-snap|
 | |us.zoom.Zoom|zoom-client|
+
+## Remmina
+「設定」→「RDP」→「キーボードレイアウト」に「00000411 – Japanese」を設定する。
+
+## Firefox
+```sh
+wget -O firefox.tar.bz2 "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=ja" &&
+sudo tar -xjf firefox.tar.bz2 -C /opt/ &&
+rm firefox.tar.bz2 &&
+sudo tee "/usr/share/applications/firefox-mozilla.desktop" > /dev/null << EOS
+[Desktop Entry]
+Name=Firefox (Mozilla)
+Exec=/opt/firefox/firefox
+StartupWMClass=firefox
+Terminal=false
+Type=Application
+Icon=/opt/firefox/browser/chrome/icons/default/default128.png
+Categories=Network;WebBrowser;
+EOS
+```
+ 

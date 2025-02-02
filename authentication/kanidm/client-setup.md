@@ -5,13 +5,13 @@ step-cli（クライアント）をインストールしてプライベート認
 ## リポジトリーの設定（Debian系）
 ```sh
 wget -q -O - "https://kanidm.github.io/kanidm_ppa/kanidm_ppa.asc" | \
-  sudo tee /usr/share/keyrings/kanidm_ppa.asc > /dev/null &&
+  sudo tee /etc/apt/keyrings/kanidm_ppa.asc > /dev/null &&
 sudo tee "/etc/apt/sources.list.d/kanidm_ppa.sources" > /dev/null << EOF
 Types: deb
 URIs: https://kanidm.github.io/kanidm_ppa
 Suites: $(grep -oP '(?<=^VERSION_CODENAME=).+(?=$)' /etc/os-release)
 Components: stable
-Signed-By: /usr/share/keyrings/kanidm_ppa.asc
+Signed-By: /etc/apt/keyrings/kanidm_ppa.asc
 Architectures: $(dpkg --print-architecture)
 EOF
 ```

@@ -12,13 +12,13 @@ else
 fi &&
 sudo apt-get install -U -y ca-certificates &&
 wget -q -O - "https://download.docker.com/linux/${DISTRIBUTION_NAME}/gpg" | \
-  sudo tee /usr/share/keyrings/docker.asc > /dev/null &&
+  sudo tee /etc/apt/keyrings/docker.asc > /dev/null &&
 sudo tee "/etc/apt/sources.list.d/docker.sources" > /dev/null << EOF
 Types: deb
 URIs: https://download.docker.com/linux/${DISTRIBUTION_NAME}
 Suites: $(grep -oP '(?<=^VERSION_CODENAME=).+(?=$)' /etc/os-release)
 Components: stable
-Signed-By: /usr/share/keyrings/docker.asc
+Signed-By: /etc/apt/keyrings/docker.asc
 Architectures: $(dpkg --print-architecture)
 EOF
 ```

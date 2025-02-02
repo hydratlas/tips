@@ -1,5 +1,7 @@
 # mise（プログラミング言語のバージョン管理）
 ## インストール
+- 参考：[Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
+
 ### Linux (Bash)
 ```sh
 wget -q -O - https://mise.run | sh &&
@@ -24,22 +26,27 @@ fi &&
 mise --version
 ```
 
-### Windows (PowerShell)
-まず、PowerShellでmiseをインストールします。
+### Windows (PowerShellおよび)
+#### PowerShell
 ```powershell
 winget install -e --id jdx.mise
+mise reshim
 mise --version
 ```
 
-次にPowerShellのshimsを設定します。終わったらシェルを開き直します。
+以下はおそらく不要。
 ```powershell
 $shimPath = "$env:USERPROFILE\AppData\Local\mise\shims"
 $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 $newPath = $currentPath + ";" + $shimPath
 ```
-- [Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 
-補足：Git Bashの設定はまだうまくいきません。 [mise does not operate well under GitBash on Windows · Issue #4011 · jdx/mise](https://github.com/jdx/mise/issues/4011)
+#### Git Bash
+```sh
+winget install -e --id jdx.mise &&
+mise reshim &&
+mise --version
+```
 
 ## 状態確認
 ```sh
