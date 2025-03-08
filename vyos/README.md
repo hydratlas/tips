@@ -242,6 +242,7 @@ if [ -n "\${OLD_IMAGE_NAME}" ]; then
     echo "Delete: \${OLD_IMAGE_NAME}"
 fi
 
+save
 run reboot now
 EOS
 sudo chmod 755 "/config/scripts/${SCRIPT_FILENAME}" &&
@@ -290,12 +291,17 @@ reboot now
 
 #### 確認
 ```sh
-systemctl status vyos-updater.timer
-systemctl status vyos-updater.service
+systemctl status --no-pager --full vyos-updater.timer
+systemctl status --no-pager --full vyos-updater.service
 show system image
 ```
 
 #### すぐに実行
 ```sh
 sudo systemctl start vyos-updater.service
+```
+
+#### ログの確認
+```sh
+journalctl --no-pager --full -u vyos-updater.service
 ```

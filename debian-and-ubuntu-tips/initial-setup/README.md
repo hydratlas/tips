@@ -81,11 +81,57 @@ ls -la /boot/efi/EFI/BOOT
 ## GRUBの待ち時間をなくす（管理者）
 /bootがlvmまたはbtrfsであり、なおかつUEFIブートの場合、GRUBのタイムアウトが30秒になる。それを0秒にする設定。
 ```sh
-sudo tee "/etc/default/grub.d/timeout-recordfail.cfg" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null &&
+sudo tee "/etc/default/grub.d/50-timeout-recordfail.cfg" <<< "GRUB_RECORDFAIL_TIMEOUT=0" > /dev/null &&
 sudo update-grub
 ```
 
 ## Nanoをインストールする（管理者）
 ```sh
 sudo apt-get install --no-install-recommends -y nano
+```
+
+## GAカーネルからHWEカーネルへの切り替え
+### GAカーネルのインストール
+```sh
+sudo apt-get update &&
+sudo apt-get install -y linux-generic
+```
+
+### HWEカーネルの削除
+```sh
+sudo apt-get purge -y linux-hwe-* linux-generic-hwe-* linux-headers-generic-hwe-* linux-image-generic-hwe-*
+```
+
+### 一時的にGRUBメニューの表示時間を3秒にする
+```sh
+sudo tee "/etc/default/grub.d/99-timeout.cfg" << EOS
+GRUB_TIMEOUT=3
+GRUB_RECORDFAIL_TIMEOUT=3
+EOS
+```
+
+### GRUBの更新
+```sh
+sudo update-grub
+```
+再起動時にAdvanced options for Ubuntuから古いカーネルを選んで起動する。
+
+### インストールされているカーネルの確認
+```sh
+dpkg --list | grep "^ii  linux"
+```
+
+### 具体的なHWEカーネルの削除
+```sh
+sudo apt-get purge -y linux-*-6.11.0-17-*
+```
+
+### GRUBメニューの表示時間を元に戻す
+```sh
+sudo rm /etc/default/grub.d/99-timeout.cfg
+```
+
+### GRUBの更新
+```sh
+sudo update-grub
 ```
