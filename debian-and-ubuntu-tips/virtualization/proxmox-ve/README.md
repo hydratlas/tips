@@ -16,8 +16,6 @@
 1. DNS server addressは任意の値
 
 ## リポジトリを無料のものにする
-### Deb822-style Format
-新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
 ```sh
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
@@ -36,23 +34,36 @@ Components: no-subscription
 EOS
 ```
 
-### One-Line-Style Format
-新しいDeb822-style Formatに対応していない場合。
-```sh
-mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
-mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
-VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
-tee /etc/apt/sources.list.d/pve-no-subscription.list << EOF >/dev/null &&
-deb http://download.proxmox.com/debian/pve $VERSION_CODENAME pve-no-subscription
-EOF
-tee /etc/apt/sources.list.d/ceph.list << EOF >/dev/null
-deb http://download.proxmox.com/debian/ceph-reef $VERSION_CODENAME no-subscription
-EOF
-```
-
 ## サブスクリプションの広告を削除
 ```sh
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
+```
+
+## 自動アップデート
+### パッケージをインストール
+```sh
+apt-get update -y &&
+apt-get install -y unattended-upgrades apt-listchanges
+```
+
+### 設定ファイルを編集
+```sh
+nano /etc/apt/apt.conf.d/50unattended-upgrades
+```
+
+次のブロックの内側に、
+```
+Unattended-Upgrade::Origins-Pattern {
+```
+
+次の行を入れる。
+```
+        "origin=Proxmox,codename=${distro_codename},label=Proxmox VE";
+```
+
+### 自動アップデートを有効化
+```sh
+dpkg-reconfigure -plow unattended-upgrades
 ```
 
 ## VM/CTの名前を後から変更
