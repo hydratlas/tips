@@ -133,7 +133,7 @@ show log tail
 
 ### DHCPサーバーに関して、リース情報を表示
 ```sh
-show dhcp server leases
+show dhcp server leases | cat
 ```
 
 ### DHCPサーバーに関して、リース情報を削除
