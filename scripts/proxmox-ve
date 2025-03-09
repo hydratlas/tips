@@ -42,6 +42,7 @@ vm_create () {
       --agent enabled=1 \
       --cicustom "vendor=${SNIPPET_STORAGE}:snippets/qemu-guest-agent.yaml"
     qm resize "${VMID}" scsi1 "${SIZE}"
+    qm set "${VMID}" --onboot 1
     set +eux
   fi
 }

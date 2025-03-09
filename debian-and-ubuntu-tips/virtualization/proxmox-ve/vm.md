@@ -68,6 +68,8 @@ echo "VMID=\"$((RANDOM % 9900 + 100))\"" &&
 for i in {0..9} ; do
   RANDOM_HEX=$(printf '%06X\n' $((RANDOM * 256 + RANDOM % 256))) &&
   echo "  --net${i} \"virtio=BC:24:11:$(echo "${RANDOM_HEX}" | sed 's/../&:/g; s/:$//'),bridge=***\" \\"
+done
+for i in {0..9} ; do
   echo "  --ipconfig${i} ip=dhcp,ip6=dhcp \\"
 done
 ```
