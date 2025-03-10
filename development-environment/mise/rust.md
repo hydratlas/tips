@@ -43,5 +43,5 @@ DELETE_COMPLETION "mise-rustfmt"
 ### アンインストール
 ```sh
 mise uninstall rust &&
-perl -p -i -e "s/^rust = \".+\"\\n//mg" ~/.config/mise/config.toml
+perl -pi -e "s/^rust = \".+\"\\n//mg" ~/.config/mise/config.toml
 ```

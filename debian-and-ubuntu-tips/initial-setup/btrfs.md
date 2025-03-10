@@ -45,7 +45,7 @@ sudo snapper -c root create-config / &&
 sudo btrfs subvolume delete /.snapshots &&
 sudo mkdir -p /.snapshots &&
 sudo mount -a &&
-sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/root &&
+sudo perl -pi -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/root &&
 sudo systemctl enable --now snapper-timeline.timer &&
 sudo systemctl enable --now snapper-cleanup.timer
 ```
@@ -53,7 +53,7 @@ sudo systemctl enable --now snapper-cleanup.timer
 /homeディレクトリーでもスナップショットを保存する場合の追加設定。この場合は`/home/.snapshots`にスナップショットが保存される。
 ```sh
 sudo snapper -c home create-config /home &&
-sudo perl -p -i -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/home
+sudo perl -pi -e 's/^TIMELINE_LIMIT_YEARLY=.+$/TIMELINE_LIMIT_YEARLY="0"/g;' /etc/snapper/configs/home
 ```
 
 確認。

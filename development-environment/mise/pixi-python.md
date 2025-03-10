@@ -30,7 +30,7 @@ fi
 ```sh
 mise uninstall pixi &&
 mise plugins uninstall pixi &&
-perl -p -i -e "s/^pixi = \".+\"\\n//mg" ~/.config/mise/config.toml
+perl -pi -e "s/^pixi = \".+\"\\n//mg" ~/.config/mise/config.toml
 ```
 `mise use`を元に戻すサブコマンドは2024年11月現在、存在しない（参照：[`mise rm` · Issue #1465 · jdx/mise](https://github.com/jdx/mise/issues/1465)）。
 

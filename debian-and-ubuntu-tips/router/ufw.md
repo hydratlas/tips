@@ -12,8 +12,8 @@ net/ipv4/ip_forward=1
 EOS
 sudo sysctl -p /etc/sysctl.d/20-ip-forward.conf &&
 sysctl -a 2>/dev/null | grep ip_forward &&
-sudo perl -p -i -e "s/^#?DEFAULT_FORWARD_POLICY=.*\$/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g" /etc/default/ufw &&
-sudo perl -p -i -e "s|^#?net/ipv4/ip_forward=.*\$|net/ipv4/ip_forward=1|g" /etc/ufw/sysctl.conf &&
+sudo perl -pi -e "s/^#?DEFAULT_FORWARD_POLICY=.*\$/DEFAULT_FORWARD_POLICY=\"ACCEPT\"/g" /etc/default/ufw &&
+sudo perl -pi -e "s|^#?net/ipv4/ip_forward=.*\$|net/ipv4/ip_forward=1|g" /etc/ufw/sysctl.conf &&
 sudo ufw allow domain &&
 sudo ufw allow bootps &&
 sudo ufw logging medium &&

@@ -17,7 +17,7 @@ function install2 () {
 	s/^#? *${USER_LANG}/${USER_LANG}/g;
 	EOS
 	)
-	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/locale.gen"
+	perl -pi -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/locale.gen"
 	tee "${MOUNT_POINT}/etc/default/locale" <<< "LANG=${INSTALLATION_LANG}" > /dev/null
 	cat "${MOUNT_POINT}/etc/default/locale" # confirmation
 
@@ -32,7 +32,7 @@ function install2 () {
 	s/^XKBVARIANT=.+\$/XKBVARIANT=\"${XKBVARIANT}\"/g;
 	EOS
 	)
-	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
+	perl -pi -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/keyboard"
 	cat "${MOUNT_POINT}/etc/default/keyboard" # confirmation
 
 	# dpkg-reconfigure
@@ -254,7 +254,7 @@ function setup-mdns () {
 		else
 			local -r MDNS_STR="no"
 		fi
-		perl -p -i -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
+		perl -pi -e "s/^#?MulticastDNS=.*\$/MulticastDNS=${MDNS_STR}/g" "${MOUNT_POINT}/etc/systemd/resolved.conf"
 	fi
 
 	if [ -d "${MOUNT_POINT}/etc/NetworkManager/conf.d" ]; then
@@ -316,7 +316,7 @@ function adding-entries-to-grub () {
 	s/^#?GRUB_DISABLE_OS_PROBER=.*\$/GRUB_DISABLE_OS_PROBER=${GRUB_DISABLE_OS_PROBER}/g;
 	EOS
 	)
-	perl -p -i -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/grub"
+	perl -pi -e "${PERL_SCRIPT}" "${MOUNT_POINT}/etc/default/grub"
 	tee -a "${MOUNT_POINT}/etc/default/grub" <<< "GRUB_RECORDFAIL_TIMEOUT=${GRUB_TIMEOUT}" > /dev/null
 	if [ "btrfs" = "${ROOT_FILESYSTEM}" ]; then
 		mkdir -p "${MOUNT_POINT}/etc/grub.d"

@@ -44,7 +44,7 @@ getent passwd kishida230
 sudo apt-get install --no-install-recommends -y openssh-server &&
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 PERL_SCRIPT="s@^#Include /etc/ssh/sshd_config\.d/\*\.conf\$@Include /etc/ssh/sshd_config.d/*.conf@g" &&
-sudo perl -p -i -e "$PERL_SCRIPT" "/etc/ssh/sshd_config" &&
+sudo perl -pi -e "$PERL_SCRIPT" "/etc/ssh/sshd_config" &&
 REGEX='^Include /etc/ssh/sshd_config\.d/\*\.conf$' &&
 if ! grep -qP "$REGEX" "/etc/ssh/sshd_config";then
   echo -e "Include /etc/ssh/sshd_config.d/*.conf" | sudo tee -a "/etc/ssh/sshd_config" > /dev/null

@@ -88,18 +88,18 @@ pnpm install
 ### Node.js
 ```sh
 mise uninstall node &&
-perl -p -i -e "s/^node = \".+\"\\n//mg" .mise.toml
+perl -pi -e "s/^node = \".+\"\\n//mg" .mise.toml
 ```
 
 ### Yarn
 ```sh
 mise uninstall yarn &&
-perl -p -i -e "s/^yarn = \".+\"\\n//mg" .mise.toml
+perl -pi -e "s/^yarn = \".+\"\\n//mg" .mise.toml
 ```
 
 ### pnpm
 ```sh
 mise uninstall pnpm &&
 mise plugins uninstall -y pnpm &&
-perl -p -i -e "s/^pnpm = \".+\"\\n//mg" .mise.toml
+perl -pi -e "s/^pnpm = \".+\"\\n//mg" .mise.toml
 ```

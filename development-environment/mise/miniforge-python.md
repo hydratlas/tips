@@ -22,7 +22,7 @@ conda config --set channel_priority strict
 ```sh
 conda init --reverse &&
 mise uninstall python@miniforge3-latest &&
-perl -p -i -e "s/^python = \"miniforge.+\"\\n//mg" ~/.config/mise/config.toml &&
+perl -pi -e "s/^python = \"miniforge.+\"\\n//mg" ~/.config/mise/config.toml &&
 if [ -e ~/.condarc ]; then
   rm -f ~/.condarc
 fi &&

@@ -6,7 +6,7 @@ sudo systemctl reboot --firmware-setup
 
 ## ノートパソコンのふたをしめてもサスペンドしないようにする
 ```sh
-sudo perl -p -i -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
+sudo perl -pi -e 's/^#?HandleLidSwitch=.+$/HandleLidSwitch=ignore/g;' /etc/systemd/logind.conf &&
 sudo systemctl restart systemd-logind.service
 ```
 
