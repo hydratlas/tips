@@ -1,8 +1,11 @@
 # 補助コマンド
 ## ユーザーリストを出力
-`/etc/shadow`および`/etc/passwd`から読み取った、ユーザー名、ハッシュ化されたパスワード、UID、GID、ホームディレクトリー、およびログインシェルをタブ区切りテキストで出力します。
+`/etc/shadow`および`/etc/passwd`から読み取った、ユーザー名、ハッシュ化されたパスワード、UID、GID、ホームディレクトリー、およびログインシェルをコロン区切りテキストで出力します。
 ```sh
-sudo awk -F: 'BEGIN { OFS = "\t" }
+sudo awk -F: '
+BEGIN {
+    format = "%s:%s:%s:%s:%s:%s\n"
+}
 FNR==NR {
     shadow[$1] = $2
     next
@@ -15,14 +18,14 @@ FNR==NR {
     shell    = $7
     passhash = (username in shadow) ? shadow[username] : "!"
     if (shell != "/sbin/nologin" && shell != "/usr/sbin/nologin" && shell != "/bin/false" && shell != "/bin/sync") {
-        print username, passhash, uid, gid, homedir, shell
+        printf(format, username, passhash, uid, gid, homedir, shell)
     }
 }' /etc/shadow /etc/passwd
 ```
 
 ## ユーザーリストからユーザーを復元（未テスト）
 ```sh
-while IFS=$'\t' read -r username passhash uid gid homedir shell; do
+while IFS=':' read -r username passhash uid gid homedir shell; do
     echo "Processing user '$username' (UID: $uid, GID: $gid)"
     
     # 同名のユーザーがすでに存在する場合はスキップ

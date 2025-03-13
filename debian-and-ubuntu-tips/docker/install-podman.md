@@ -118,7 +118,7 @@ export DOCKER_HOST=""
 
 コマンドは[enable-linger.md](enable-linger.md)を参照。
 
-## Quadlet周り
+## Podman Quadlet周り
 ### オプションのドキュメント
 `[Container]`に設定するオプションは[podman-systemd.unit — Podman documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)を参照。
 

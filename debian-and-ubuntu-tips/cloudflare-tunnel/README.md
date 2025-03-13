@@ -27,6 +27,7 @@ AutoUpdate=registry
 LogDriver=journald
 User=$(id -u "${container_user}")
 Group=$(id -g "${container_user}")
+Sysctl="net.ipv4.ping_group_range=$(id -g "${container_user}") $(id -g "${container_user}")"
 EnvironmentFile=/usr/local/etc/cloudflared.env
 
 Exec=tunnel run
@@ -40,6 +41,20 @@ EOS
 sudo systemctl daemon-reload &&
 sudo systemctl start cloudflared.service &&
 sudo systemctl status --no-pager --full cloudflared.service
+```
+
+```sh
+systemctl --user enable --now cloudflared.service
+```
+
+## 【デバッグ】ログの確認
+```sh
+journalctl --no-pager --lines=100 --unit=cloudflared.service
+```
+
+## 【デバッグ】再起動
+```sh
+sudo systemctl restart cloudflared.service
 ```
 
 ## 【元に戻す】停止・削除
