@@ -10,24 +10,33 @@
 token="abc" &&
 container_user="cloudflared" &&
 sudo apt-get install -y podman &&
+sudo tee /etc/sysctl.d/99-ping-group-range.conf << EOS > /dev/null &&
+net.ipv4.ping_group_range=0 2147483647
+EOS
+sudo sysctl --system &&
 if ! id "${container_user}" &>/dev/null; then
-    sudo useradd --system --no-create-home --user-group "${container_user}"
+    sudo useradd --system --user-group --add-subids-for-system \
+      --shell /sbin/nologin --create-home "${container_user}"
 fi &&
+sudo usermod -aG systemd-journal "${container_user}" &&
+user_home="$(grep "^${container_user}:" /etc/passwd | cut -d: -f6)" &&
+sudo loginctl enable-linger "${container_user}" &&
 sudo install \
   -m 750 -o "root" -g "${container_user}" \
   /dev/stdin "/usr/local/etc/cloudflared.env" << EOS > /dev/null &&
 TUNNEL_TOKEN=${token}
 NO_AUTOUPDATE=true
 EOS
-sudo tee "/etc/containers/systemd/cloudflared.container" << EOS > /dev/null &&
+sudo -u "${container_user}" mkdir -p "${user_home}/.config/containers/systemd" &&
+sudo install \
+  -m 644 -o "${container_user}" -g "${container_user}" \
+  /dev/stdin \
+  "${user_home}/.config/containers/systemd/cloudflared.container" << EOS > /dev/null &&
 [Container]
 Image=docker.io/cloudflare/cloudflared:latest
 ContainerName=cloudflared
 AutoUpdate=registry
 LogDriver=journald
-User=$(id -u "${container_user}")
-Group=$(id -g "${container_user}")
-Sysctl="net.ipv4.ping_group_range=$(id -g "${container_user}") $(id -g "${container_user}")"
 EnvironmentFile=/usr/local/etc/cloudflared.env
 
 Exec=tunnel run
@@ -36,32 +45,42 @@ Exec=tunnel run
 Restart=on-failure
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 EOS
-sudo systemctl daemon-reload &&
-sudo systemctl start cloudflared.service &&
-sudo systemctl status --no-pager --full cloudflared.service
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user daemon-reexec &&
+sleep 1s &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user daemon-reload &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user start cloudflared.service &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user status --no-pager --full cloudflared.service
 ```
-
-```sh
-systemctl --user enable --now cloudflared.service
-```
+非ルートユーザーの場合、`WantedBy=multi-user.target`だと再起動後にサービスが起動しない。`WantedBy=default.target`にする必要がある。
 
 ## 【デバッグ】ログの確認
 ```sh
-journalctl --no-pager --lines=100 --unit=cloudflared.service
+container_user="cloudflared" &&
+sudo -u "${container_user}" journalctl --user --no-pager --lines=100 --unit=cloudflared.service
 ```
 
 ## 【デバッグ】再起動
 ```sh
-sudo systemctl restart cloudflared.service
+container_user="cloudflared" &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user restart cloudflared.service
 ```
 
 ## 【元に戻す】停止・削除
 ```sh
-sudo systemctl stop cloudflared.service &&
-sudo rm /etc/containers/systemd/cloudflared.container &&
-sudo systemctl daemon-reload &&
+container_user="cloudflared" &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user stop cloudflared.service &&
+user_home="$(grep "^${container_user}:" /etc/passwd | cut -d: -f6)" &&
+sudo rm "${user_home}/.config/containers/systemd/cloudflared.container" &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user daemon-reload &&
 sudo rm "/usr/local/etc/cloudflared.env"
 ```
 

@@ -15,6 +15,15 @@ sudo touch /etc/containers/nodocker &&
 docker version
 ```
 
+#### 【オプション】非rootユーザーのコンテナがping実行可能にする
+```sh
+sudo tee /etc/sysctl.d/99-ping-group-range.conf << EOS > /dev/null &&
+net.ipv4.ping_group_range=0 2147483647
+EOS
+sudo sysctl --system &&
+sysctl net.ipv4.ping_group_range
+```
+
 ### ZFSおよびLXC上の場合の追加設定
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。rootユーザー用である。
 ```sh
