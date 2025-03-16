@@ -8,9 +8,18 @@ Proxmox VEのストレージ（local）画面でイメージをダウンロー�
 
 Ubuntuの場合は、[Ubuntu Cloud Images - the official Ubuntu images for public clouds, Openstack, KVM and LXD](https://cloud-images.ubuntu.com/)からダウンロードする。ダウンロードするファイルの例：[https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img]()
 
-Debianの場合は[Debian Official Cloud Images](https://cloud.debian.org/images/cloud/)からダウンロードする。拡張子が.qcow2のものをダウンロードするが、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする。ダウンロードするファイルの例：[https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2]()
-
-AlmaLinuxの場合は[Generic Cloud (Cloud-init) | AlmaLinux Wiki](https://wiki.almalinux.org/cloud/Generic-cloud.html)からダウンロードする。ダウンロードするファイルの例：[https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2]()
+- Debian
+    - ダウンロード先：[Debian Official Cloud Images](https://cloud.debian.org/images/cloud/)
+    - 例：[https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2]()
+    - 備考：拡張子が.qcow2のものをダウンロードするが、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする
+- AlmaLinux
+    - ダウンロード先：[Generic Cloud (Cloud-init) | AlmaLinux Wiki](https://wiki.almalinux.org/cloud/Generic-cloud.html)
+    - 例：[https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2]()
+- CentOS Stream
+    - ダウンロード先：[CentOS Cloud Images](https://cloud.centos.org/centos/)
+    - 例：[https://cloud.centos.org/altarch/10-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2]()
+        - `CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2`と`CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2`は、後者がEFI/Secure Boot環境向けという違いがある
+            - 参考：[What is the difference between these CentOS 9 Stream cloud images? : r/CentOS](https://www.reddit.com/r/CentOS/comments/1hkzo84/what_is_the_difference_between_these_centos_9/)
 
 以下の関数によってコマンドラインからもダウンロードできる。
 

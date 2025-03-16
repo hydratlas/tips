@@ -9,7 +9,11 @@
 ```sh
 token="abc" &&
 container_user="cloudflared" &&
-sudo apt-get install -y podman &&
+if hash apt-get 2>/dev/null; then
+  sudo apt-get install -y podman
+elif hash dnf 2>/dev/null; then
+  sudo dnf install -y podman
+fi &&
 sudo tee /etc/sysctl.d/99-ping-group-range.conf << EOS > /dev/null &&
 net.ipv4.ping_group_range=0 2147483647
 EOS
@@ -21,13 +25,13 @@ fi &&
 sudo usermod -aG systemd-journal "${container_user}" &&
 user_home="$(grep "^${container_user}:" /etc/passwd | cut -d: -f6)" &&
 sudo loginctl enable-linger "${container_user}" &&
+sudo -u "${container_user}" mkdir -p "${user_home}/.config/containers/systemd" &&
 sudo install \
-  -m 750 -o "root" -g "${container_user}" \
-  /dev/stdin "/usr/local/etc/cloudflared.env" << EOS > /dev/null &&
+  -m 700 -o "${container_user}" -g "${container_user}" \
+  /dev/stdin "${user_home}/.config/containers/systemd/cloudflared.env" << EOS > /dev/null &&
 TUNNEL_TOKEN=${token}
 NO_AUTOUPDATE=true
 EOS
-sudo -u "${container_user}" mkdir -p "${user_home}/.config/containers/systemd" &&
 sudo install \
   -m 644 -o "${container_user}" -g "${container_user}" \
   /dev/stdin \
@@ -37,7 +41,7 @@ Image=docker.io/cloudflare/cloudflared:latest
 ContainerName=cloudflared
 AutoUpdate=registry
 LogDriver=journald
-EnvironmentFile=/usr/local/etc/cloudflared.env
+EnvironmentFile=%h/.config/containers/systemd/cloudflared.env
 
 Exec=tunnel run
 
@@ -47,6 +51,7 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 EOS
+sleep 1s &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user daemon-reexec &&
 sleep 1s &&
@@ -81,7 +86,7 @@ user_home="$(grep "^${container_user}:" /etc/passwd | cut -d: -f6)" &&
 sudo rm "${user_home}/.config/containers/systemd/cloudflared.container" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user daemon-reload &&
-sudo rm "/usr/local/etc/cloudflared.env"
+sudo rm "${user_home}/.config/containers/systemd/cloudflared.env"
 ```
 
 ## Cloudflareの後設定
