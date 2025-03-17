@@ -64,6 +64,15 @@ sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_u
 ```
 非ルートユーザーの場合、`WantedBy=multi-user.target`だと再起動後にサービスが起動しない。`WantedBy=default.target`にする必要がある。
 
+## 自動更新の有効化
+```sh
+container_user="cloudflared" &&
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user enable --now podman-auto-update.timer
+sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
+  systemctl --user status --no-pager --full podman-auto-update.timer
+```
+
 ## 【デバッグ】ログの確認
 ```sh
 container_user="cloudflared" &&

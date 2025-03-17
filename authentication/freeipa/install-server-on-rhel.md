@@ -86,6 +86,8 @@ http {
 
     # Location以下でプロキシ設定
     location / {
+      # ホストのループバックアドレス (127.0.0.1) を参照するために、
+      # host.containers.internalという特別な固定値を指定する
       proxy_pass https://host.containers.internal/;
 
       # 内部サーバは "${domain}" でアクセスされるほうがよいため固定値を指定する
