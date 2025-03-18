@@ -6,37 +6,42 @@
 ### 概要
 Proxmox VEのストレージ（local）画面でイメージをダウンロードする。クラウドイメージが、仮想マシンに最適化されていて、なおかつ固有のすぐに起動できる状態で用意されているため便利である。
 
-Ubuntuの場合は、[Ubuntu Cloud Images - the official Ubuntu images for public clouds, Openstack, KVM and LXD](https://cloud-images.ubuntu.com/)からダウンロードする。ダウンロードするファイルの例：[https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img]()
-
+- Ubuntu
+    - ダウンロード先：[Ubuntu Cloud Images - the official Ubuntu images for public clouds, Openstack, KVM and LXD](https://cloud-images.ubuntu.com/)
 - Debian
     - ダウンロード先：[Debian Official Cloud Images](https://cloud.debian.org/images/cloud/)
-    - 例：[https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2]()
-    - 備考：拡張子が.qcow2のものをダウンロードするが、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする
-- AlmaLinux
-    - ダウンロード先：[Generic Cloud (Cloud-init) | AlmaLinux Wiki](https://wiki.almalinux.org/cloud/Generic-cloud.html)
-    - 例：[https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2]()
-- CentOS Stream
-    - ダウンロード先：[CentOS Cloud Images](https://cloud.centos.org/centos/)
-    - 例：[https://cloud.centos.org/altarch/10-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2]()
-        - `CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2`と`CentOS-Stream-GenericCloud-x86_64-10-latest.x86_64.qcow2`は、後者がEFI/Secure Boot環境向けという違いがある
-            - 参考：[What is the difference between these CentOS 9 Stream cloud images? : r/CentOS](https://www.reddit.com/r/CentOS/comments/1hkzo84/what_is_the_difference_between_these_centos_9/)
+- AlmaLinux OS
+    - ダウンロード先：[https://repo.almalinux.org/almalinux/]()
+- AlmaLinux OS Kitten
+    - ダウンロード先：[https://kitten.repo.almalinux.org/]()
+
+拡張子が.qcow2のものをダウンロードする場合には、Proxmox VEでは拡張子.imgしか受け付けないため、Proxmox VE上での保存ファイル名では拡張子を.imgにする。
 
 以下の関数によってコマンドラインからもダウンロードできる。
 
-### 関数の準備
-- image_downloader
-  - ファイルが存在しないか、1週間以上古かったらダウンロード
-  - 拡張子は`.img`に統一
+### 関数によってコマンドラインからダウンロード
+#### Ubuntu 24.04
 ```sh
-eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
+image_downloader https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img
 ```
-中身は[proxmox-ve](/scripts/proxmox-ve)を参照。
 
-### 関数の実行
+#### Debian 12
 ```sh
-image_downloader https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2 # Debian 12
-image_downloader https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img # Ubuntu 24.04
-image_downloader https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2 # AlmaLinux 9
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
+image_downloader https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2
+```
+
+#### AlmaLinux OS 9
+```sh
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
+image_downloader https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
+```
+
+#### AlmaLinux OS Kitten 10
+```sh
+eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
+image_downloader https://kitten.repo.almalinux.org/10-kitten/cloud/x86_64_v2/images/AlmaLinux-Kitten-GenericCloud-10-latest.x86_64_v2.qcow2
 ```
 
 ## VMの作成

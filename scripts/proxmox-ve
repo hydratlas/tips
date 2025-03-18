@@ -7,11 +7,8 @@ image_downloader () {
   IMAGE_NAME="${IMAGE_NAME##*/}" # URLから取り出したファイル名（拡張子あり）
   local IMAGE_STEM="${IMAGE_NAME%.*}" # ファイル名（拡張子なし）
   IMAGE_NAME="${IMAGE_STEM}.img" # ファイル名（.img拡張子）
-  local CURRENT_TIME
-  CURRENT_TIME=$(date +%s) # 現在の時刻
-  local TIMESPAN=$((7 * 24 * 60 * 60)) # 時間間隔（1週間）
-  if [ ! -e "${IMAGE_DIR}/${IMAGE_NAME}" ] || [ ${TIMESPAN} -lt $((CURRENT_TIME - $(stat -c %Y "${IMAGE_DIR}/${IMAGE_NAME}"))) ]; then
-    wget -O "${IMAGE_DIR}/${IMAGE_NAME}" "${IMAGE_URL}" # ファイルが存在しないか、1週間以上古かったらダウンロード
+  if [ ! -e "${IMAGE_DIR}/${IMAGE_NAME}" ]; then
+    wget -O "${IMAGE_DIR}/${IMAGE_NAME}" "${IMAGE_URL}" # ファイルが存在しなかったらダウンロード
   fi
   set +eux
 }

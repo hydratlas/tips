@@ -94,13 +94,15 @@ http {
       proxy_set_header Host ${domain};
       proxy_set_header Referer "https://${domain}/ipa/ui/";
 
-      # クライアントのIPアドレスを引き継ぎ
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+      # クライアントの情報を引き継ぎ
+      proxy_set_header X-Forwarded-Proto \$scheme; # クライアントの接続プロトコル (http/https) を転送
+      proxy_set_header X-Real-IP \$remote_addr; # クライアントの実際のIPアドレスを転送
+      proxy_set_header X-Forwarded-Port \$proxy_port; # クライアントが接続したポート番号を転送
+      proxy_set_header X-Forwarded-Host \$host; # クライアントがリクエストしたホスト名を転送
+      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for; # クライアントのIPアドレスを転送（多段プロキシ対応）
 
-      # FreeIPAサーバーの自己署名証明書を無条件で受け入れる設定 (検証を無効化)
+      # バックエンドの自己署名証明書を無条件で受け入れる設定
       proxy_ssl_verify off;
-      proxy_ssl_verify_depth 0;
 
       # FreeIPAのリダイレクトURLが "http://${domain}/..." のように返ってきたとき、
       # ブラウザ側で見えるURLを元のドメインに戻したいためproxy_redirectで書き換え
