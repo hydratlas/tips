@@ -1,0 +1,16 @@
+- name: Install NFS client package
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+
+- name: Install NFS client package on Debian-based systems
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install NFS client package on RHEL-based systems
+  ansible.builtin.package:
+    name: nfs-utils
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'

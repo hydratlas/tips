@@ -1,0 +1,15 @@
+- name: Create mount point directory
+  ansible.builtin.file:
+    path: /nfs/ssd2024
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Mount NFS
+  ansible.posix.mount:
+    path: /nfs/ssd2024
+    src: "nas2024-ssd.int.home.arpa:/ssd2024"
+    fstype: nfs4
+    opts: "hard,bg,fsc,rsize=8388608,wsize=8388608"
+    state: mounted

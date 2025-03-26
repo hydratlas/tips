@@ -1,0 +1,41 @@
+- name: Ensure authorized_keys for ansible runner user
+  ansible.builtin.authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ item }}"
+  with_items: "{{ ansible_runner_user.ssh_authorized_keys }}"
+
+- name: Ensure /etc/sudoers.d/ansible-runner-user exists with sudo privileges
+  ansible.builtin.copy:
+    content: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL\n"
+    dest: /etc/sudoers.d/ansible-runner-user
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+- name: Ensure /etc/sudoers.d/ansible is absent
+  file:
+    path: /etc/sudoers.d/ansible
+    state: absent
+
+- name: Ensure /etc/sudoers.d/initial-user is absent
+  file:
+    path: /etc/sudoers.d/initial-user
+    state: absent
+
+- name: Ensure ansible runner user shell is /bin/bash and password is disabled
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    shell: /bin/bash
+    password: "{{ ansible_runner_user.password }}"
+
+- name: Remove root's SSH directory
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: absent
+
+- name: Set root password to empty
+  ansible.builtin.user:
+    name: root
+    password: '!'

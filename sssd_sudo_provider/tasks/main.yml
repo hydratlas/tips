@@ -1,0 +1,15 @@
+- name: Configure sudo_provider in sssd
+  ini_file:
+    path: /etc/sssd/sssd.conf
+    section: "domain/home.arpa"
+    option: "sudo_provider"
+    value: "ipa"
+    no_extra_spaces: false
+  notify: Restart sssd
+
+- name: Ensure correct permissions for sssd.conf
+  file:
+    path: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: '0600'
