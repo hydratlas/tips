@@ -1,32 +1,42 @@
-- name: Ensure nfs-utils is installed (RHEL-based)
+- name: Install nfs-utils package on RedHat-based systems
   package:
     name: nfs-utils
     state: present
   when: ansible_facts['os_family'] == "RedHat"
 
-- name: Ensure nfs-kernel-server is installed (Debian-based)
+- name: Install nfs-kernel-server package on Debian-based systems
   package:
     name: nfs-kernel-server
     state: present
   when: ansible_facts['os_family'] == "Debian"
 
-- name: Write /etc/exports directly from variable
-  copy:
-    content: "{{ nfs_exports }}"
+- name: Create NFS export directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ nfs_exports }}"
+  notify: Restart NFS service
+
+- name: Configure /etc/exports from template
+  template:
+    src: exports.j2
     dest: /etc/exports
     owner: root
     group: root
     mode: '0644'
-  notify: Restart NFS service
+  notify: Reload NFS export configuration
 
-- name: Ensure nfs-utils is installed (RHEL-based)
+- name: Start and enable NFS service on RedHat-based systems
   service:
     name: nfs-server
     state: started
     enabled: yes
   when: ansible_facts['os_family'] == "RedHat"
 
-- name: Ensure nfs-kernel-server is installed (Debian-based)
+- name: Start and enable NFS service on Debian-based systems
   service:
     name: nfs-kernel-server
     state: started
