@@ -2,13 +2,13 @@
   package:
     name: nfs-utils
     state: present
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Ensure nfs-kernel-server is installed (Debian-based)
   package:
     name: nfs-kernel-server
     state: present
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Write /etc/exports directly from variable
   copy:
@@ -19,8 +19,16 @@
     mode: '0644'
   notify: Restart NFS service
 
-- name: Ensure NFS service is started and enabled
+- name: Ensure nfs-utils is installed (RHEL-based)
   service:
-    name: "{{ 'nfs-server' if ansible_os_family == 'RedHat' else 'nfs-kernel-server' }}"
+    name: nfs-server
     state: started
     enabled: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Ensure nfs-kernel-server is installed (Debian-based)
+  service:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == "Debian"
