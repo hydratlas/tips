@@ -1,8 +1,3 @@
-- name: Install NFS client package
-  ansible.builtin.package:
-    name: nfs-common
-    state: present
-
 - name: Install NFS client package on Debian-based systems
   ansible.builtin.package:
     name: nfs-common
