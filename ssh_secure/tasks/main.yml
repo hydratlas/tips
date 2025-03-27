@@ -1,0 +1,40 @@
+- name: Ensure SSH configuration directory exists
+  file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    mode: '0755'
+
+- name: Deploy secure SSH configuration
+  template:
+    src: "00-ssh-secure.conf.j2"
+    dest: "/etc/ssh/sshd_config.d/00-ssh-secure.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload SSH
+
+- name: Write /etc/ssh/ssh_host_ed25519_key
+  copy:
+    content: "{{ sshd.host_ed25519_key }}\n"
+    dest: /etc/ssh/ssh_host_ed25519_key
+    owner: root
+    group: root
+    mode: '0600'
+  when: sshd.host_ed25519_key is defined
+  notify: Reload SSH
+
+- name: Write /etc/ssh/ssh_host_ed25519_key.pub
+  copy:
+    content: "{{ sshd.host_ed25519_key_pub }}\n"
+    dest: /etc/ssh/ssh_host_ed25519_key.pub
+    owner: root
+    group: root
+    mode: '0644'
+  when: sshd.host_ed25519_key_pub is defined
+  notify: Reload SSH
+
+#- name: Ensure only ed25519 HostKey is used
+#  lineinfile:
+#    path: /etc/ssh/sshd_config
+#    regexp: "^HostKey"
+#    state: absent
