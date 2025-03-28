@@ -1,31 +1,20 @@
-- name: Install NFS client package on Debian-based systems
-  ansible.builtin.package:
-    name: nfs-common
-    state: present
-  when: ansible_facts['os_family'] == 'Debian'
-
-- name: Install NFS client package on RHEL-based systems
-  ansible.builtin.package:
-    name: nfs-utils
-    state: present
-  when: ansible_facts['os_family'] == 'RedHat'
-
-- name: Ensure NFS mount points exist
+- name: Ensure mount points exist
   file:
-    path: "{{ item.value.path }}"
+    path: "{{ item.path }}"
     state: directory
+    recurse: yes
     owner: root
     group: root
     mode: '0755'
-  loop: "{{ mount_patterns | dict2items }}"
-  when: mount_selectors is defined and item.key in mount_selectors
+  loop: "{{ mounts | default([]) }}"
 
-- name: Mount
+- name: mounts
   mount:
-    path: "{{ item.value.path }}"
-    src: "{{ item.value.src }}"
-    fstype: "{{ item.value.fstype }}"
-    opts: "{{ item.value.opts }}"
-    state: "{{ item.value.state }}"
-  loop: "{{ mount_patterns | dict2items }}"
-  when: mount_selectors is defined and item.key in mount_selectors
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.opts }}"
+    dump: "{{ item.dump }}"
+    passno: "{{ item.passno }}"
+    state: "{{ item.state }}"
+  loop: "{{ mounts | default([]) }}"
