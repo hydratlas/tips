@@ -16,7 +16,7 @@
     state: directory
     owner: root
     group: root
-    mode: '0755'
+    mode: "{{ item.mode | default('0755') }}"
   loop: "{{ nfs_exports }}"
   notify: Restart NFS service
 
