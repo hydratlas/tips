@@ -2,6 +2,8 @@
 ```sh
 mise use aqua:opentofu/opentofu
 tofu version
+tofu init
+tofu init -upgrade
 tofu validate
 tofu plan
 tofu apply
