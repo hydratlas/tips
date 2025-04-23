@@ -120,9 +120,9 @@ EOS
 
 ### 現在の設定を確認
 ```sh
-show configuration
+show configuration | cat
 
-show configuration commands
+show configuration commands | cat
 ```
 
 ### ログを表示

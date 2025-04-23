@@ -7,6 +7,7 @@ tofu init -upgrade
 tofu validate
 tofu plan
 tofu apply
+tofu apply -auto-approve
 TF_LOG=DEBUG tofu apply -auto-approve
 ```
 
