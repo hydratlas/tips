@@ -1,0 +1,4 @@
+- name: Configure
+  vyos_config:
+    lines:
+      - set system time-zone 'Asia/Tokyo'
