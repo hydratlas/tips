@@ -1,4 +1,8 @@
-- name: Configure
-  vyos_config:
-    lines:
-      - set system time-zone 'Asia/Tokyo'
+- name: Combine base and custom config for VyOS
+  set_fact:
+    vyos_final_config: "{{ vyos_base_config + vyos_custom_config | default([]) }}"
+
+- name: Apply config to VyOS
+  vyos.vyos.vyos_config:
+    match: none
+    lines: "{{ vyos_final_config }}"
