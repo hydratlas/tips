@@ -1,6 +1,6 @@
 - name: Ensure ssh_host_key directories exist
   become: yes
-  file:
+  ansible.builtin.file:
     path: "/mnt/pve/virtiofs-share/{{ item.vmid }}/ssh_host_key"
     state: directory
     owner: root
@@ -10,7 +10,7 @@
 
 - name: Deploy SSH private host key
   become: yes
-  copy:
+  ansible.builtin.copy:
     content: "{{ item.key }}"
     dest: "/mnt/pve/virtiofs-share/{{ item.vmid }}/ssh_host_key/ssh_host_ed25519_key"
     owner: root
@@ -20,7 +20,7 @@
 
 - name: Deploy SSH public host key
   become: yes
-  copy:
+  ansible.builtin.copy:
     content: "{{ item.key_pub }}"
     dest: "/mnt/pve/virtiofs-share/{{ item.vmid }}/ssh_host_key/ssh_host_ed25519_key.pub"
     owner: root

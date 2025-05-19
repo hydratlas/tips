@@ -1,15 +1,19 @@
 - name: Configure sudo_provider in sssd
-  ini_file:
+  become: yes
+  ansible.builtin.ini_file:
     path: /etc/sssd/sssd.conf
-    section: "domain/home.arpa"
+    section: "domain/{{ ipa_client.domain }}"
     option: "sudo_provider"
     value: "ipa"
     no_extra_spaces: false
   notify: Restart sssd
+  when: ipa_client is defined
 
 - name: Ensure correct permissions for sssd.conf
-  file:
+  become: yes
+  ansible.builtin.file:
     path: /etc/sssd/sssd.conf
     owner: root
     group: root
     mode: '0600'
+  when: ipa_client is defined

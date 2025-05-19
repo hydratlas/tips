@@ -11,7 +11,7 @@
   when: ansible_facts['os_family'] == 'RedHat'
 
 - name: Ensure NFS mount points exist
-  file:
+  ansible.builtin.file:
     path: "{{ item.value.path }}"
     state: directory
     owner: root
@@ -21,7 +21,7 @@
   when: nfs_mount_selectors is defined and item.key in nfs_mount_selectors
 
 - name: NFS mounts
-  mount:
+  ansible.builtin.mount:
     path: "{{ item.value.path }}"
     src: "{{ item.value.src }}"
     fstype: "{{ item.value.fstype }}"

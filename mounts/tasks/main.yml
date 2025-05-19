@@ -1,5 +1,5 @@
 - name: Ensure mount points exist
-  file:
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
     recurse: yes
@@ -9,7 +9,7 @@
   loop: "{{ mounts | default([]) }}"
 
 - name: mounts
-  mount:
+  ansible.builtin.mount:
     path: "{{ item.path }}"
     src: "{{ item.src }}"
     fstype: "{{ item.fstype }}"

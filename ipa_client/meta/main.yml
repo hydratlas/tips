@@ -1,0 +1,3 @@
+dependencies: []
+collections:
+  - freeipa.ansible_freeipa

@@ -1,6 +1,6 @@
 - name: Configure network interfaces
   become: yes
-  copy:
+  ansible.builtin.copy:
     content: "{{ ifupdown_config }}"
     dest: /etc/network/interfaces
     mode: '0644'

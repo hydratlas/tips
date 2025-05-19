@@ -1,17 +1,17 @@
 - name: Install nfs-utils package on RedHat-based systems
-  package:
+  ansible.builtin.package:
     name: nfs-utils
     state: present
   when: ansible_facts['os_family'] == "RedHat"
 
 - name: Install nfs-kernel-server package on Debian-based systems
-  package:
+  ansible.builtin.package:
     name: nfs-kernel-server
     state: present
   when: ansible_facts['os_family'] == "Debian"
 
 - name: Create NFS export directories
-  file:
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
     owner: root
@@ -21,7 +21,7 @@
   notify: Restart NFS service
 
 - name: Configure /etc/exports from template
-  template:
+  ansible.builtin.template:
     src: exports.j2
     dest: /etc/exports
     owner: root
@@ -30,14 +30,14 @@
   notify: Reload NFS export configuration
 
 - name: Start and enable NFS service on RedHat-based systems
-  service:
+  ansible.builtin.service:
     name: nfs-server
     state: started
     enabled: yes
   when: ansible_facts['os_family'] == "RedHat"
 
 - name: Start and enable NFS service on Debian-based systems
-  service:
+  ansible.builtin.service:
     name: nfs-kernel-server
     state: started
     enabled: yes
