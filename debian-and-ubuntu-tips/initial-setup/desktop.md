@@ -185,18 +185,19 @@ flatpak install flathub org.gnome.TextEditor
 
 ## Firefox
 ```sh
-wget -O firefox.tar.bz2 "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=ja" &&
-sudo tar -xjf firefox.tar.bz2 -C /opt/ &&
-rm firefox.tar.bz2 &&
-sudo tee "/usr/share/applications/firefox-mozilla.desktop" > /dev/null << EOS
-[Desktop Entry]
-Name=Firefox (Mozilla)
-Exec=/opt/firefox/firefox
-StartupWMClass=firefox
-Terminal=false
-Type=Application
-Icon=/opt/firefox/browser/chrome/icons/default/default128.png
-Categories=Network;WebBrowser;
-EOS
+wget -q -O - "https://packages.mozilla.org/apt/repo-signing-key.gpg" | \
+  sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null &&
+sudo tee "/etc/apt/sources.list.d/mozilla.sources" > /dev/null << EOF &&
+Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Components: main
+Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
+EOF
+sudo tee "/etc/apt/preferences.d/mozilla" > /dev/null << EOF &&
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+EOF
+sudo apt-get update && sudo apt-get install -y firefox
 ```
- 
