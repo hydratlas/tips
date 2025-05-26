@@ -24,6 +24,11 @@ sudo sysctl --system &&
 sysctl net.ipv4.ping_group_range
 ```
 
+### テスト実行
+```sh
+podman run docker.io/hello-world:latest
+```
+
 ### ZFSおよびLXC上の場合の追加設定
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。`~/.config/containers/storage.conf`に個別設定がなければ、自動的に`/etc/containers/storage.conf`が使用される。
 ```sh
