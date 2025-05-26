@@ -29,9 +29,9 @@
     shell: /bin/bash
     password: "{{ ansible_runner_user.password }}"
 
-- name: Remove root's SSH directory
+- name: Delete root user's SSH authorized_keys file if present
   ansible.builtin.file:
-    path: /root/.ssh
+    path: /root/.ssh/authorized_keys
     state: absent
 
 - name: Set root password to empty
