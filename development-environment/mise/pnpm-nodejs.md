@@ -52,7 +52,7 @@ engine-strict=true
 EOS
 pnpm node --version
 ```
-`pnpm env list --remote`コマンドでインストール可能なバージョンがリストアップされる。バージョン指定は`X.Y.Z`とする必要があり、下位の桁を省略できない。`engine-strict=true`によってこのば指定したバージョンのNode.jsの使用を強制している。
+`pnpm env list --remote`コマンドでインストール可能なバージョンがリストアップされる。バージョン指定は`X.Y.Z`とする必要があり、下位の桁を省略できない。`engine-strict=true`によってこの場合、指定したバージョンのNode.jsの使用を強制している。
 - [Settings (.npmrc) | pnpm](https://pnpm.io/ja/npmrc#use-node-version)
 
 ### pnpmのバージョンの固定、およびその使用の強制
