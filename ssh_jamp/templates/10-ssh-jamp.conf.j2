@@ -1,4 +1,7 @@
-Match User !{{ ansible_user }}
-    ForceCommand /sbin/nologin
+Match User {{ ansible_user }}
+    PermitTTY yes
+    ForceCommand none
+
+Match all
     PermitTTY no
-EOS
+    ForceCommand /usr/sbin/nologin

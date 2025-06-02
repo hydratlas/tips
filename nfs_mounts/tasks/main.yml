@@ -2,13 +2,13 @@
   ansible.builtin.package:
     name: nfs-common
     state: present
-  when: ansible_facts['os_family'] == 'Debian'
+  when: nfs_mount_selectors is defined and ansible_facts['os_family'] == 'Debian'
 
 - name: Install NFS client package on RHEL-based systems
   ansible.builtin.package:
     name: nfs-utils
     state: present
-  when: ansible_facts['os_family'] == 'RedHat'
+  when: nfs_mount_selectors is defined and ansible_facts['os_family'] == 'RedHat'
 
 - name: Ensure NFS mount points exist
   ansible.builtin.file:
