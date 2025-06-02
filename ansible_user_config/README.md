@@ -1,4 +1,4 @@
-# user_config
+# ansible_user_config
 
 Ansibleユーザー設定ロール
 
@@ -25,7 +25,7 @@ Ansibleユーザー設定ロール
     ansible_user_authorized_keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... admin@example.com"
   roles:
-    - user_config
+    - ansible_user_config
 ```
 
 ## 設定内容
