@@ -1,0 +1,18 @@
+---
+# Default variables for keepalived role
+
+# Keepalived configuration paths
+keepalived_config_file: "/etc/keepalived/keepalived.conf"
+keepalived_config_dir: "/etc/keepalived/conf.d"
+
+# Service configuration
+keepalived_service_name: "keepalived"
+
+# Global definitions
+# These are the standard keepalived defaults (without email settings)
+keepalived_global_defs:
+  router_id: "{{ inventory_hostname_short }}"
+
+# Default VRRP instances configuration (empty by default)
+# This should be defined in group_vars or host_vars
+keepalived_vrrp_instances: []

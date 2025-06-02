@@ -1,0 +1,82 @@
+---
+# Tasks for keepalived role
+
+- name: Install keepalived package (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: keepalived
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install keepalived package (RHEL/CentOS/Fedora)
+  ansible.builtin.dnf:
+    name: keepalived
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Ensure keepalived configuration directory exists
+  ansible.builtin.file:
+    path: /etc/keepalived
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Ensure keepalived conf.d directory exists
+  ansible.builtin.file:
+    path: "{{ keepalived_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Deploy main keepalived configuration
+  ansible.builtin.template:
+    src: keepalived.conf.j2
+    dest: "{{ keepalived_config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  become: true
+  notify: restart keepalived
+
+- name: Deploy global_defs configuration
+  ansible.builtin.template:
+    src: global_defs.conf.j2
+    dest: "{{ keepalived_config_dir }}/00-global_defs.conf"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  become: true
+  notify: restart keepalived
+
+- name: Deploy VRRP instance configurations
+  ansible.builtin.template:
+    src: vrrp_instance.conf.j2
+    dest: "{{ keepalived_config_dir }}/{{ item.interface }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  become: true
+  loop: "{{ keepalived_vrrp_instances }}"
+  notify: restart keepalived
+
+- name: Generate list of current interface config files
+  ansible.builtin.set_fact:
+    current_interface_configs: "{{ keepalived_vrrp_instances | map(attribute='interface') | map('regex_replace', '^(.*)$', '\\1.conf') | list }}"
+
+- name: Enable and start keepalived service
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true

@@ -1,0 +1,15 @@
+---
+# Handlers for keepalived role
+
+- name: restart keepalived
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service_name }}"
+    state: restarted
+    daemon_reload: true
+  become: true
+
+- name: reload keepalived
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service_name }}"
+    state: reloaded
+  become: true

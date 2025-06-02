@@ -1,0 +1,45 @@
+! VRRP instance configuration for interface {{ item.interface }}
+! {{ ansible_managed }}
+
+vrrp_instance {{ item.name }} {
+{% if item.state is defined %}
+    state {{ item.state }}
+{% else %}
+    state MASTER
+{% endif %}
+    interface {{ item.interface }}
+    virtual_router_id {{ item.virtual_router_id }}
+    priority {{ item.priority }}
+    advert_int {{ item.advert_int | default(1) }}
+{% if item.auth_type is defined and item.auth_pass is defined %}
+    
+    authentication {
+        auth_type {{ item.auth_type }}
+        auth_pass {{ item.auth_pass }}
+    }
+{% endif %}
+    
+    virtual_ipaddress {
+{% for vip in item.virtual_ipaddresses %}
+        {{ vip }}
+{% endfor %}
+    }
+{% if item.nopreempt is defined and item.nopreempt %}
+    nopreempt
+{% endif %}
+{% if item.preempt_delay is defined %}
+    preempt_delay {{ item.preempt_delay }}
+{% endif %}
+{% if item.garp_master_delay is defined %}
+    garp_master_delay {{ item.garp_master_delay }}
+{% endif %}
+{% if item.garp_master_repeat is defined %}
+    garp_master_repeat {{ item.garp_master_repeat }}
+{% endif %}
+{% if item.garp_master_refresh is defined %}
+    garp_master_refresh {{ item.garp_master_refresh }}
+{% endif %}
+{% if item.garp_master_refresh_repeat is defined %}
+    garp_master_refresh_repeat {{ item.garp_master_refresh_repeat }}
+{% endif %}
+}
