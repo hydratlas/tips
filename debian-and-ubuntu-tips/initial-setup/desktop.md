@@ -201,3 +201,9 @@ Pin-Priority: 1000
 EOF
 sudo apt-get update && sudo apt-get install -y firefox
 ```
+
+## yt-dlp
+```sh
+sudo wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux &&
+sudo chmod +x /usr/local/bin/yt-dlp
+```

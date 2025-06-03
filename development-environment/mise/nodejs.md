@@ -10,7 +10,7 @@ cd ~/nodejs_test_project
 
 ### Node.js
 ```sh
-mise use -y node@22 &&
+mise use -y node@24 &&
 echo "node: $(node --version)" &&
 echo "npm: $(node --version)"
 ```
@@ -25,7 +25,7 @@ yarn --version &&
 
 ### pnpm
 ```sh
-mise use -y pnpm@9 &&
+mise use -y pnpm@10 &&
 pnpm --version
 ```
 `mise ls-remote -y pnpm`コマンドでインストール可能なバージョンがリストアップされる。
@@ -53,7 +53,7 @@ yarn list
 
 ### pnpm
 ```sh
-pnpm init -y &&
+pnpm init &&
 pnpm add cowsay &&
 pnpm list
 ```
