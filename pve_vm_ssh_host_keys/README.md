@@ -11,6 +11,7 @@ Proxmox VE VM SSHホストキー管理ロール
 - Proxmox VE環境
 - virtiofs共有ストレージ（`/mnt/host-ssh-keys`）
 - rootまたはsudo権限
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

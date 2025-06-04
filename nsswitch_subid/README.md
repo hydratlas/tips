@@ -10,6 +10,7 @@ NSS subuid/subgid設定ロール
 
 - SSSDがインストールされ設定されていること
 - rootまたはsudo権限
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

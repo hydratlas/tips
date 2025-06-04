@@ -10,6 +10,7 @@ SSSD sudoプロバイダー設定ロール
 
 - SSSDがインストールされ、FreeIPA/IdMドメインに参加していること
 - rootまたはsudo権限
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

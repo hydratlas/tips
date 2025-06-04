@@ -8,7 +8,8 @@ cloud-init完了待機ロール
 
 ## 要件
 
-なし（cloud-initが存在しない場合は自動的にスキップ）
+- cloud-initコマンドの実行にroot権限が必要なため、プレイブックレベルで`become: true`の指定が必要
+- cloud-initが存在しない場合は自動的にスキップ
 
 ## ロール変数
 

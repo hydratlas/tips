@@ -10,6 +10,7 @@ Ansibleユーザー設定ロール
 
 - rootまたはsudo権限
 - ansibleユーザーが存在すること
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

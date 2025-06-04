@@ -24,6 +24,14 @@ vrrp_instance {{ item.name }} {
         {{ vip }}
 {% endfor %}
     }
+{% if item.track_scripts is defined and item.track_scripts %}
+    
+    track_script {
+{% for script in item.track_scripts %}
+        {{ script }}
+{% endfor %}
+    }
+{% endif %}
 {% if item.nopreempt is defined and item.nopreempt %}
     nopreempt
 {% endif %}

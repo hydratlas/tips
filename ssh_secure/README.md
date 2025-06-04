@@ -10,6 +10,7 @@ SSHセキュリティ強化ロール
 
 - OpenSSHサーバー
 - rootまたはsudo権限
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

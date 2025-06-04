@@ -10,6 +10,7 @@ Podmanコンテナランタイムインストールロール
 
 - rootまたはsudo権限
 - サポートされるOS：RHEL/CentOS/Fedora、Debian/Ubuntu
+- プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 

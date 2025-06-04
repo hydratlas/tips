@@ -1,0 +1,10 @@
+---
+# Default variables for cloudflared role
+
+# Container configuration
+cloudflared_container_user: cloudflared
+cloudflared_container_name: cloudflared
+cloudflared_image: docker.io/cloudflare/cloudflared:latest
+
+# Tunnel configuration
+# cloudflared_tunnel_token: "YOUR_TUNNEL_TOKEN"  # Must be defined in vault or host_vars

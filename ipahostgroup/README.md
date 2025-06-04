@@ -12,6 +12,7 @@ FreeIPAサーバーにおいて、Automember機能を使えば不要のため現
 
 - FreeIPA/IdMサーバーへのアクセス
 - 有効なKerberosチケットまたはIPA認証情報
+- IPAモジュールの実行にroot権限が必要なため、プレイブックレベルで`become: true`の指定が必要
 
 ## ロール変数
 
