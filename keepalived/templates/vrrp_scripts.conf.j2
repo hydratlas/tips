@@ -5,7 +5,7 @@
 vrrp_script {{ script.vrrp_name }} {
     script "{{ keepalived_scripts_dir }}/{{ script.name }}"
     interval {{ script.interval | default(2) }}
-    weight {{ script.weight | default(-10) }}
+    weight {{ script.weight | default(-20) }}
     fall {{ script.fall | default(2) }}
     rise {{ script.rise | default(2) }}
 {% if script.user is defined %}
