@@ -6,8 +6,6 @@
     name: "{{ cloudflared_container_user }}"
     system: yes
     shell: /sbin/nologin
-    home: "/home/{{ cloudflared_container_user }}"
-    create_home: yes
     groups:
       - systemd-journal
 
@@ -16,17 +14,6 @@
   register: subids_result
   changed_when: subids_result.rc == 0
   failed_when: false
-
-- name: Get cloudflared user info
-  ansible.builtin.getent:
-    database: passwd
-    key: "{{ cloudflared_container_user }}"
-
-- name: Set cloudflared user facts
-  ansible.builtin.set_fact:
-    cloudflared_uid: "{{ getent_passwd[cloudflared_container_user][1] }}"
-    cloudflared_gid: "{{ getent_passwd[cloudflared_container_user][2] }}"
-    cloudflared_home: "{{ getent_passwd[cloudflared_container_user][4] }}"
 
 - name: Configure ping group range sysctl
   ansible.builtin.copy:
