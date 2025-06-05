@@ -7,10 +7,13 @@ keepalived_base_dir: "/etc/keepalived"
 # Keepalived configuration paths (derived from base directory)
 keepalived_config_file: "{{ keepalived_base_dir }}/keepalived.conf"
 keepalived_config_dir: "{{ keepalived_base_dir }}/conf.d"
-keepalived_scripts_dir: "{{ keepalived_base_dir }}/scripts"
+keepalived_check_scripts_dir: "{{ keepalived_base_dir }}/scripts"
 
 # Service configuration
 keepalived_service_name: "keepalived"
+
+# Check script execution user (global default)
+keepalived_check_script_user: "keepalived_script"
 
 # Global definitions
 # These are the standard keepalived defaults (without email settings)
@@ -28,7 +31,7 @@ keepalived_vrrp_instances: []
 # - template: Template filename
 # - vrrp_name: Name used in VRRP configuration
 # - interval: Check interval in seconds (default: 2)
-# - weight: Priority weight change on failure (default: -10)
+# - weight: Priority weight change on failure (default: -20)
 # - fall: Number of failures before marking as down (default: 2)
 # - rise: Number of successes before marking as up (default: 2)
 # - user: User to run the script as (default: "keepalived_script")

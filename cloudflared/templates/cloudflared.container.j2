@@ -1,0 +1,37 @@
+[Unit]
+Description=Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image={{ cloudflared_image }}
+ContainerName={{ cloudflared_container_name }}
+AutoUpdate=registry
+LogDriver=journald
+EnvironmentFile={{ cloudflared_env_file }}
+
+# Run as specific user (rootless)
+User={{ cloudflared_uid }}
+Group={{ cloudflared_gid }}
+
+# Keep UID mapping
+UserNS=keep-id
+
+# Security options
+SecurityLabelDisable=false
+
+# Volume mount with SELinux relabeling
+Volume={{ cloudflared_env_file }}:{{ cloudflared_env_file }}:ro,z
+
+Exec=tunnel run
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+# Run container as cloudflared user
+User={{ cloudflared_container_user }}
+Group={{ cloudflared_container_group }}
+
+[Install]
+WantedBy=multi-user.target

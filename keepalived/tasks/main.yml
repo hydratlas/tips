@@ -46,7 +46,7 @@
 
 - name: Ensure keepalived scripts directory exists
   ansible.builtin.file:
-    path: "{{ keepalived_scripts_dir }}"
+    path: "{{ keepalived_check_scripts_dir }}"
     state: directory
     owner: root
     group: root
@@ -55,7 +55,7 @@
 - name: Deploy check scripts
   ansible.builtin.template:
     src: "{{ item.template }}"
-    dest: "{{ keepalived_scripts_dir }}/{{ item.name }}"
+    dest: "{{ keepalived_check_scripts_dir }}/{{ item.name }}"
     owner: root
     group: root
     mode: '0755'
@@ -95,18 +95,14 @@
 
 - name: Deploy VRRP instance configurations
   ansible.builtin.template:
-    src: vrrp_instance.conf.j2
-    dest: "{{ keepalived_config_dir }}/{{ item.interface }}.conf"
+    src: vrrp_instances.conf.j2
+    dest: "{{ keepalived_config_dir }}/20-vrrp_instances.conf"
     owner: root
     group: root
-    mode: '0644'
+    mode: '0600'
     backup: true
-  loop: "{{ keepalived_vrrp_instances }}"
   notify: restart keepalived
-
-- name: Generate list of current interface config files
-  ansible.builtin.set_fact:
-    current_interface_configs: "{{ keepalived_vrrp_instances | map(attribute='interface') | map('regex_replace', '^(.*)$', '\\1.conf') | list }}"
+  when: keepalived_vrrp_instances | length > 0
 
 - name: Enable and start keepalived service
   ansible.builtin.systemd:

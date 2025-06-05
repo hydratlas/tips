@@ -6,18 +6,10 @@
     name: "{{ cloudflared_container_name }}.service"
     state: restarted
     daemon_reload: yes
-    scope: user
-  become_user: "{{ cloudflared_container_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ cloudflared_uid }}"
 
-- name: reload systemd user
+- name: reload systemd
   ansible.builtin.systemd:
-    daemon_reexec: yes
-    scope: user
-  become_user: "{{ cloudflared_container_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ cloudflared_uid }}"
+    daemon_reload: yes
 
 - name: reload sysctl
   ansible.builtin.command: sysctl --system

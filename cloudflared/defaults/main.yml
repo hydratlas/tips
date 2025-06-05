@@ -3,8 +3,13 @@
 
 # Container configuration
 cloudflared_container_user: cloudflared
+cloudflared_container_group: cloudflared
 cloudflared_container_name: cloudflared
 cloudflared_image: docker.io/cloudflare/cloudflared:latest
+
+# System paths
+cloudflared_systemd_dir: /etc/containers/systemd
+cloudflared_env_file: "/etc/cloudflared/cloudflared.env"
 
 # Tunnel configuration
 # cloudflared_tunnel_token: "YOUR_TUNNEL_TOKEN"  # Must be defined in vault or host_vars

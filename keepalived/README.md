@@ -20,7 +20,8 @@ VRRP高可用性設定ロール
 - `keepalived_base_dir`: Keepalivedのベースディレクトリ（デフォルト: `/etc/keepalived`）
 - `keepalived_config_file`: メイン設定ファイル（デフォルト: `{{ keepalived_base_dir }}/keepalived.conf`）
 - `keepalived_config_dir`: 設定ディレクトリ（デフォルト: `{{ keepalived_base_dir }}/conf.d`）
-- `keepalived_scripts_dir`: スクリプトディレクトリ（デフォルト: `{{ keepalived_base_dir }}/scripts`）
+- `keepalived_check_scripts_dir`: チェックスクリプトディレクトリ（デフォルト: `{{ keepalived_base_dir }}/scripts`）
+- `keepalived_check_script_user`: チェックスクリプトのグローバルデフォルト実行ユーザー（デフォルト: `keepalived_script`）
 - `keepalived_global_defs`: グローバル設定
 - `keepalived_vrrp_instances`: VRRPインスタンス設定のリスト
 - `keepalived_check_scripts`: チェックスクリプト設定のリスト（デフォルト: `[]`）
@@ -79,8 +80,8 @@ keepalived_vrrp_instances:
 
 - `/etc/keepalived/keepalived.conf` - メイン設定
 - `/etc/keepalived/conf.d/00-global_defs.conf` - グローバル定義
-- `/etc/keepalived/conf.d/10-vrrp_scripts.conf` - チェックスクリプト定義（check_ssh使用時）
-- `/etc/keepalived/conf.d/<interface>.conf` - インターフェース別設定
+- `/etc/keepalived/conf.d/10-vrrp_scripts.conf` - チェックスクリプト定義（チェックスクリプト使用時）
+- `/etc/keepalived/conf.d/20-vrrp_instances.conf` - 全VRRPインスタンス設定
 
 ## チェックスクリプト
 
@@ -105,11 +106,20 @@ keepalived_check_scripts:
 
 ### デフォルトで提供されるスクリプト
 
-#### check_ssh.sh.j2
-SSHサービスの稼働状態を監視します。
+#### check_systemd_service.sh.j2
+systemdサービス監視用のシンプルなスクリプトです。指定されたsystemdサービスの稼働状態を監視します。
 
-#### check_cloudflared.sh.j2
-Cloudflaredトンネルサービスの稼働状態を監視します。Podmanコンテナとして実行されているcloudflaredサービスをチェックします。
+使用方法：
+```yaml
+keepalived_check_scripts:
+  - name: "check_ssh.sh"
+    template: "check_systemd_service.sh.j2"
+    vrrp_name: "check_ssh"
+    service_name: "ssh.service"  # 監視するサービス名を指定
+```
+
+パラメータ：
+- `service_name`: 監視するサービス名（必須。例: "ssh.service", "nginx.service", "cloudflared.service"）
 
 ### チェックスクリプトユーザーの管理
 
@@ -142,6 +152,13 @@ Cloudflaredトンネルサービスの稼働状態を監視します。Podmanコ
    ```
    既存の`nagios`ユーザーを使用し、新規作成はしません。
 
+4. **グローバルデフォルトユーザーを変更する場合**
+   ```yaml
+   # 全てのスクリプトのデフォルト実行ユーザーを変更
+   keepalived_check_script_user: "monitoring"
+   ```
+   この設定により、個別に`user`を指定しないスクリプトは`monitoring`ユーザーで実行されます。
+
 ### Cloudflaredとの統合例
 
 Cloudflaredロールと組み合わせて使用する場合：
@@ -150,8 +167,9 @@ Cloudflaredロールと組み合わせて使用する場合：
 # group_vars/cloudflared_hosts.yml
 keepalived_check_scripts:
   - name: "check_cloudflared.sh"
-    template: "check_cloudflared.sh.j2"
+    template: "check_systemd_service.sh.j2"
     vrrp_name: "check_cloudflared"
+    service_name: "cloudflared.service"  # 正確なサービス名を指定
     interval: 5
     weight: -20
     user: "cloudflared"  # cloudflaredユーザーで実行

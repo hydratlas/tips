@@ -42,76 +42,52 @@
   ansible.builtin.command: sysctl --system
   changed_when: false
 
-- name: Enable lingering for cloudflared user
-  ansible.builtin.command: loginctl enable-linger {{ cloudflared_container_user }}
-  changed_when: false
-
-- name: Create cloudflared systemd user directory
+- name: Create cloudflared config directory
   ansible.builtin.file:
-    path: "{{ cloudflared_home }}/.config/containers/systemd"
+    path: /etc/cloudflared
     state: directory
-    owner: "{{ cloudflared_container_user }}"
-    group: "{{ cloudflared_container_user }}"
-    mode: '0700'
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Deploy cloudflared environment file
-  ansible.builtin.copy:
-    dest: "{{ cloudflared_home }}/.config/containers/systemd/cloudflared.env"
-    content: |
-      TUNNEL_TOKEN={{ cloudflared_tunnel_token }}
-      NO_AUTOUPDATE=true
-    owner: "{{ cloudflared_container_user }}"
-    group: "{{ cloudflared_container_user }}"
-    mode: '0600'
+  ansible.builtin.template:
+    src: cloudflared.env.j2
+    dest: "{{ cloudflared_env_file }}"
+    owner: root
+    group: "{{ cloudflared_container_group }}"
+    mode: '0640'
   notify: restart cloudflared
 
+- name: Create systemd container directory
+  ansible.builtin.file:
+    path: "{{ cloudflared_systemd_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Deploy cloudflared container unit file
-  ansible.builtin.copy:
-    dest: "{{ cloudflared_home }}/.config/containers/systemd/cloudflared.container"
-    content: |
-      [Container]
-      Image={{ cloudflared_image }}
-      ContainerName={{ cloudflared_container_name }}
-      AutoUpdate=registry
-      LogDriver=journald
-      EnvironmentFile=%h/.config/containers/systemd/cloudflared.env
-      
-      Exec=tunnel run
-      
-      [Service]
-      Restart=on-failure
-      
-      [Install]
-      WantedBy=default.target
-    owner: "{{ cloudflared_container_user }}"
-    group: "{{ cloudflared_container_user }}"
+  ansible.builtin.template:
+    src: cloudflared.container.j2
+    dest: "{{ cloudflared_systemd_dir }}/cloudflared.container"
+    owner: root
+    group: root
     mode: '0644'
   notify: restart cloudflared
 
-- name: Reload systemd user daemon
+- name: Reload systemd daemon
   ansible.builtin.systemd:
     daemon_reload: yes
-    scope: user
-  become_user: "{{ cloudflared_container_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ cloudflared_uid }}"
 
-- name: Enable podman-auto-update timer
+- name: Enable podman-auto-update timer (system)
   ansible.builtin.systemd:
     name: podman-auto-update.timer
     enabled: yes
     state: started
-    scope: user
-  become_user: "{{ cloudflared_container_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ cloudflared_uid }}"
 
 - name: Start cloudflared service
   ansible.builtin.systemd:
     name: "{{ cloudflared_container_name }}.service"
     enabled: yes
     state: started
-    scope: user
-  become_user: "{{ cloudflared_container_user }}"
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ cloudflared_uid }}"

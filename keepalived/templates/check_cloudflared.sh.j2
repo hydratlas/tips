@@ -1,7 +1,0 @@
-#!/bin/bash
-# Check cloudflared service status
-# {{ ansible_managed }}
-
-# Check if cloudflared service is active
-# This script should be run as the cloudflared user
-systemctl --user is-active --quiet {{ cloudflared_container_name | default('cloudflared') }}.service
