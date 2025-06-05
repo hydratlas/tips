@@ -30,22 +30,18 @@ sudo apt-get purge -y git gpg
 
 ### 変数の準備
 本手順では以下の変数を設定してから進める想定です。ドキュメント中で何度か繰り返し登場するため、最初に定義しておくとスムーズに作業できます。
-- `$connectionName`: 任意のユーザー名
-    - 実際のGitHubユーザー名とは異なっていても構いません
-    - 例えば「personal」や「company」など、SSHキーペアを使い分ける中でどの関係先かが分かる名前にするとよいでしょう
-    - このユーザー名の先頭3文字(firstThreeConnectionName)をSSHのホスト名設定で使用するため、3文字だけで一意に分かるようにしてください。たとえば「personal」なら先頭3文字は「per」となります
-- `$githubUsername`: GitHubのユーザー名
-- `$githubMail`: GitHubが用意したプライベートメールアドレス
-    - GitHubから自動付与される「123456789+username@users.noreply.github（）.com」形式のメールアドレスです。実際のメールアドレスを公開しないために利用します
+- `$github_short_username`: SSHのホスト名設定で使用するための短い名前
+- `$github_mail`: GitHubが用意したプライベートメールアドレス
+    - GitHubから自動付与される「123456789+username@users.noreply.github.com」形式のメールアドレスです。実際のメールアドレスを公開しないために利用します
     - [GitHubの設定 > Emails](https://github.com/settings/emails)で確認できます
 
 以下の例のように変数を設定します。
 
 ```sh
-connection_name="abcde" &&
-github_username="username" &&
+github_short_username="abc" &&
 github_mail="123456789+username@users.noreply.github.com" &&
-first_three_connection_name="${github_username:0:3}" &&
+github_username="${github_mail#*+}" &&
+github_username="${github_username%@*}" &&
 github_userid="${github_username} <${github_mail}>"
 ```
 
@@ -53,12 +49,12 @@ github_userid="${github_username} <${github_mail}>"
 ホスト名ごとに異なるSSHキーを使用できるよう、SSHの設定ファイル(~/.ssh/config)に接続設定を追加します。
 
 ```sh
-keyfile="$HOME/.ssh/id_ed25519_${connection_name}"
+keyfile="$HOME/.ssh/id_ed25519_${github_username}"
 ssh-keygen -t ed25519 -N "" -C "" -f "${keyfile}" &&
 tee -a "$HOME/.ssh/config" << EOS > /dev/null &&
-Host github-${first_three_connection_name}
+Host github-${github_short_username}
     HostName github.com
-    IdentityFile ~/.ssh/id_ed25519_${connection_name}
+    IdentityFile ~/.ssh/id_ed25519_${github_username}
     User git
 EOS
 cat "${keyfile}.pub"
@@ -142,10 +138,10 @@ gpg --delete-keys "${github_userid}"
 さきほどと同様に、以下の変数を設定しておくと便利です。
 
 ```sh
-connection_name="abcde" &&
-github_username="username" &&
+github_short_username="abc" &&
 github_mail="123456789+username@users.noreply.github.com" &&
-first_three_connection_name="${github_username:0:3}" &&
+github_username="${github_mail#*+}" &&
+github_username="${github_username%@*}" &&
 github_userid="${github_username} <${github_mail}>"
 ```
 
@@ -153,7 +149,7 @@ github_userid="${github_username} <${github_mail}>"
 既存リポジトリーをクローンする例です。先頭3文字を使い、SSH設定ファイルで登録したホスト名を指定します。
 
 ```sh
-git clone "git@github-${first_three_connection_name}:<repository owner>/<repository name>".git .
+git clone "git@github-${github_short_username}:<repository owner>/<repository name>".git .
 ```
 
 ### 空であるGitHubリポジトリーの場合
@@ -161,7 +157,7 @@ GitHub上に空のリポジトリーを作成してから、以下のコマン�
 
 ```sh
 git init --initial-branch=main &&
-git remote add origin "git@github-${first_three_connection_name}:<repository owner>/<repository name>.git"
+git remote add origin "git@github-${github_short_username}:<repository owner>/<repository name>.git"
 ```
 
 ### メールアドレスなどの設定
