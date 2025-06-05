@@ -40,7 +40,7 @@ gsettings set org.gnome.desktop.input-sources mru-sources "[('ibus', 'mozc-jp'),
 ```sh
 gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view' # リストビュー表示
 gsettings set org.gnome.nautilus.list-view default-zoom-level 'small' # ファイルリストを小さく表示
-gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'detailed_type', 'size', 'date_modified_with_time', 'owner', 'group', 'permissions']" # アクセス権などを表示
+gsettings org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'owner', 'group', 'permissions', 'date_modified']" # アクセス権などを表示
 ```
 
 ## Zoteroのインストール（管理者）
