@@ -1,8 +1,16 @@
 # デスクトップ（Ubuntu）を設定
+## HWEカーネルからGAカーネルへの切り替え（管理者）
+```sh
+sudo apt-get update &&
+sudo apt-get install -y linux-generic &&
+sudo apt-get remove -y linux-generic-hwe-* &&
+sudo apt-get autoremove -y &&
+sudo update-grub
+```
+
 ## 各種アプリをインストール（管理者）
 ```sh
-sudo apt install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk &&
-sudo apt install -y libreoffice libreoffice-l10n-ja &&
+sudo apt install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk git gpg libreoffice libreoffice-l10n-ja &&
 sudo snap install chromium gimp discord &&
 sudo snap install codium --classic
 ```
@@ -14,10 +22,11 @@ LC_ALL=C xdg-user-dirs-gtk-update --force
 
 ## dash-to-dockの設定（各ユーザー）
 ```sh
-gsettings set org.gnome.shell.extensions.dash-to-dock click-action 'minimize-or-previews'
-  # クリックしたとき、現在表示中であれば最小化、表示中でなければプレビュー
+gsettings set org.gnome.shell.extensions.dash-to-dock click-action 'minimize-or-previews' # クリックしたとき、現在表示中であれば最小化、表示中でなければプレビュー
+gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'RIGHT' # ドックを右側に表示する
+gsettings set org.gnome.shell.extensions.dash-to-dock multi-monitor true # マルチモニターすべてにドックを表示する
 gsettings set org.gnome.shell.extensions.dash-to-dock show-mounts false # ドックにマウントドライブを表示しない
-gsettings set org.gnome.shell.extensions.dash-to-dock show-ttash false # ドックにゴミ箱を表示しない
+gsettings set org.gnome.shell.extensions.dash-to-dock show-trash false # ドックにゴミ箱を表示しない
 ```
 
 ## desktopの設定（各ユーザー）
@@ -30,54 +39,19 @@ gsettings set org.gnome.desktop.input-sources mru-sources "[('ibus', 'mozc-jp'),
 ## nautilusの設定（各ユーザー）
 ```sh
 gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view' # リストビュー表示
-gsettings set org.gnome.nautilus.preferences search-view 'list-view' # リストビュー表示
 gsettings set org.gnome.nautilus.list-view default-zoom-level 'small' # ファイルリストを小さく表示
 gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'detailed_type', 'size', 'date_modified_with_time', 'owner', 'group', 'permissions']" # アクセス権などを表示
 ```
 
-## geditの設定（各ユーザー）
+## Zoteroのインストール（管理者）
 ```sh
-gsettings set org.gnome.gedit.preferences.editor display-line-numbers true # 行番号表示
-gsettings set org.gnome.gedit.preferences.print print-font-body-pango 'Monospace 11' # フォント変更
-gsettings set org.gnome.gedit.preferences.print print-font-header-pango 'Monospace 11' # フォント変更
-gsettings set org.gnome.gedit.preferences.print print-font-numbers-pango 'Monospace 11' # フォント変更
-gsettings set org.gnome.gedit.preferences.print print-header false # ヘッダーを印刷しない
-```
-
-## Zedのインストール（各ユーザー）
-```sh
-wget -q -O - https://zed.dev/install.sh | sh 
-```
-
-設定に以下の行を追加する。
-```json
-  "buffer_font_family": "Noto Sans Mono CJK JP",
-  "autosave": {
-    "after_delay": {
-      "milliseconds": 1000
-    }
-  },
-```
-
-## Geanyのインストール（管理者）
-```sh
-sudo apt install -yq geany
-```
-
-## Geanyの設定（各ユーザー）
-```sh
-mkdir "$HOME/.config/geany" &&
-cat << EOF > "$HOME/.config/geany/geany.conf"
-[geany]
-pref_main_load_session=false
-show_white_space=true
-show_line_endings=true
-sidebar_visible=false
-msgwindow_visible=false
-
-[search]
-replace_regexp=true
-EOF
+sudo apt-get update &&
+sudo apt-get install bzip2 &&
+wget -O Zotero_linux-x86_64.tar.bz2 "https://www.zotero.org/download/client/dl?channel=release&platform=linux-x86_64" &&
+sudo mkdir -p /opt/zotero &&
+sudo tar -xjf Zotero_linux-x86_64.tar.bz2 -C /opt/zotero --strip-components=1 &&
+sudo /opt/zotero/set_launcher_icon &&
+ln -s /opt/zotero/zotero.desktop "$HOME/.local/share/applications/zotero.desktop"
 ```
 
 ## AppImage
@@ -88,6 +62,12 @@ sudo apt install -y libfuse2t64
 ```
 
 その上で[Releases · TheAssassin/AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher/releases)からdebをダウンロードする（Ubuntu 24.04ではPPAが動かない）。そしてアプリセンターで開いてインストールする。
+
+### AppImageリンク
+- [https://standardnotes.com/download]()
+- [https://obsidian.md/download]()
+- [https://www.pcloud.com/ja/download-free-online-cloud-file-storage.html]()
+- [https://photoqt.org/downpopupappimage]()
 
 ### Joplinの修正（各ユーザー）
 JoplinのAppImageをAppImageLauncherからインストールして、アイコンファイルの指定が間違っている点を修正する。
@@ -129,60 +109,6 @@ nano appimagekit_a804665a6765821784bd9f1084748dbf-PhotoQt.desktop
 StartupWMClass=PhotoQt
 ```
 
-## Rcloneのインストール（管理者）
-```sh
-wget -O rclone.deb https://downloads.rclone.org/rclone-current-linux-amd64.deb &&
-sudo dpkg -i rclone.deb &&
-rm rclone.deb
-```
-
-## Flatpakのインストール（管理者）
-```sh
-sudo apt-get install --no-install-recommends -y flatpak
-```
-
-## Flatpakでアプリケーションをインストール（各ユーザー）
-```sh
-flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-
-flatpak install flathub org.gnome.TextEditor
-```
-
-## GUIアプリケーションのインストール
-|Deb (Debian/Ubuntu)|Flathub|Snapcraft|
-|:----|:----|:----|
-|baobab|org.gnome.baobab| |
-|celluloid|io.github.celluloid_player.Celluloid|celluloid|
-|deja-dup|org.gnome.DejaDup| |
-|evince|org.gnome.Evince|evince|
-|font-viewer|org.gnome.font-viewer| |
-|gimp|org.gimp.GIMP|gimp|
-|gnome-calculator|org.gnome.Calculator|gnome-calculator|
-|gnome-characters|org.gnome.Characters|gnome-characters|
-|gnome-clocks|org.gnome.clocks|gnome-clocks|
-|gnome-logs|org.gnome.Logs| |
-|gnome-text-editor|org.gnome.TextEditor| |
-|inkscape|org.inkscape.Inkscape|inkscape|
-|libreoffice|org.libreoffice.LibreOffice|libreoffice|
-|loupe|org.gnome.Loupe|loupe|
-|meld|org.gnome.meld| |
-|nemo-fileroller|org.gnome.FileRoller| |
-|photoqt|org.photoqt.PhotoQt| |
-|simple-scan|org.gnome.SimpleScan| |
-|transmission|com.transmissionbt.Transmission|transmission|
-|vlc|org.videolan.VLC|vlc|
-| |com.discordapp.Discord|discord|
-| |com.github.Eloston.UngoogledChromium|chromium|
-| |com.vscodium.codium|codium|
-| |io.dbeaver.DBeaverCommunity|dbeaver-ce|
-| |md.obsidian.Obsidian|obsidian|
-| |org.mozilla.firefox|firefox|
-| |org.zotero.Zotero|zotero-snap|
-| |us.zoom.Zoom|zoom-client|
-
-## Remmina
-「設定」→「RDP」→「キーボードレイアウト」に「00000411 – Japanese」を設定する。
-
 ## Firefox
 ```sh
 wget -q -O - "https://packages.mozilla.org/apt/repo-signing-key.gpg" | \
@@ -206,4 +132,50 @@ sudo apt-get update && sudo apt-get install -y firefox
 ```sh
 sudo wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux &&
 sudo chmod +x /usr/local/bin/yt-dlp
+```
+
+## Rcloneのインストール（管理者）
+```sh
+wget -O rclone.deb https://downloads.rclone.org/rclone-current-linux-amd64.deb &&
+sudo dpkg -i rclone.deb &&
+rm rclone.deb
+```
+
+## Remmina
+「設定」→「RDP」→「キーボードレイアウト」に「00000411 – Japanese」を設定する。
+
+## Zedのインストール（各ユーザー）
+```sh
+wget -q -O - https://zed.dev/install.sh | sh 
+```
+
+設定に以下の行を追加する。
+```json
+  "buffer_font_family": "Noto Sans Mono CJK JP",
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 1000
+    }
+  },
+```
+
+## Geanyのインストール（管理者）
+```sh
+sudo apt install -yq geany
+```
+
+## Geanyの設定（各ユーザー）
+```sh
+mkdir "$HOME/.config/geany" &&
+cat << EOF > "$HOME/.config/geany/geany.conf"
+[geany]
+pref_main_load_session=false
+show_white_space=true
+show_line_endings=true
+sidebar_visible=false
+msgwindow_visible=false
+
+[search]
+replace_regexp=true
+EOF
 ```
