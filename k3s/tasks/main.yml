@@ -1,0 +1,135 @@
+---
+- name: Check OS family
+  fail:
+    msg: "This role only supports RedHat and Debian OS families"
+  when: ansible_os_family not in ['RedHat', 'Debian']
+
+- name: Install required packages
+  package:
+    name: "{{ k3s_required_packages[ansible_os_family] }}"
+    state: present
+
+- name: Create k3s group
+  group:
+    name: "{{ k3s_group }}"
+    system: yes
+  when: k3s_create_user
+
+- name: Create k3s user
+  user:
+    name: "{{ k3s_user }}"
+    group: "{{ k3s_group }}"
+    system: yes
+    shell: /bin/false
+    home: "{{ k3s_data_dir }}"
+    createhome: no
+  when: k3s_create_user
+
+- name: Create k3s directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ k3s_config_dir }}"
+    - "{{ k3s_data_dir }}"
+    - "{{ k3s_log_dir }}"
+
+- name: Create k3s configuration file
+  template:
+    src: config.yaml.j2
+    dest: "{{ k3s_config_file }}"
+    mode: '0644'
+  notify: restart k3s
+
+- name: Include OS-specific tasks
+  include_tasks: "{{ ansible_os_family | lower }}.yml"
+
+- name: Check if k3s is installed
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Install k3s using script method
+  when:
+    - k3s_install_method == "script"
+    - not k3s_binary.stat.exists
+  block:
+    - name: Download k3s install script
+      get_url:
+        url: "{{ k3s_install_script_url }}"
+        dest: /tmp/k3s-install.sh
+        mode: '0755'
+
+    - name: Set k3s install environment variables
+      set_fact:
+        k3s_install_env:
+          INSTALL_K3S_SKIP_START: "true"
+          INSTALL_K3S_SKIP_ENABLE: "true"
+          INSTALL_K3S_VERSION: "{{ k3s_version if k3s_version else omit }}"
+          K3S_TOKEN: "{{ k3s_token if k3s_token else omit }}"
+          K3S_URL: "{{ k3s_server_url if k3s_server_or_agent == 'agent' else omit }}"
+
+    - name: Install k3s
+      shell: /tmp/k3s-install.sh {{ k3s_server_or_agent }}
+      environment: "{{ k3s_install_env | select }}"
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Remove install script
+      file:
+        path: /tmp/k3s-install.sh
+        state: absent
+
+- name: Ensure k3s service is configured
+  systemd:
+    name: "{{ k3s_service_name }}"
+    enabled: "{{ k3s_service_enabled }}"
+    state: "{{ k3s_service_state }}"
+    daemon_reload: yes
+
+- name: Wait for k3s to be ready
+  wait_for:
+    port: 6443
+    delay: 10
+    timeout: 300
+  when:
+    - k3s_server_or_agent == "server"
+    - k3s_service_state == "started"
+
+- name: Get node token (server mode)
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: node_token_content
+  when: k3s_server_or_agent == "server"
+
+- name: Set node token fact
+  set_fact:
+    k3s_node_token: "{{ node_token_content.content | b64decode | trim }}"
+  when: k3s_server_or_agent == "server"
+
+- name: Configure kubectl for non-root users (server mode)
+  when: k3s_server_or_agent == "server"
+  block:
+    - name: Create .kube directory for ansible user
+      file:
+        path: /home/{{ ansible_user }}/.kube
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0700'
+
+    - name: Copy kubeconfig to ansible user
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/{{ ansible_user }}/.kube/config
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+        remote_src: yes
+
+    - name: Update kubeconfig server address
+      replace:
+        path: /home/{{ ansible_user }}/.kube/config
+        regexp: 'https://127.0.0.1:6443'
+        replace: "https://{{ ansible_default_ipv4.address }}:6443"

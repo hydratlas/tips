@@ -1,0 +1,147 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install AppArmor utilities
+  package:
+    name:
+      - apparmor
+      - apparmor-utils
+    state: present
+
+- name: Configure UFW firewall for k3s
+  when:
+    - k3s_manage_firewall
+  block:
+    - name: Check if ufw is installed
+      package:
+        name: ufw
+        state: present
+      register: ufw_installed
+      check_mode: yes
+      changed_when: false
+      failed_when: false
+
+    - name: Configure UFW rules
+      when: ufw_installed.rc == 0
+      block:
+        - name: Enable UFW
+          ufw:
+            state: enabled
+
+        - name: Configure firewall ports for server
+          ufw:
+            rule: allow
+            port: "{{ item.port }}"
+            proto: "{{ item.proto }}"
+            comment: "{{ item.comment }}"
+          loop: "{{ k3s_server_firewall_ports }}"
+          when: k3s_server_or_agent == "server"
+
+        - name: Configure firewall ports for agent
+          ufw:
+            rule: allow
+            port: "{{ item.port }}"
+            proto: "{{ item.proto }}"
+            comment: "{{ item.comment }}"
+          loop: "{{ k3s_agent_firewall_ports }}"
+          when: k3s_server_or_agent == "agent"
+
+        - name: Allow pod network communication
+          ufw:
+            rule: allow
+            from_ip: "10.42.0.0/16"
+            comment: "k3s pod network"
+
+        - name: Allow service network communication
+          ufw:
+            rule: allow
+            from_ip: "10.43.0.0/16"
+            comment: "k3s service network"
+
+- name: Configure iptables-persistent
+  when:
+    - k3s_manage_firewall
+    - ufw_installed.rc != 0 or ufw_installed is not defined
+  block:
+    - name: Install iptables-persistent
+      package:
+        name:
+          - iptables-persistent
+          - netfilter-persistent
+        state: present
+
+    - name: Configure iptables rules for server
+      iptables:
+        chain: INPUT
+        protocol: "{{ item.proto }}"
+        destination_port: "{{ item.port }}"
+        jump: ACCEPT
+        comment: "{{ item.comment }}"
+      loop: "{{ k3s_server_firewall_ports }}"
+      when: k3s_server_or_agent == "server"
+      notify: save iptables
+
+    - name: Configure iptables rules for agent
+      iptables:
+        chain: INPUT
+        protocol: "{{ item.proto }}"
+        destination_port: "{{ item.port }}"
+        jump: ACCEPT
+        comment: "{{ item.comment }}"
+      loop: "{{ k3s_agent_firewall_ports }}"
+      when: k3s_server_or_agent == "agent"
+      notify: save iptables
+
+    - name: Allow pod network communication via iptables
+      iptables:
+        chain: INPUT
+        source: "10.42.0.0/16"
+        jump: ACCEPT
+        comment: "k3s pod network"
+      notify: save iptables
+
+    - name: Allow service network communication via iptables
+      iptables:
+        chain: INPUT
+        source: "10.43.0.0/16"
+        jump: ACCEPT
+        comment: "k3s service network"
+      notify: save iptables
+
+- name: Configure sysctl for k3s
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+    - { name: "net.ipv4.ip_forward", value: "1" }
+    - { name: "net.ipv6.conf.all.forwarding", value: "1" }
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Ensure kernel modules are loaded on boot
+  copy:
+    content: |
+      br_netfilter
+      overlay
+    dest: /etc/modules-load.d/k3s.conf
+    mode: '0644'
+
+- name: Install additional dependencies for Debian/Ubuntu
+  package:
+    name:
+      - ca-certificates
+      - software-properties-common
+    state: present

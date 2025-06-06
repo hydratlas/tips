@@ -1,0 +1,139 @@
+---
+- name: Disable SELinux (if requested)
+  selinux:
+    state: disabled
+  when:
+    - not k3s_selinux_enabled
+    - ansible_selinux.status == "enabled"
+  notify: reboot system
+
+- name: Install SELinux policy for k3s
+  when:
+    - k3s_selinux_enabled
+    - ansible_selinux.status == "enabled"
+  block:
+    - name: Install SELinux policy packages
+      package:
+        name:
+          - container-selinux
+          - selinux-policy-base
+        state: present
+
+    - name: Download k3s SELinux policy
+      get_url:
+        url: https://github.com/k3s-io/k3s-selinux/releases/download/v1.4.stable.1/k3s-selinux-1.4-1.el8.noarch.rpm
+        dest: /tmp/k3s-selinux.rpm
+        mode: '0644'
+      when: ansible_distribution_major_version | int >= 8
+
+    - name: Download k3s SELinux policy (EL7)
+      get_url:
+        url: https://github.com/k3s-io/k3s-selinux/releases/download/v1.4.stable.1/k3s-selinux-1.4-1.el7.noarch.rpm
+        dest: /tmp/k3s-selinux.rpm
+        mode: '0644'
+      when: ansible_distribution_major_version | int == 7
+
+    - name: Install k3s SELinux policy
+      package:
+        name: /tmp/k3s-selinux.rpm
+        state: present
+        disable_gpg_check: yes
+
+    - name: Remove downloaded SELinux policy package
+      file:
+        path: /tmp/k3s-selinux.rpm
+        state: absent
+
+- name: Configure firewalld for k3s
+  when:
+    - k3s_manage_firewall
+    - ansible_facts['os_family'] == "RedHat"
+  block:
+    - name: Check if firewalld is installed
+      package:
+        name: firewalld
+        state: present
+      register: firewalld_installed
+      check_mode: yes
+      changed_when: false
+      failed_when: false
+
+    - name: Check if firewalld service exists
+      systemd:
+        name: firewalld
+      register: firewalld_service
+      failed_when: false
+      changed_when: false
+
+    - name: Configure firewalld rules
+      when:
+        - firewalld_installed.rc == 0
+        - firewalld_service.status.LoadState == "loaded"
+      block:
+        - name: Start and enable firewalld
+          systemd:
+            name: firewalld
+            state: started
+            enabled: yes
+
+        - name: Configure firewall ports for server
+          firewalld:
+            port: "{{ item.port }}/{{ item.proto }}"
+            permanent: yes
+            immediate: yes
+            state: enabled
+          loop: "{{ k3s_server_firewall_ports }}"
+          when: k3s_server_or_agent == "server"
+
+        - name: Configure firewall ports for agent
+          firewalld:
+            port: "{{ item.port }}/{{ item.proto }}"
+            permanent: yes
+            immediate: yes
+            state: enabled
+          loop: "{{ k3s_agent_firewall_ports }}"
+          when: k3s_server_or_agent == "agent"
+
+        - name: Allow pod network communication
+          firewalld:
+            source: "10.42.0.0/16"
+            zone: trusted
+            permanent: yes
+            immediate: yes
+            state: enabled
+
+        - name: Allow service network communication
+          firewalld:
+            source: "10.43.0.0/16"
+            zone: trusted
+            permanent: yes
+            immediate: yes
+            state: enabled
+
+- name: Configure sysctl for k3s
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+    - { name: "net.ipv4.ip_forward", value: "1" }
+    - { name: "net.ipv6.conf.all.forwarding", value: "1" }
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Ensure kernel modules are loaded on boot
+  copy:
+    content: |
+      br_netfilter
+      overlay
+    dest: /etc/modules-load.d/k3s.conf
+    mode: '0644'

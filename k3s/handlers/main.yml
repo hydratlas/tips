@@ -1,0 +1,23 @@
+---
+- name: restart k3s
+  systemd:
+    name: "{{ k3s_service_name }}"
+    state: restarted
+    daemon_reload: yes
+
+- name: reload k3s
+  systemd:
+    name: "{{ k3s_service_name }}"
+    state: reloaded
+
+- name: reboot system
+  reboot:
+    msg: "Rebooting system due to SELinux changes"
+    pre_reboot_delay: 5
+    post_reboot_delay: 30
+
+- name: save iptables
+  shell: |
+    iptables-save > /etc/iptables/rules.v4
+    ip6tables-save > /etc/iptables/rules.v6
+  when: ansible_os_family == "Debian"
