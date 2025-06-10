@@ -13,6 +13,7 @@ Cloudflare Tunnel (cloudflared) をk3s上のコンテナとしてデプロイす
 - k3sクラスターがインストールされ、稼働していること
 - k3sマスターノードであること（k3s APIサーバーへのアクセスが必要）
 - kubeconfigファイルが適切に設定されていること（通常は`/etc/rancher/k3s/k3s.yaml`）
+- このロールは`become: true`で実行される必要があります（kubeconfigファイルへのアクセスのため）
 
 ## ロール変数
 
