@@ -4,9 +4,15 @@ Cloudflare Tunnel (cloudflared) をk3s上のコンテナとしてデプロイす
 
 ## 要件
 
+### Ansibleコントロールノードの要件
+
+- `kubernetes.core` Ansibleコレクションがインストールされていること
+
+### Ansibleターゲットノードの要件
+
 - k3sクラスターがインストールされ、稼働していること
-- `kubernetes.core` Ansibleコレクション
-- `k3s_masters`グループに少なくとも1つのk3sマスターノードが定義されていること
+- k3sマスターノードであること（k3s APIサーバーへのアクセスが必要）
+- kubeconfigファイルが適切に設定されていること（通常は`/etc/rancher/k3s/k3s.yaml`）
 
 ## ロール変数
 
@@ -36,7 +42,18 @@ Cloudflare Tunnel (cloudflared) をk3s上のコンテナとしてデプロイす
 ## プレイブックの例
 
 ```yaml
-- hosts: k3s_nodes
+- hosts: k3s_masters
+  roles:
+    - role: cloudflared
+      vars:
+        cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+```
+
+または、k3sマスターノード上で直接実行する場合：
+
+```yaml
+- hosts: localhost
+  connection: local
   roles:
     - role: cloudflared
       vars:

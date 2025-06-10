@@ -14,5 +14,4 @@
           metadata:
             annotations:
               kubectl.kubernetes.io/restartedAt: "{{ now(utc=True).isoformat() }}"
-  delegate_to: "{{ groups['k3s_masters'][0] }}"
   run_once: true
