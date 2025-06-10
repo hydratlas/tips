@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ cloudflared_deployment_name }}
+  namespace: {{ cloudflared_namespace }}
+  labels:
+    app: cloudflared
+spec:
+  replicas: {{ cloudflared_replicas }}
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+      - name: cloudflared
+        image: {{ cloudflared_image }}
+        command: ["cloudflared", "tunnel", "run"]
+        env:
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ cloudflared_secret_name }}
+              key: token
+        - name: NO_AUTOUPDATE
+          value: "true"
+        resources:
+          limits:
+            memory: {{ cloudflared_memory_limit }}
+            cpu: {{ cloudflared_cpu_limit }}
+          requests:
+            memory: {{ cloudflared_memory_request }}
+            cpu: {{ cloudflared_cpu_request }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL
+      restartPolicy: Always

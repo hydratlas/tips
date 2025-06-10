@@ -1,80 +1,42 @@
 ---
-# Tasks for cloudflared role
+# Tasks for cloudflared role (k3s deployment)
 
-- name: Create cloudflared system user
-  ansible.builtin.user:
-    name: "{{ cloudflared_container_user }}"
-    system: yes
-    shell: /sbin/nologin
-    groups:
-      - systemd-journal
+- name: Create cloudflared namespace
+  kubernetes.core.k8s:
+    name: "{{ cloudflared_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  delegate_to: "{{ groups['k3s_masters'][0] }}"
+  run_once: true
 
-- name: Add subids for system user
-  ansible.builtin.command: usermod --add-subids-for-system {{ cloudflared_container_user }}
-  register: subids_result
-  changed_when: subids_result.rc == 0
-  failed_when: false
+- name: Create cloudflared secret from template
+  kubernetes.core.k8s:
+    definition: "{{ lookup('template', 'cloudflared-secret.yaml.j2') | from_yaml }}"
+    state: present
+  delegate_to: "{{ groups['k3s_masters'][0] }}"
+  run_once: true
+  no_log: true
 
-- name: Configure ping group range sysctl
-  ansible.builtin.copy:
-    dest: /etc/sysctl.d/99-ping-group-range.conf
-    content: |
-      net.ipv4.ping_group_range=0 2147483647
-    owner: root
-    group: root
-    mode: '0644'
-  notify: reload sysctl
+- name: Deploy cloudflared deployment
+  kubernetes.core.k8s:
+    definition: "{{ lookup('template', 'cloudflared-deployment.yaml.j2') | from_yaml }}"
+    state: present
+  delegate_to: "{{ groups['k3s_masters'][0] }}"
+  run_once: true
 
-- name: Apply sysctl settings
-  ansible.builtin.command: sysctl --system
-  changed_when: false
-
-- name: Create cloudflared config directory
-  ansible.builtin.file:
-    path: /etc/cloudflared
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Deploy cloudflared environment file
-  ansible.builtin.template:
-    src: cloudflared.env.j2
-    dest: "{{ cloudflared_env_file }}"
-    owner: root
-    group: "{{ cloudflared_container_group }}"
-    mode: '0640'
-  notify: restart cloudflared
-
-- name: Create systemd container directory
-  ansible.builtin.file:
-    path: "{{ cloudflared_systemd_dir }}"
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Deploy cloudflared container unit file
-  ansible.builtin.template:
-    src: cloudflared.container.j2
-    dest: "{{ cloudflared_systemd_dir }}/cloudflared.container"
-    owner: root
-    group: root
-    mode: '0644'
-  notify: restart cloudflared
-
-- name: Reload systemd daemon
-  ansible.builtin.systemd:
-    daemon_reload: yes
-
-- name: Enable podman-auto-update timer (system)
-  ansible.builtin.systemd:
-    name: podman-auto-update.timer
-    enabled: yes
-    state: started
-
-- name: Start cloudflared service
-  ansible.builtin.systemd:
-    name: "{{ cloudflared_container_name }}.service"
-    enabled: yes
-    state: started
+- name: Wait for cloudflared deployment to be ready
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ cloudflared_deployment_name }}"
+    namespace: "{{ cloudflared_namespace }}"
+    wait: true
+    wait_condition:
+      type: Progressing
+      status: "True"
+      reason: NewReplicaSetAvailable
+    wait_sleep: 10
+    wait_timeout: 300
+  delegate_to: "{{ groups['k3s_masters'][0] }}"
+  run_once: true

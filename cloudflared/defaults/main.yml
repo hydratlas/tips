@@ -1,15 +1,20 @@
 ---
-# Default variables for cloudflared role
+# Default variables for cloudflared role (k3s deployment)
+
+# k3s deployment configuration
+cloudflared_namespace: cloudflared
+cloudflared_deployment_name: cloudflared
+cloudflared_secret_name: cloudflared-tunnel-token
+cloudflared_replicas: 1
 
 # Container configuration
-cloudflared_container_user: cloudflared
-cloudflared_container_group: cloudflared
-cloudflared_container_name: cloudflared
 cloudflared_image: docker.io/cloudflare/cloudflared:latest
 
-# System paths
-cloudflared_systemd_dir: /etc/containers/systemd
-cloudflared_env_file: "/etc/cloudflared/cloudflared.env"
+# Resource limits
+cloudflared_memory_limit: "128Mi"
+cloudflared_cpu_limit: "100m"
+cloudflared_memory_request: "64Mi"
+cloudflared_cpu_request: "50m"
 
 # Tunnel configuration
 # cloudflared_tunnel_token: "YOUR_TUNNEL_TOKEN"  # Must be defined in vault or host_vars

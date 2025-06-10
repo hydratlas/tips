@@ -1,94 +1,50 @@
 # cloudflared
 
-Cloudflare Tunnel (cloudflared) をrootless Podmanコンテナとしてsystemdシステムインスタンスでインストール・設定するロール
-
-## 概要
-
-このロールは、Podman Quadletを使用してcloudflaredをsystemdのシステムインスタンスで実行します。コンテナは指定されたユーザー権限で動作し（rootless）、システム起動時に自動的に開始されます。
+Cloudflare Tunnel (cloudflared) をk3s上のコンテナとしてデプロイするロール
 
 ## 要件
 
-- Podmanがインストールされていること（`podman_install`ロールを使用）
-- systemdが利用可能であること
-- システムユーザーとサービスの作成にroot権限が必要なため、プレイブックレベルで`become: true`の指定が必要
+- k3sクラスターがインストールされ、稼働していること
+- `kubernetes.core` Ansibleコレクション
+- `k3s_masters`グループに少なくとも1つのk3sマスターノードが定義されていること
 
 ## ロール変数
 
 ### 必須変数
-- `cloudflared_tunnel_token`: 認証用のCloudflare Tunnelトークン
+
+- `cloudflared_tunnel_token`: Cloudflare Tunnelトークン（vaultに保存することを推奨）
 
 ### オプション変数
-- `cloudflared_container_user`: コンテナを実行するシステムユーザー（デフォルト: cloudflared）
-- `cloudflared_container_group`: コンテナを実行するグループ（デフォルト: cloudflared）
-- `cloudflared_container_name`: コンテナ名（デフォルト: cloudflared）
-- `cloudflared_image`: 使用するコンテナイメージ（デフォルト: docker.io/cloudflare/cloudflared:latest）
-- `cloudflared_systemd_dir`: systemdコンテナユニットファイルの配置場所（デフォルト: /etc/containers/systemd）
-- `cloudflared_env_file`: 環境変数ファイルの配置場所（デフォルト: /etc/cloudflared/cloudflared.env）
 
-## 実装の詳細
+- `cloudflared_namespace`: cloudflared用のKubernetesネームスペース（デフォルト: `cloudflared`）
+- `cloudflared_deployment_name`: デプロイメント名（デフォルト: `cloudflared`）
+- `cloudflared_secret_name`: トークンを含むシークレット名（デフォルト: `cloudflared-tunnel-token`）
+- `cloudflared_replicas`: レプリカ数（デフォルト: `1`）
+- `cloudflared_image`: 使用するコンテナイメージ（デフォルト: `docker.io/cloudflare/cloudflared:latest`）
 
-### Podman Quadlet システムインスタンス
+### リソース制限
 
-このロールは以下の重要な設定でrootlessコンテナを実現しています：
-
-1. **User=/Group=の指定**: コンテナユニットファイルの`[Service]`セクションでユーザーとグループを明示的に指定
-2. **システムディレクトリの使用**: `/etc/containers/systemd/`にユニットファイルを配置
-3. **SELinuxコンテキスト**: ボリュームマウントに`z`オプションを使用してSELinuxコンテキストを自動調整
-4. **UserNS=keep-id**: UIDマッピングを保持してコンテナ内外でユーザーIDを一致させる
-
-### ディレクトリ構造
-
-- `/etc/containers/systemd/cloudflared.container`: コンテナユニットファイル
-- `/etc/cloudflared/cloudflared.env`: 環境変数ファイル（トークン等）
-- `/home/cloudflared/`: cloudflaredユーザーのホームディレクトリ
-
-### セキュリティ
-
-- cloudflaredユーザーは`/sbin/nologin`シェルを持つシステムユーザー
-- 環境変数ファイルは`root:cloudflared`所有で`0640`権限
-- コンテナはrootlessで実行され、最小限の権限で動作
+- `cloudflared_memory_limit`: メモリ上限（デフォルト: `128Mi`）
+- `cloudflared_cpu_limit`: CPU上限（デフォルト: `100m`）
+- `cloudflared_memory_request`: メモリ要求（デフォルト: `64Mi`）
+- `cloudflared_cpu_request`: CPU要求（デフォルト: `50m`）
 
 ## 依存関係
 
-- このロールを適用する前に`podman_install`ロールが適用されている必要があります
+- 事前にk3sロールが適用されている必要があります
 
-## 使用例
+## プレイブックの例
 
 ```yaml
-- hosts: tunnel_hosts
-  become: true
+- hosts: k3s_nodes
   roles:
     - role: cloudflared
       vars:
-        cloudflared_tunnel_token: "your-tunnel-token-here"
+        cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
 ```
 
-## トラブルシューティング
+## 備考
 
-### サービスの状態確認
-```bash
-# サービスの状態を確認
-systemctl status cloudflared.service
-
-# ログを確認
-journalctl -u cloudflared.service -f
-
-# コンテナの状態を確認
-podman ps -a
-```
-
-### 手動でのコンテナ起動テスト
-```bash
-# cloudflaredユーザーとして実行
-sudo -u cloudflared podman run --rm \
-  --env-file=/etc/cloudflared/cloudflared.env \
-  docker.io/cloudflare/cloudflared:latest tunnel run
-```
-
-## ライセンス
-
-BSD
-
-## 作者情報
-
-ansible-homeプロジェクトの一部として作成
+- デプロイメントは最小権限で実行され、読み取り専用のルートファイルシステムを使用
+- コンテナは非rootユーザー（UID 65532）として実行
+- コンテナ内での自動更新は無効化

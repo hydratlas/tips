@@ -1,135 +1,99 @@
 ---
-- name: Check OS family
-  fail:
-    msg: "This role only supports RedHat and Debian OS families"
-  when: ansible_os_family not in ['RedHat', 'Debian']
+- name: Check if ufw command exists
+  command: which ufw
+  register: ufw_exists
+  failed_when: false
+  changed_when: false
 
-- name: Install required packages
-  package:
-    name: "{{ k3s_required_packages[ansible_os_family] }}"
-    state: present
+- name: Check ufw status
+  command: ufw status
+  register: ufw_status
+  when: ufw_exists.rc == 0
+  failed_when: false
+  changed_when: false
 
-- name: Create k3s group
-  group:
-    name: "{{ k3s_group }}"
-    system: yes
-  when: k3s_create_user
+- name: Disable ufw if it exists and is enabled
+  command: ufw disable
+  when: 
+    - ufw_exists.rc == 0
+    - ufw_status.stdout is defined
+    - "'inactive' not in ufw_status.stdout"
 
-- name: Create k3s user
-  user:
-    name: "{{ k3s_user }}"
-    group: "{{ k3s_group }}"
-    system: yes
-    shell: /bin/false
-    home: "{{ k3s_data_dir }}"
-    createhome: no
-  when: k3s_create_user
-
-- name: Create k3s directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  loop:
-    - "{{ k3s_config_dir }}"
-    - "{{ k3s_data_dir }}"
-    - "{{ k3s_log_dir }}"
-
-- name: Create k3s configuration file
-  template:
-    src: config.yaml.j2
-    dest: "{{ k3s_config_file }}"
-    mode: '0644'
-  notify: restart k3s
-
-- name: Include OS-specific tasks
-  include_tasks: "{{ ansible_os_family | lower }}.yml"
-
-- name: Check if k3s is installed
-  stat:
-    path: /usr/local/bin/k3s
-  register: k3s_binary
-
-- name: Install k3s using script method
-  when:
-    - k3s_install_method == "script"
-    - not k3s_binary.stat.exists
-  block:
-    - name: Download k3s install script
-      get_url:
-        url: "{{ k3s_install_script_url }}"
-        dest: /tmp/k3s-install.sh
-        mode: '0755'
-
-    - name: Set k3s install environment variables
-      set_fact:
-        k3s_install_env:
-          INSTALL_K3S_SKIP_START: "true"
-          INSTALL_K3S_SKIP_ENABLE: "true"
-          INSTALL_K3S_VERSION: "{{ k3s_version if k3s_version else omit }}"
-          K3S_TOKEN: "{{ k3s_token if k3s_token else omit }}"
-          K3S_URL: "{{ k3s_server_url if k3s_server_or_agent == 'agent' else omit }}"
-
-    - name: Install k3s
-      shell: /tmp/k3s-install.sh {{ k3s_server_or_agent }}
-      environment: "{{ k3s_install_env | select }}"
-      args:
-        creates: /usr/local/bin/k3s
-
-    - name: Remove install script
-      file:
-        path: /tmp/k3s-install.sh
-        state: absent
-
-- name: Ensure k3s service is configured
+- name: Check if firewalld is running
   systemd:
-    name: "{{ k3s_service_name }}"
-    enabled: "{{ k3s_service_enabled }}"
-    state: "{{ k3s_service_state }}"
-    daemon_reload: yes
+    name: firewalld.service
+  register: firewalld_status
+  failed_when: false
 
-- name: Wait for k3s to be ready
-  wait_for:
-    port: 6443
-    delay: 10
-    timeout: 300
-  when:
-    - k3s_server_or_agent == "server"
-    - k3s_service_state == "started"
+- name: Disable firewalld if running
+  systemd:
+    name: firewalld.service
+    state: stopped
+    enabled: no
+  when: firewalld_status.status.ActiveState is defined and firewalld_status.status.ActiveState == "active"
 
-- name: Get node token (server mode)
-  slurp:
-    src: /var/lib/rancher/k3s/server/node-token
-  register: node_token_content
-  when: k3s_server_or_agent == "server"
+- name: Check if k3s is already installed
+  systemd:
+    name: k3s.service
+  register: k3s_status
+  failed_when: false
 
-- name: Set node token fact
-  set_fact:
-    k3s_node_token: "{{ node_token_content.content | b64decode | trim }}"
-  when: k3s_server_or_agent == "server"
+- name: Check if wget exists
+  command: which wget
+  register: wget_exists
+  failed_when: false
+  changed_when: false
 
-- name: Configure kubectl for non-root users (server mode)
-  when: k3s_server_or_agent == "server"
+- name: Check if curl exists
+  command: which curl
+  register: curl_exists
+  failed_when: false
+  changed_when: false
+
+- name: Install wget if neither wget nor curl exists
   block:
-    - name: Create .kube directory for ansible user
-      file:
-        path: /home/{{ ansible_user }}/.kube
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0700'
+    - name: Check package manager
+      command: which {{ item }}
+      register: pkg_manager_check
+      failed_when: false
+      changed_when: false
+      loop:
+        - apt
+        - dnf
 
-    - name: Copy kubeconfig to ansible user
-      copy:
-        src: /etc/rancher/k3s/k3s.yaml
-        dest: /home/{{ ansible_user }}/.kube/config
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0600'
-        remote_src: yes
+    - name: Install wget using apt
+      apt:
+        name: wget
+        state: present
+        update_cache: yes
+      when: pkg_manager_check.results[0].rc == 0
 
-    - name: Update kubeconfig server address
-      replace:
-        path: /home/{{ ansible_user }}/.kube/config
-        regexp: 'https://127.0.0.1:6443'
-        replace: "https://{{ ansible_default_ipv4.address }}:6443"
+    - name: Install wget using dnf
+      dnf:
+        name: wget
+        state: present
+      when: pkg_manager_check.results[1].rc == 0
+  when: wget_exists.rc != 0 and curl_exists.rc != 0
+
+- name: Install k3s using wget
+  shell: wget -qO- https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+  when: 
+    - k3s_status.status.ActiveState is not defined or k3s_status.status.ActiveState != "active"
+    - wget_exists.rc == 0 or (wget_exists.rc != 0 and curl_exists.rc != 0)
+
+- name: Install k3s using curl
+  shell: curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+  when: 
+    - k3s_status.status.ActiveState is not defined or k3s_status.status.ActiveState != "active"
+    - wget_exists.rc != 0 and curl_exists.rc == 0
+
+- name: Ensure k3s service is started and enabled
+  systemd:
+    name: k3s.service
+    state: started
+    enabled: yes
+    daemon_reload: yes

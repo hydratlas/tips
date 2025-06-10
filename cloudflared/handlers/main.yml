@@ -1,15 +1,18 @@
 ---
-# Handlers for cloudflared role
+# Handlers for cloudflared role (k3s deployment)
 
-- name: restart cloudflared
-  ansible.builtin.systemd:
-    name: "{{ cloudflared_container_name }}.service"
-    state: restarted
-    daemon_reload: yes
-
-- name: reload systemd
-  ansible.builtin.systemd:
-    daemon_reload: yes
-
-- name: reload sysctl
-  ansible.builtin.command: sysctl --system
+- name: restart cloudflared deployment
+  kubernetes.core.k8s:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ cloudflared_deployment_name }}"
+    namespace: "{{ cloudflared_namespace }}"
+    state: present
+    definition:
+      spec:
+        template:
+          metadata:
+            annotations:
+              kubectl.kubernetes.io/restartedAt: "{{ now(utc=True).isoformat() }}"
+  delegate_to: "{{ groups['k3s_masters'][0] }}"
+  run_once: true

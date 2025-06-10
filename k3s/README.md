@@ -1,135 +1,82 @@
 # k3s
 
-Install and configure k3s (Lightweight Kubernetes) on RHEL and Debian-based systems.
+k3s（軽量Kubernetes）をシンプルな方法でインストールします。
 
-## Requirements
+## 概要
 
-- Supported OS families: RedHat (RHEL, CentOS, Rocky, AlmaLinux) and Debian (Debian, Ubuntu)
-- Root or sudo access
-- Internet connectivity for downloading k3s installer
+このロールは、k3sの公式インストールスクリプトを使用してk3sをインストールします。インストール前にファイアウォール（ufwおよびfirewalld）を無効化し、k3sが正常に動作するように環境を準備します。
 
-## Role Variables
+## 実行される処理
 
-```yaml
-# Installation method
-k3s_install_method: "script"  # Options: script, binary
+1. **ufw無効化**: ufwが存在して有効である場合、無効化します
+2. **firewalld無効化**: firewalldが実行中の場合、停止して無効化します
+3. **ダウンロードツールの確認**: 
+   - wgetが存在する場合はwgetを使用
+   - wgetが存在せずcurlが存在する場合はcurlを使用
+   - どちらも存在しない場合はwgetをインストール（apt/dnf対応）
+4. **k3sインストール**: 公式スクリプトを使用してk3sをインストールします
+5. **サービス管理**: k3sサービスを開始し、自動起動を有効化します
 
-# k3s version (leave empty for latest)
-k3s_version: ""
+## 要件
 
-# Server or agent mode
-k3s_server_or_agent: "server"  # Options: server, agent
+- インターネット接続（k3sインストールスクリプトのダウンロードに必要）
+- rootまたはsudo権限
 
-# k3s server URL (required for agent mode)
-k3s_server_url: ""
+## ロール変数
 
-# k3s token (required for agent mode, auto-generated for server)
-k3s_token: ""
+このシンプル化されたバージョンでは、設定可能な変数はありません。
 
-# Additional k3s install options
-k3s_install_options: ""
+## 依存関係
 
-# k3s service name
-k3s_service_name: "k3s"
+なし
 
-# Enable k3s service
-k3s_service_enabled: true
-
-# Start k3s service
-k3s_service_state: "started"
-
-# k3s configuration
-k3s_config:
-  write-kubeconfig-mode: "0644"
-  disable:
-    - traefik
-    - servicelb
-
-# SELinux configuration (RHEL only)
-k3s_selinux_enabled: true
-
-# Firewall configuration
-k3s_manage_firewall: true
-k3s_firewall_ports:
-  - port: 6443
-    proto: tcp
-    comment: "Kubernetes API Server"
-  - port: 10250
-    proto: tcp
-    comment: "Kubelet metrics"
-  - port: 10251
-    proto: tcp
-    comment: "kube-scheduler"
-  - port: 10252
-    proto: tcp
-    comment: "kube-controller"
-  - port: 8472
-    proto: udp
-    comment: "Flannel VXLAN"
-```
-
-## Dependencies
-
-None
-
-## Example Playbook
-
-### Single server installation
+## プレイブックの例
 
 ```yaml
-- hosts: k3s_server
+- hosts: k3s_servers
   become: yes
   roles:
     - role: k3s
-      vars:
-        k3s_server_or_agent: server
 ```
 
-### Multi-node cluster
+## 技術的な詳細
 
-```yaml
-# Install server first
-- hosts: k3s_server
-  become: yes
-  roles:
-    - role: k3s
-      vars:
-        k3s_server_or_agent: server
+インストールは以下のコマンドと同等の処理を実行します：
 
-# Then install agents
-- hosts: k3s_agents
-  become: yes
-  roles:
-    - role: k3s
-      vars:
-        k3s_server_or_agent: agent
-        k3s_server_url: "https://{{ hostvars['k3s_server']['ansible_default_ipv4']['address'] }}:6443"
-        k3s_token: "{{ hostvars['k3s_server']['k3s_node_token'] }}"
+```bash
+# ufwが存在して有効である場合は無効化
+which ufw && ufw status | grep -qv inactive && ufw disable
+
+# firewalldが実行中の場合は無効化
+systemctl status firewalld.service && systemctl disable --now firewalld.service
+
+# ダウンロードツールの確認とインストール
+if which wget >/dev/null 2>&1; then
+    # wgetが存在する場合
+    wget -qO- https://get.k3s.io | sh -
+elif which curl >/dev/null 2>&1; then
+    # curlが存在する場合
+    curl -sfL https://get.k3s.io | sh -
+else
+    # どちらも存在しない場合はwgetをインストール
+    if which apt >/dev/null 2>&1; then
+        apt update && apt install -y wget
+    elif which dnf >/dev/null 2>&1; then
+        dnf install -y wget
+    fi
+    wget -qO- https://get.k3s.io | sh -
+fi
 ```
 
-### Custom configuration
+## 注意事項
 
-```yaml
-- hosts: k3s_nodes
-  become: yes
-  roles:
-    - role: k3s
-      vars:
-        k3s_version: "v1.28.4+k3s1"
-        k3s_config:
-          write-kubeconfig-mode: "0600"
-          disable:
-            - traefik
-            - servicelb
-            - metrics-server
-          cluster-cidr: "10.42.0.0/16"
-          service-cidr: "10.43.0.0/16"
-```
+- このロールはファイアウォールを無効化するため、セキュリティを考慮した環境では適切なファイアウォール設定を別途行う必要があります
+- k3sのデフォルト設定でインストールされるため、カスタマイズが必要な場合は手動で設定ファイルを編集する必要があります
 
-## License
+## ライセンス
 
 BSD
 
-## Author Information
+## 作成者情報
 
-Created for home infrastructure automation
+ホームインフラストラクチャ自動化のために作成されました
