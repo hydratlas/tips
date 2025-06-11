@@ -179,3 +179,30 @@ msgwindow_visible=false
 replace_regexp=true
 EOF
 ```
+
+## tesseractをインストール（管理者）
+```sh
+sudo apt-get install -y ocrmypdf tesseract-ocr &&
+TESSDATA_DIR="/usr/share/tesseract-ocr/5/tessdata" &&
+sudo wget -4 -P "$TESSDATA_DIR" "https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/jpn.traineddata" &&
+sudo wget -4 -P "$TESSDATA_DIR" "https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/jpn_vert.traineddata" &&
+tesseract --list-langs | grep jpn
+```
+
+```sh
+INPUT="" &&
+OUTPUT=""
+ocrmypdf -l jpn_vert "$INPUT" "$OUTPUT"
+
+find . -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tiff" -o -iname "*.tif" \) -print0 | xargs -0 -P 16 -I {} tesseract -l jpn {} {}
+
+find . -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.tiff" -o -iname "*.tif" \) -print0 | xargs -0 -P 16 -I {} tesseract -l jpn_vert {} {}
+
+tesseract image.png output -l jpn
+tesseract image.png output -l jpn_vert
+```
+
+```sh
+sudo snap install tesseract &&
+sudo snap remove tesseract
+```

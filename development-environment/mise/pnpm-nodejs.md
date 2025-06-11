@@ -11,18 +11,18 @@ pnpmはNode.jsがないと動かないためNode.jsも入れている。
 ### シェル補完のインストール（bashの場合）
 ```sh
 mkdir -p ~/.local/share/bash-completion/completions &&
-tee ~/.local/share/bash-completion/completions/mise-pnpm << EOS > /dev/null &&
+tee ~/.local/share/bash-completion/completions/pnpm << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which pnpm 2>/dev/null; then
   eval "\$(pnpm completion bash)"
 fi
 EOS
-. ~/.local/share/bash-completion/completions/mise-pnpm
+. ~/.local/share/bash-completion/completions/pnpm
 ```
 
 ### シェル補完のアンインストール（bashの場合）
 ```sh
-if [ -e ~/.local/share/bash-completion/completions/mise-pnpm ]; then
-  rm ~/.local/share/bash-completion/completions/mise-pnpm
+if [ -e ~/.local/share/bash-completion/completions/pnpm ]; then
+  rm ~/.local/share/bash-completion/completions/pnpm
 fi
 ```
 
