@@ -61,6 +61,12 @@ Cloudflare Tunnel (cloudflared) をk3s上のコンテナとしてデプロイす
         cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
 ```
 
+## 起動の確認
+```sh
+sudo /usr/local/bin/kubectl describe pods -n cloudflared
+```
+RHEL系ではsudoのsecure_path設定により、`/usr/local/bin`にパスが通っていないためフルパスで実行している。
+
 ## 備考
 
 - デプロイメントは最小権限で実行され、読み取り専用のルートファイルシステムを使用
