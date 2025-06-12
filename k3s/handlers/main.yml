@@ -1,6 +1,0 @@
----
-- name: restart k3s
-  systemd:
-    name: k3s.service
-    state: restarted
-    daemon_reload: yes

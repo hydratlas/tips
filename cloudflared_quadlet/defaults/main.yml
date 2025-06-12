@@ -1,4 +1,7 @@
 ---
+# Cloudflared user configuration
+cloudflared_user: cloudflared
+
 # Configuration directory
 cloudflared_config_dir: /etc/cloudflared
 

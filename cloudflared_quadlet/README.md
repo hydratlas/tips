@@ -9,7 +9,7 @@
 - 包括的なセキュリティ強化の実装：
   - 読み取り専用のルートファイルシステム
   - CAP_NET_RAWを除くすべてのLinuxケーパビリティを削除
-  - コンテナ内部でcloudflared:cloudflaredユーザーとして実行
+  - 専用のシステムユーザーとして実行（デフォルト: cloudflared）
   - 権限昇格の防止
   - ユーザー名前空間の使用
 - systemdサービスの自動管理
@@ -31,6 +31,12 @@ cloudflared_token: "your-tunnel-token"  # Cloudflare Tunnelトークン
 ### オプション変数
 
 ```yaml
+# Cloudflaredユーザー名
+cloudflared_user: cloudflared  # デフォルト: cloudflared
+
+# 設定ディレクトリ
+cloudflared_config_dir: /etc/cloudflared  # デフォルト: /etc/cloudflared
+
 # コンテナイメージ
 cloudflared_image: docker.io/cloudflare/cloudflared:latest
 ```
@@ -64,7 +70,7 @@ Quadletコンテナファイルには以下のセキュリティオプション�
 - **NoNewPrivileges=true**: 権限昇格を防止
 - **DropCapability=all**: すべてのLinuxケーパビリティを削除
 - **AddCapability=CAP_NET_RAW**: rawソケット操作のためのケーパビリティのみ追加
-- **User=nobody / Group=nobody**: コンテナ内部で非特権ユーザーとして実行
+- **User / Group**: 専用のシステムユーザーとして実行（設定可能、デフォルト: cloudflared）
 - **UserNS=auto**: 追加の分離のためにユーザー名前空間を使用
 
 ## 環境変数

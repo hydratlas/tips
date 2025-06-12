@@ -9,16 +9,19 @@ Exec=tunnel run
 EnvironmentFile={{ cloudflared_config_dir }}/cloudflared.env
 Network=host
 
+# Write the container ID to a file for process tracking and management
+PodmanArgs=--cidfile=/var/lib/{{ cloudflared_user }}/cloudflared.cid
+
 # Security options
 ReadOnly=true
 NoNewPrivileges=true
 DropCapability=all
 AddCapability=CAP_NET_RAW
-User=cloudflared
-Group=cloudflared
 UserNS=auto
 
 [Service]
+User={{ cloudflared_user }}
+Group={{ cloudflared_user }}
 Restart=always
 
 [Install]
