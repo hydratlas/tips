@@ -1,6 +1,0 @@
----
-- name: restart cloudflared
-  ansible.builtin.systemd:
-    name: cloudflared.service
-    state: restarted
-    daemon_reload: true

@@ -7,3 +7,4 @@
     fi
   changed_when: false
   when: wait_cloud_init_enabled | default(true)
+ 
