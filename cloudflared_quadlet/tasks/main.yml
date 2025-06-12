@@ -1,0 +1,46 @@
+---
+- name: Create cloudflared user
+  ansible.builtin.user:
+    name: cloudflared
+    system: true
+    shell: /sbin/nologin
+    home: /var/lib/cloudflared
+    comment: Cloudflare Tunnel user
+    create_home: false
+    state: present
+- name: Create cloudflared home directory
+  ansible.builtin.file:
+    path: /var/lib/cloudflared
+    state: directory
+    owner: cloudflared
+    group: cloudflared
+    mode: "0755"
+
+- name: Create cloudflared directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/containers/systemd
+    - "{{ cloudflared_config_dir }}"
+
+- name: Create cloudflared environment file
+  ansible.builtin.template:
+    src: cloudflared.env.j2
+    dest: "{{ cloudflared_config_dir }}/cloudflared.env"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: restart cloudflared
+
+- name: Create Podman Quadlet container file
+  ansible.builtin.template:
+    src: cloudflared.container.j2
+    dest: /etc/containers/systemd/cloudflared.container
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart cloudflared

@@ -1,5 +1,5 @@
 ---
-# Tasks for podman_install role
+# Tasks for podman-docker role
 
 - name: Install podman-docker compatibility package on Debian-based systems
   ansible.builtin.apt:

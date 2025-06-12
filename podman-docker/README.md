@@ -1,4 +1,4 @@
-# podman-docker_install
+# podman-docker
 
 podman-docker互換性パッケージのインストールと設定を行うロール
 
@@ -9,7 +9,7 @@ podman-docker互換性パッケージのインストールと設定を行うロ�
 ## 要件
 
 - rootまたはsudo権限
-- Podmanが事前にインストールされていること（`podman_install`ロールを先に実行）
+- Podmanが事前にインストールされていること（`podman`ロールを先に実行）
 - サポートされるOS：RHEL/CentOS/Fedora、Debian/Ubuntu
 - プレイブックレベルで`become: true`の指定が必要
 
@@ -19,7 +19,7 @@ podman-docker互換性パッケージのインストールと設定を行うロ�
 
 ## 依存関係
 
-- `podman_install`ロールが事前に適用されている必要があります
+- `podman`ロールが事前に適用されている必要があります
 
 ## 使用例
 
@@ -27,8 +27,8 @@ podman-docker互換性パッケージのインストールと設定を行うロ�
 - hosts: container_hosts
   become: true
   roles:
-    - podman_install
-    - podman-docker_install
+    - podman
+    - podman-docker
 ```
 
 ## 設定内容

@@ -1,0 +1,25 @@
+[Unit]
+Description=Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image={{ cloudflared_image }}
+Exec=tunnel run
+EnvironmentFile={{ cloudflared_config_dir }}/cloudflared.env
+Network=host
+
+# Security options
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=all
+AddCapability=CAP_NET_RAW
+User=cloudflared
+Group=cloudflared
+UserNS=auto
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

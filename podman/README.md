@@ -1,4 +1,4 @@
-# podman_install
+# podman
 
 Podmanコンテナランタイムインストールロール
 
@@ -22,7 +22,7 @@ Podmanコンテナランタイムインストールロール
 - hosts: container_hosts
   become: true
   roles:
-    - podman_install
+    - podman
 ```
 
 ## 設定内容

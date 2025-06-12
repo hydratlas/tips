@@ -1,0 +1,9 @@
+---
+# Configuration directory
+cloudflared_config_dir: /etc/cloudflared
+
+# Container image
+cloudflared_image: docker.io/cloudflare/cloudflared:latest
+
+# Tunnel token (required)
+cloudflared_token: ""  # Required: Your tunnel token
