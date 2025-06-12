@@ -11,7 +11,7 @@ sudo update-grub
 ## 各種アプリをインストール（管理者）
 ```sh
 sudo apt install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk git gpg libreoffice libreoffice-l10n-ja &&
-sudo snap install chromium gimp discord &&
+sudo snap install chromium gimp discord slack &&
 sudo snap install codium --classic
 ```
 
