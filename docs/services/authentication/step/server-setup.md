@@ -5,7 +5,7 @@ step-ca本体で`step ca init`コマンド実行時に自動的にルートCA証
 
 ## ルートCA証明書の作成
 ### 変数の準備
-```sh
+```bash
 sudo install -D -m 755 -o "root" -g "root" /dev/stdin "/opt/root-ca/root-ca.env" << EOS > /dev/null
 root_ca_user_name="root-ca"
 root_ca_dir="/opt/root-ca"
@@ -13,7 +13,7 @@ EOS
 ```
 
 ### ユーザーおよびディレクトリーの作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 if ! id "${root_ca_user_name}" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${root_ca_user_name}"
@@ -22,7 +22,7 @@ sudo install -o "root" -g "${root_ca_user_name}" -m 775 -d "${root_ca_dir}/root"
 ```
 
 ### 秘密鍵の作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 OUT_FILEPATH="${root_ca_dir}/root/root_ca_key" &&
 sudo -u "${root_ca_user_name}" openssl genpkey -algorithm ED25519 -out "${OUT_FILEPATH}" &&
@@ -31,13 +31,13 @@ sudo chown "root:${root_ca_user_name}" "${OUT_FILEPATH}"
 ```
 
 ### 【デバッグ】秘密鍵の確認
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 sudo -u "${root_ca_user_name}" cat "${root_ca_dir}/root/root_ca_key"
 ```
 
 ### 設定ファイルの作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 sudo install -m 644 -o "root" -g "${root_ca_user_name}" /dev/stdin "${root_ca_dir}/root/openssl.cnf" << EOS > /dev/null
 [ req ]
@@ -54,7 +54,7 @@ EOS
 ```
 
 ### 証明書の作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 OUT_FILEPATH="${root_ca_dir}/root/root_ca.crt" &&
 sudo -u "${root_ca_user_name}" openssl req -x509 -new \
@@ -70,18 +70,18 @@ sudo update-ca-certificates
 ```
 
 ### 【デバッグ】証明書の確認
-```sh
+```bash
 openssl x509 -text -noout -in "/usr/local/share/ca-certificates/root_ca.crt"
 ```
 
 ### 【デバッグ】証明書の表示
-```sh
+```bash
 cat "/usr/local/share/ca-certificates/root_ca.crt"
 ```
 
 ### 【オプション】ほかのプライベート認証局サーバーのルート証明書の追加
 #### 証明書ファイルの作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 OUT_FILEPATH="${root_ca_dir}/federated-roots/peer_root_ca.crt" &&
 sudo -u "${root_ca_user_name}" touch "${OUT_FILEPATH}" &&
@@ -90,25 +90,25 @@ sudo chown "root:${root_ca_user_name}" "${OUT_FILEPATH}"
 ```
 
 #### 証明書ファイルの編集
-```sh
+```bash
 sudo nano "${OUT_FILEPATH}"
 ```
 ほかのサーバーで`cat /opt/root-ca/root/root_ca.crt`コマンドを実行し表示された内容を入力する。
 
 #### 【デバッグ】証明書ファイルの確認
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 openssl x509 -text -noout -in "${root_ca_dir}/federated-roots/peer_root_ca.crt"
 ```
 
 #### 【デバッグ】証明書ファイルの表示
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 cat "${root_ca_dir}/federated-roots/peer_root_ca.crt"
 ```
 
 ### 【元に戻す】削除
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 sudo rm -dr "${root_ca_dir}" &&
 sudo userdel "${root_ca_user_name}"
@@ -116,7 +116,7 @@ sudo userdel "${root_ca_user_name}"
 
 ## step-caのインストール
 ### 変数の準備
-```sh
+```bash
 sudo install -D -m 755 -o "root" -g "root" /dev/stdin "/opt/step-ca/step-ca.env" << EOS > /dev/null
 step_ca_user_name="step-ca"
 step_ca_dir="/opt/step-ca"
@@ -128,7 +128,7 @@ EOS
 ```
 
 ### ユーザーおよびディレクトリーの作成
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 if ! id "${step_ca_user_name}" &>/dev/null; then
@@ -148,7 +148,7 @@ sudo chown "${step_ca_user_name}:${step_ca_user_name}" "${OUT_FILEPATH}"
 ```
 
 ### インストール
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 sudo chown "root:${step_ca_user_name}" "${root_ca_dir}/root/root_ca_key" &&
@@ -175,7 +175,7 @@ sudo chown "root:${root_ca_user_name}" "${root_ca_dir}/root/root_ca_key"
 ```
 
 ### 【オプション】ほかのプライベート認証局サーバーのルート証明書の追加
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 if [ -f "${root_ca_dir}/federated-roots/peer_root_ca.crt" ]; then
@@ -192,7 +192,7 @@ fi
 - [Step v0.8.3: Federation and Root Rotation for step Certificates](https://smallstep.com/blog/step-v0.8.3-federation-root-rotation/)
 
 ### SSH用にX5Cプロビジョナーの追加
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo find "${step_ca_dir}/certs" -type f -name "*root_ca*.crt" -exec cat {} + | \
   sudo tee "${step_ca_dir}/certs/federation.crt" > /dev/null &&
@@ -209,7 +209,7 @@ sudo podman run \
 
 ### 【デバッグ】状態の確認
 #### ファイルリスト
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 cd / &&
 sudo -u "${step_ca_user_name}" find "${step_ca_dir}" -exec ls -ld {} +
@@ -217,33 +217,33 @@ sudo -u "${step_ca_user_name}" find "${step_ca_dir}" -exec ls -ld {} +
 `find`コマンドは、カレントディレクトリーに実行権限がないと、カレントディレクトリーに対して「Permission denied」エラーとなるため、カレントディレクトリーを`/`にしている。
 
 #### 設定
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo -u "${step_ca_user_name}" cat "${step_ca_dir}/config/ca.json" &&
 sudo -u "${step_ca_user_name}" cat "${step_ca_dir}/config/defaults.json"
 ```
 
 #### 秘密鍵
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo -u "${step_ca_user_name}" cat "${step_ca_dir}/secrets/intermediate_ca_key"
 ```
 
 #### 証明書
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo -u "${step_ca_user_name}" openssl x509 -text -noout -in "${step_ca_dir}/certs/root_ca.crt" &&
 sudo -u "${step_ca_user_name}" openssl x509 -text -noout -in "${step_ca_dir}/certs/intermediate_ca.crt"
 ```
 
 #### SSHホスト秘密鍵
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo -u "${step_ca_user_name}" cat "${step_ca_dir}/secrets/ssh_host_ca_key"
 ```
 
 ### 【元に戻す】削除
-```sh
+```bash
 source "/opt/step-ca/step-ca.env" &&
 sudo rm -dr "${step_ca_dir}" &&
 sudo userdel "${step_ca_user_name}"
@@ -251,7 +251,7 @@ sudo userdel "${step_ca_user_name}"
 
 ### SSH用のルートCAキーおよび証明書の退避
 step-caを簡単に再インストールできるように、SSH用のルートCAキーおよび証明書を退避させておく。
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 sudo install -m 644 -o "root" -g "${root_ca_user_name}" "${step_ca_dir}/certs/ssh_host_ca_key.pub" "${root_ca_dir}/ssh/ssh_host_ca_key.pub" &&
@@ -263,7 +263,7 @@ sudo ls -la "${root_ca_dir}/ssh"
 
 ### 【オプション】退避させたSSH用のルートCAキーおよび証明書の書き戻し
 退避させておいたSSH用のルートCAキーおよび証明書を、書き戻す。
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 sudo -u "${step_ca_user_name}" install -m 600 "${root_ca_dir}/ssh/ssh_host_ca_key.pub" "${step_ca_dir}/certs/ssh_host_ca_key.pub" &&
@@ -276,7 +276,7 @@ sudo -u "${step_ca_user_name}" ls -la "${step_ca_dir}/secrets"
 
 ### サービス化
 #### サービスの作成・起動
-```sh
+```bash
 source "/opt/root-ca/root-ca.env" &&
 sudo tee "/etc/containers/systemd/step-ca.container" << EOS > /dev/null &&
 [Container]
@@ -302,17 +302,17 @@ sudo systemctl status --no-pager --full step-ca.service
 ```
 
 #### 【デバッグ】ログの確認
-```sh
+```bash
 journalctl --no-pager --lines=20 --unit=step-ca.service
 ```
 
 #### 【デバッグ】再起動
-```sh
+```bash
 sudo systemctl restart step-ca.service
 ```
 
 ### 【元に戻す】停止・削除
-```sh
+```bash
 sudo systemctl stop step-ca.service &&
 sudo rm /etc/containers/systemd/step-ca.container &&
 sudo systemctl daemon-reload
@@ -320,27 +320,27 @@ sudo systemctl daemon-reload
 
 ### 【デバッグ】さまざまな確認
 #### HTTPSの確認
-```sh
+```bash
 wget -O - https://localhost:8443/health
 ```
 
 #### プロビジョナーの確認
-```sh
+```bash
 wget -O - https://localhost:8443/provisioners
 ```
 
 ### step-cli（クライアント）で使うルートCA証明書のフィンガープリントを表示
-```sh
+```bash
 openssl x509 -noout -fingerprint -sha256 -in "/usr/local/share/ca-certificates/root_ca.crt" | cut -d '=' -f 2 | tr -d ':'
 ```
 
 ### step-cli（クライアント）でSSHホストキーを署名した際に、SSHクライアントで使うSSH認証局の公開鍵を表示
-```sh
+```bash
 sudo cat /opt/step-ca/certs/ssh_host_ca_key.pub
 ```
 
 以下のように使用する。
-```sh
+```bash
 tee -a "$HOME/.ssh/known_hosts" << EOS > /dev/null
 @cert-authority * ecdsa-sha2-nistp256 AAAA
 @cert-authority * ecdsa-sha2-nistp256 AAAA

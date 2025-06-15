@@ -17,7 +17,7 @@ Node Exporter + VictoriaMetrics (Single version) + Grafanaという構成で、�
 1台のマシンにインストールする。Podman Quadletを使用しているため、Podman 4.6以上のインストールが必要で、Podman 4.6以上であることを満たすためにUbuntu LTSであれば24.04以上が必要である。
 
 まず、ネットワークを作成し、次に各コンテナをインストールする。
-```sh
+```bash
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/monitoring.network << EOS > /dev/null
 [Unit]

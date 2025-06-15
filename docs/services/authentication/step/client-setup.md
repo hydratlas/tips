@@ -1,6 +1,6 @@
 # step-cli（クライアント）
 ## 変数の準備
-```sh
+```bash
 sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.env" << EOS > /dev/null
 fingerprints=("abc" "abc")
 hostnames=("ca-01.home.arpa" "ca-02.home.arpa")
@@ -25,14 +25,14 @@ EOS
 [`step` CLI Install step](https://smallstep.com/docs/step-cli/installation/)
 
 ### Debian系
-```sh
+```bash
 wget "https://dl.smallstep.com/cli/docs-cli-install/latest/step-cli_amd64.deb" &&
 sudo dpkg -i step-cli_amd64.deb &&
 rm step-cli_amd64.deb
 ```
 
 ### Red Hat系
-```sh
+```bash
 curl -O -L "https://dl.smallstep.com/cli/docs-cli-install/latest/step-cli_amd64.rpm" &&
 sudo rpm -i step-cli_amd64.rpm &&
 rm step-cli_amd64.rpm
@@ -44,7 +44,7 @@ rm step-cli_amd64.rpm
 
 ## ルートCA証明書の取得
 ### 取得
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
@@ -70,7 +70,7 @@ sudo "${ca_certificates_cmd}"
 ```
 
 ### 【デバッグ】取得した証明書の概要の表示
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
@@ -81,7 +81,7 @@ openssl crl2pkcs7 -nocrl -certfile "${ca_certificates_dir}/${federation_crt_file
 ```
 
 ### 【デバッグ】HTTPS通信の確認
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
@@ -97,7 +97,7 @@ done
 
 ## サーバー証明書の作成（複数ドメイン対応）
 ### 作成
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
 length=${#hostnames[@]} &&
@@ -122,19 +122,19 @@ done
 `.vip.`を含むものは除外している（仮想IPアドレスに対応するドメインにはサブドメインとして「vip」を含むようにすることを想定）。
 
 ### 【デバッグ】証明書の概要の確認
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 openssl x509 -text -noout -in "${crt_dir}/$(hostname).crt"
 ```
 
 ### 【デバッグ】証明書のチェーンの確認
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 openssl crl2pkcs7 -nocrl -certfile "${crt_dir}/$(hostname).crt" | openssl pkcs7 -print_certs -noout
 ```
 
 ## 署名されたSSHホストキーの生成とSSHサーバーの設定
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 sudo mkdir -p "/etc/ssh" "/etc/ssh/sshd_config.d" &&
 hosts=($(hostname -A | tr ' ' '\n' | grep -Ff <(grep '^search' /etc/resolv.conf | awk '{$1=""; print $0}' | sed 's/^ *//' | tr -s ' ' | tr ' ' '\n') | grep -Fv ".vip.")) &&
@@ -176,22 +176,22 @@ fi
 `step ssh certificate`コマンドの`--root`オプションには単一の証明書しか設定できない。
 
 ## 【デバッグ】SSHホストキーの確認
-```sh
+```bash
 find /etc/ssh -iname "*-cert.pub" -exec ssh-keygen -L -f "{}" \;
 ```
 
 ## 【デバッグ】SSHサーバーの設定の確認
-```sh
+```bash
 sudo sshd -T 
 ```
 
 ## 【デバッグ】SSHサーバーのログの確認
-```sh
+```bash
 journalctl --no-pager --lines=20 --unit=ssh.service
 ```
 
 ## 証明書の更新
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 length=${#hostnames[@]} &&
 for ((i=0; i<length; i++)); do
@@ -213,7 +213,7 @@ done
 
 ## ルートCA証明書およびサーバー証明書の更新のサービス化
 ### スクリプトファイルの作成
-```sh
+```bash
 sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/bin/step-cli-renew" << 'EOS' > /dev/null
 #!/bin/bash
 source /usr/local/etc/step-cli.env
@@ -308,7 +308,7 @@ EOS
 ```
 
 ### 【オプション】nginx用のスクリプト（例）
-```sh
+```bash
 sudo mkdir -p "/usr/local/etc/step-cli.d" &&
 sudo install -m 755 -o "root" -g "root" /dev/stdin "/usr/local/etc/step-cli.d/nginx" << EOS > /dev/null
 #!/bin/bash
@@ -318,13 +318,13 @@ EOS
 ```
 
 ### スクリプトファイルの動作確認
-```sh
+```bash
 sudo bash /usr/local/bin/step-cli-renew
 sudo bash -x /usr/local/bin/step-cli-renew
 ```
 
 ### サービスおよびタイマーファイルの作成
-```sh
+```bash
 source /usr/local/etc/step-cli.env &&
 sudo tee "/etc/systemd/system/step-cli-renew.service" << EOS > /dev/null &&
 [Unit]
@@ -358,13 +358,13 @@ sudo systemctl status --no-pager --full step-cli-renew.timer
 ```
 
 ## 【デバッグ】サーバー証明書の更新のサービスのログを確認
-```sh
+```bash
 journalctl --no-pager --lines=20 --unit=step-cli-renew.service
 journalctl --no-pager --lines=20 --unit=step-cli-renew.timer
 ```
 
 ## 【元に戻す】サーバー証明書の更新のサービス化
-```sh
+```bash
 sudo systemctl disable --now step-cli-renew.timer &&
 sudo rm "/etc/systemd/system/step-cli-renew.timer" &&
 sudo rm "/etc/systemd/system/step-cli-renew.service" &&

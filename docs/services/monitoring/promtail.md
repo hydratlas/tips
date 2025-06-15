@@ -1,7 +1,7 @@
 # Promtail
 ## リポジトリーの設定
 ### Debian系
-```sh
+```bash
 sudo apt-get install -U -y gpg &&
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null &&
 sudo tee "/etc/apt/sources.list.d/grafana.sources" > /dev/null << EOF
@@ -15,7 +15,7 @@ EOF
 
 ## インストール
 `loki_hostname`の値は適宜書き換えること。`localhost`は、localhostにLokiがあるという設定である。
-```sh
+```bash
 loki_hostname="localhost" &&
 sudo apt-get install -U -y promtail &&
 sudo tee "/etc/promtail/config.yml" > /dev/null << EOF &&
@@ -46,23 +46,23 @@ sudo systemctl restart promtail.service
 - [Welcome to Grafana Labs's package repository](https://apt.grafana.com/)
 
 ## 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full promtail.service
 journalctl --no-pager --lines=20 --unit=promtail
 ```
 
 ## テスト実行
-```sh
+```bash
 sudo -u promtail promtail -config.file /etc/promtail/config.yml -dry-run
 ```
 
 ## 【デバッグ用】再起動
-```sh
+```bash
 sudo systemctl restart promtail.service
 ```
 
 ## 【デバッグ用】停止・削除
-```sh
+```bash
 sudo systemctl disable --now promtail.service &&
 sudo apt-get purge -y promtail &&
 sudo rm /tmp/positions.yaml

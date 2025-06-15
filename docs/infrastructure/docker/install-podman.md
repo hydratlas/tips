@@ -2,13 +2,13 @@
 ## Podmanのインストール
 ### パッケージをインストール・確認
 #### 最小限
-```sh
+```bash
 sudo apt-get install -y podman &&
 podman version
 ```
 
 #### 【オプション】Dockerとの互換性を高める
-```sh
+```bash
 sudo apt-get install --no-install-recommends -y podman-docker &&
 sudo perl -pi -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g' /etc/containers/registries.conf &&
 sudo touch /etc/containers/nodocker &&
@@ -16,7 +16,7 @@ docker version
 ```
 
 #### 【オプション】非rootユーザーのコンテナがping実行可能にする
-```sh
+```bash
 sudo tee /etc/sysctl.d/99-ping-group-range.conf << EOS > /dev/null &&
 net.ipv4.ping_group_range=0 2147483647
 EOS
@@ -25,13 +25,13 @@ sysctl net.ipv4.ping_group_range
 ```
 
 ### テスト実行
-```sh
+```bash
 podman run docker.io/hello-world:latest
 ```
 
 ### ZFSおよびLXC上の場合の追加設定
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。`~/.config/containers/storage.conf`に個別設定がなければ、自動的に`/etc/containers/storage.conf`が使用される。
-```sh
+```bash
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
 #!/bin/sh
 exec /bin/mount -t overlay overlay "\$@"
@@ -53,7 +53,7 @@ EOS
 ```
 
 再起動して反映させる。
-```sh
+```bash
 reboot
 ```
 - [storage.conf mishandling with zfs storage driver · Issue #20324 · containers/podman](https://github.com/containers/podman/issues/20324)
@@ -64,7 +64,7 @@ reboot
 Docker Composeを使わない場合には必要ない。
 
 ### バイナリーをインストール・確認
-```sh
+```bash
 sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 sudo chmod a+x /usr/local/bin/docker-compose &&
 docker-compose --version
@@ -72,7 +72,7 @@ docker-compose --version
 実際に使う前に、ソケットを有効化しておく必要がある。
 
 ### 【元に戻す】アンインストール
-```sh
+```bash
 sudo rm /usr/local/bin/docker-compose
 ```
 
@@ -81,7 +81,7 @@ sudo rm /usr/local/bin/docker-compose
 
 ### rootユーザー用
 #### 有効化
-```sh
+```bash
 sudo systemctl enable --now podman.socket &&
 if [ ! -e /var/run/docker.sock ]; then
   sudo ln -s /run/podman/podman.sock /var/run/docker.sock
@@ -89,7 +89,7 @@ fi
 ```
 
 #### 【元に戻す】無効化
-```sh
+```bash
 sudo systemctl disable --now podman.socket &&
 sudo rm /run/podman/podman.sock &&
 sudo unlink /var/run/docker.sock
@@ -97,7 +97,7 @@ sudo unlink /var/run/docker.sock
 
 ### 非rootユーザー用
 #### 有効化
-```sh
+```bash
 systemctl --user enable --now podman.socket &&
 TARGET_FILE="$HOME/.bashrc" &&
 START_MARKER="# BEGIN Podman BLOCK" &&
@@ -115,7 +115,7 @@ fi &&
 ```
 
 #### 【元に戻す】無効化
-```sh
+```bash
 systemctl --user disable --now podman.socket &&
 rm "$XDG_RUNTIME_DIR/podman/podman.sock" &&
 TARGET_FILE="$HOME/.bashrc" &&
@@ -138,22 +138,22 @@ export DOCKER_HOST=""
 
 ### テストとエラーの表示
 #### rootのサービス
-```sh
+```bash
 sudo /usr/libexec/podman/quadlet -dryrun
 ```
 
 #### 非rootのサービス
-```sh
+```bash
 /usr/libexec/podman/quadlet -dryrun
 ```
 
 ## 実行中のコンテナを表示
 ### rootユーザーで実行中
-```sh
+```bash
 sudo podman ps
 ```
 
 ### 現在のユーザーで実行中
-```sh
+```bash
 podman ps
 ```

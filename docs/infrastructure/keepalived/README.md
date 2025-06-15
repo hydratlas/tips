@@ -1,5 +1,5 @@
 # Keepalived
-```sh
+```bash
 setup_keepalived () {
     set -eux
     local JSON="${1}"

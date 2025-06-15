@@ -15,7 +15,7 @@ UEFIブートの必要があります。
 
 ## 使い方
 ### インストール前
-```sh
+```bash
 sudo apt install -y git
 git clone --depth=1 https://github.com/hydratlas/tips
 cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
@@ -27,7 +27,7 @@ sudo ./parted.sh sdX
 ```
 
 ### インストール後
-```sh
+```bash
 sudo ./install.sh sdX sdX
 ```
 
@@ -40,7 +40,7 @@ sudo ./install.sh sdX sdX
 `parted.sh`はインストールの前段階で使用します。1台のストレージデバイスをFAT、SwapおよびBtrfs用の3つにパーティションを切り分け、FATおよびSwapはフォーマットします。デフォルトではFATのサイズは約512MiB、Swapのサイズは4GiB、Btrfsのサイズは残りすべてです。
 
 `parted.sh`のコマンド例は次のとおりです。以下、sdaおよびsdbは例であって、マシンによって異なります。`lsblk -fe7`コマンドでマシンに接続されたストレージを確認することができます。
-```sh
+```bash
 sudo ./parted.sh sda
 sudo ./parted.sh sdb
 ```
@@ -63,7 +63,7 @@ OSのインストーラーを使って、`sda3`にBtrfsでOSをインストー�
 `install.sh`はインストールの後段階で使用します。OSがインストールされたBtrfsをRAID 1化およびサブボリューム化します。また、加えて、起動時にRAID 1を構成するストレージが1台故障していたときでも、起動できるメニューエントリーをGRUBに追加します。これはカーネルパラメータに`rootflags=degraded`を付加したものです。
 
 `install.sh`のコマンド例は次のとおりです。sda3からsdb3にRAID 1化します。なお、引数を1つだけ指定すると、RAID 1化は行いません。
-```sh
+```bash
 sudo ./install.sh sda sdb
 ```
 
@@ -99,7 +99,7 @@ sudo ./install.sh sda sdb
 `update.sh`はOSがインストールされた新しいBtrfsを、既存のBtrfsに差し込みます。`/etc/fstab`は既存のものをそのまま使うため、たとえば`/home`を別のストレージデバイスで動かしていたとしても、問題なく使用を継続できます。
 
 `update.sh`のコマンド例は次のとおりです。新しくインストールした`sdc3`から、既存のRAID 1構成の`sda3`および`sdb3`にデータを差し込みます。なお、RAID 1ではない場合、引数を2つだけ指定します。
-```sh
+```bash
 sudo ./update.sh sdc3 sda sdb
 ```
 

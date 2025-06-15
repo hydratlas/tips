@@ -2,7 +2,7 @@
 ## ユーザーグローバルでの設定
 ### インストール
 #### LinuxのBash
-```sh
+```bash
 mise use -g -y uv &&
 mise settings set pipx_uvx true &&
 "$(mise which uv)" --version
@@ -21,7 +21,7 @@ mise settings set pipx_uvx true
 
 ### シェル補完のインストール
 #### LinuxのBash
-```sh
+```bash
 mkdir -p ~/.local/share/bash-completion/completions &&
 tee ~/.local/share/bash-completion/completions/uv << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which uv 2>/dev/null; then
@@ -51,7 +51,7 @@ Add-Content -Path $PROFILE -Value '(& uvx --generate-shell-completion powershell
 - [Installing and managing Python | uv](https://docs.astral.sh/uv/getting-started/installation/#upgrading-uv)
 
 ### シェル補完のアンインストール（bashの場合）
-```sh
+```bash
 if [ -e ~/.local/share/bash-completion/completions/uv ]; then
   rm ~/.local/share/bash-completion/completions/uv
 fi &&
@@ -61,7 +61,7 @@ fi
 ```
 
 ### アンインストール（bashの場合）
-```sh
+```bash
 mise settings unset pipx_uvx &&
 mise uninstall uv &&
 perl -pi -e "s/^uv = \".+\"\\n//mg" ~/.config/mise/config.toml
@@ -71,7 +71,7 @@ perl -pi -e "s/^uv = \".+\"\\n//mg" ~/.config/mise/config.toml
 ## プロジェクトでの使用
 ### プロジェクトの作成
 #### Bash
-```sh
+```bash
 mkdir ~/uv_test_project &&
 cd ~/uv_test_project &&
 uv init
@@ -86,7 +86,7 @@ uv init
 
 ### Pythonのインストール
 #### Bash
-```sh
+```bash
 uv python pin 3.13 &&
 uv run python3 --version
 ```
@@ -99,25 +99,25 @@ uv run python3 --version
 `uv python list`コマンドでインストール可能なバージョンがリストアップされる。
 
 ### Pythonライブラリーのインストール
-```sh
+```bash
 uv add cowsay &&
 uv pip list &&
 uv run cowsay -t "Hello, world!"
 ```
 
 ### Pythonライブラリーのアンインストール
-```sh
+```bash
 uv remove cowsay
 ```
 
 ### pipxの実行（インストール不要）
-```sh
+```bash
 uvx pycowsay hello from uv
 ```
 
 ### 環境の再構築
 設定ファイルから環境を再構築する場合。
-```sh
+```bash
 cd ~/uv_test_project &&
 uv sync
 ```

@@ -1,7 +1,7 @@
 # FreeIPAサーバーをAlmaLinux 9に直接インストール
 ## FreeIPAサーバーのインストール
 ### 事前設定
-```sh
+```bash
 base_domain="home.arpa" &&
 if hash wget 2>/dev/null; then
   eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/freeipa")"
@@ -17,7 +17,7 @@ echo "IPA admin user password: ${admin_password}"
 ```
 
 ### インストール
-```sh
+```bash
 sudo dnf install -y ipa-server &&
 sudo ipa-server-install \
   --unattended \
@@ -31,19 +31,19 @@ sudo ipa-server-install \
 - `--admin-password`オプションでは、FreeIPAの管理者ユーザーである「admin」アカウントに対するパスワードを設定（Web UIやCLIからFreeIPAを操作する際に使用）
 
 ### 【デバッグ】ipa-server-installコマンドのヘルプの表示
-```sh
+```bash
 ipa-server-install --help
 ```
 
 ### 【元に戻す】FreeIPAサーバーのアンインストール
-```sh
+```bash
 sudo ipa-server-install --uninstall &&
 sudo dnf remove -y ipa-server
 ```
 
 ## リバースプロキシをPodmanコンテナとして構築
 ### リバースプロキシをサービスとして追加・起動
-```sh
+```bash
 sudo dnf install -y podman &&
 if ! id "www-data" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group \
@@ -142,12 +142,12 @@ sudo systemctl status --no-pager --full freeipa-server-nginx.service
 ```
 
 ### 【デバッグ】ログの表示
-```sh
+```bash
 journalctl --no-pager --lines=20 --unit=freeipa-server-nginx.service
 ```
 
 ### 【元に戻す】リバースプロキシのサービスの停止・削除
-```sh
+```bash
 sudo systemctl stop freeipa-server-nginx.service;
 sudo rm /etc/containers/systemd/freeipa-server-nginx.container;
 sudo systemctl daemon-reload

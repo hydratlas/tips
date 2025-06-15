@@ -18,7 +18,7 @@
 
 ## 【オプション】データベースのインストール・設定
 データベースデーモン（slurmdbd）を使う場合のみ。
-```sh
+```bash
 sudo apt-get install -y mariadb-server
 
 sudo mysql_secure_installation
@@ -45,18 +45,18 @@ Slurmの各種ノードは、ログインノード、ヘッドノードおよび
 - 計算ノード：slurmdパッケージをインストール
 
 ### ヘッドノード（ログインノード兼用）へのインストール
-```sh
+```bash
 sudo apt-get install -y slurmctld slurmdbd
 ```
 データベースデーモン（slurmdbd）はオプション。slurmctldの依存関係でslurm-clientもインストールされる。
 
 ### 計算ノードへのインストール
-```sh
+```bash
 sudo apt-get install -y slurmd
 ```
 
 ## 設定の下準備として変数を設定
-```sh
+```bash
 if [ -e /etc/slurm-llnl ]; then
   ETC_PATH=/etc/slurm-llnl
 elif [ -e /etc/slurm ]; then
@@ -88,7 +88,7 @@ echo "RUN_PATH: $RUN_PATH"
 ```
 
 ## PIDファイルの置き場所を作る
-```sh
+```bash
 sudo tee "/etc/tmpfiles.d/slurm.conf" << EOS > /dev/null &&
 d $RUN_PATH 0775 slurm slurm -
 EOS
@@ -96,7 +96,7 @@ sudo systemd-tmpfiles --create /etc/tmpfiles.d/slurm.conf
 ```
 
 ## PIDファイルの場所をsystemdに伝える（Ubuntu 20.04以前だけ）
-```sh
+```bash
 sudo mkdir -p /etc/systemd/system/slurmdbd.service.d &&
 sudo mkdir -p /etc/systemd/system/slurmctld.service.d &&
 sudo mkdir -p /etc/systemd/system/slurmd.service.d &&
@@ -117,7 +117,7 @@ sudo systemctl daemon-reload
 
 ## 【オプション】データベースデーモンの設定ファイルを設置
 データベースデーモンを使う場合のみ。
-```sh
+```bash
 sudo tee "$ETC_PATH/slurmdbd.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/slurmdbd.conf.example
 #
@@ -162,7 +162,7 @@ sudo chown slurm:slurm "$ETC_PATH/slurmdbd.conf"
 ## Slurmの設定ファイルを設置
 AccountingStorageType=accounting_storage/noneのためデータベースデーモンは使用していない。使用する場合は、accounting_storage/slurmdbdにする。また一番下のほうの`NodeName=localhost`で始まる行は`slurmd -C`を実行した結果で置き換える。
 
-```sh
+```bash
 sudo tee "$ETC_PATH/cgroup.conf" << EOS > /dev/null &&
 # https://github.com/SchedMD/slurm/blob/master/etc/cgroup.conf.example
 ###
@@ -341,28 +341,28 @@ sudo chown slurm:slurm "$ETC_PATH/slurm.conf"
 
 ## 【オプション】データベースデーモンの起動
 データベースデーモンを使う場合のみ。
-```sh
+```bash
 sudo systemctl stop slurmdbd.service &&
 sudo systemctl enable --now slurmdbd.service &&
 sudo systemctl status slurmdbd.service
 ```
 
 ## 管理デーモンの起動
-```sh
+```bash
 sudo systemctl stop slurmctld.service &&
 sudo systemctl enable --now slurmctld.service &&
 sudo systemctl status slurmctld.service
 ```
 
 ## 計算デーモンの起動
-```sh
+```bash
 sudo systemctl stop slurmd.service &&
 sudo systemctl enable --now slurmd.service &&
 sudo systemctl status slurmd.service
 ```
 
 ## Slurmのテスト実行
-```sh
+```bash
 cd ~/ &&
 tee hello-world.sh << EOS > /dev/null &&
 #!/bin/bash

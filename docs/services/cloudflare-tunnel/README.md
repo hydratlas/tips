@@ -6,7 +6,7 @@
 
 ## インストール・サービスの起動
 `token`変数は適宜書き換える。
-```sh
+```bash
 token="abc" &&
 container_user="cloudflared" &&
 if hash apt-get 2>/dev/null; then
@@ -65,7 +65,7 @@ sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_u
 非ルートユーザーの場合、`WantedBy=multi-user.target`だと再起動後にサービスが起動しない。`WantedBy=default.target`にする必要がある。
 
 ## 自動更新の有効化
-```sh
+```bash
 container_user="cloudflared" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user enable --now podman-auto-update.timer
@@ -74,20 +74,20 @@ sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_u
 ```
 
 ## 【デバッグ】ログの確認
-```sh
+```bash
 container_user="cloudflared" &&
 sudo -u "${container_user}" journalctl --user --no-pager --lines=100 --unit=cloudflared.service
 ```
 
 ## 【デバッグ】再起動
-```sh
+```bash
 container_user="cloudflared" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user restart cloudflared.service
 ```
 
 ## 【元に戻す】停止・削除
-```sh
+```bash
 container_user="cloudflared" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user stop cloudflared.service &&
@@ -140,7 +140,7 @@ HTTPSの場合にはTLS設定として「No TLS Verify」が選べる。内部�
 
 ### 8. 公開鍵の取得と保存
 SSHサーバー上で、トークンとアカウントIDを使って、`public_key`を取得する。`<API_TOKEN>`と`{account_id}`は記録しておいた値で書き換える。
-```sh
+```bash
 wget -O - \
   --method=POST \
   --header="Authorization: Bearer <API_TOKEN>" \
@@ -148,14 +148,14 @@ wget -O - \
 ```
 
 2回目の取得の際はHTTPのPOSTメソッドではなくGETメソッドで取得する。
-```sh
+```bash
 wget -O - \
   --header="Authorization: Bearer <API_TOKEN>" \
   "https://api.cloudflare.com/client/v4/accounts/{account_id}/access/gateway_ca"
 ```
 
 以下のコマンドで取得した公開鍵をファイルに書き込む。
-```sh
+```bash
 sudo install \
   -m 600 -o "root" -g "root" \
   /dev/stdin "/etc/ssh/ca.pub" << EOS > /dev/null
@@ -165,7 +165,7 @@ EOS
 
 ### 9. SSHサーバーの設定を変更する
 SSHサーバー上で、以下のコマンドを実行する。
-```sh
+```bash
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 sudo install \
   -m 644 -o "root" -g "root" \

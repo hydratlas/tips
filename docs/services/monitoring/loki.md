@@ -1,6 +1,6 @@
 # Grafana Loki
 ## 設定・インストール
-```sh
+```bash
 host_conf_file="/etc/loki/loki.yaml" &&
 container_conf_file="/loki.yaml" &&
 host_dir="/var/lib/loki" &&
@@ -81,7 +81,7 @@ sudo systemctl start loki.service
 - [https://github.com/grafana/loki/blob/main/cmd/loki/loki-docker-config.yaml]()
 
 ## 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full loki.service
 journalctl --no-pager --lines=20 --unit=loki
 wget -O - http://localhost:3100/ready # If “ready” is returned, it is OK.
@@ -90,12 +90,12 @@ wget --method=POST --header="Content-Type: application/json" --body-data='{}' \
 ```
 
 ## 【デバッグ用】再起動
-```sh
+```bash
 sudo systemctl restart loki.service
 ```
 
 ## 【デバッグ用】停止・削除
-```sh
+```bash
 sudo systemctl stop loki.service &&
 sudo rm /etc/containers/systemd/loki.container &&
 sudo systemctl daemon-reload &&

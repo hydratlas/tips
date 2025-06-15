@@ -43,7 +43,7 @@ winget install -e --id Git.Git
 1. `bash --version`コマンドを実行して、シェルがBashであることを確認します
 
 ### Bashの補完などを有効にする
-```sh
+```bash
 mkdir -p "$HOME/.bash_completion.d" &&
 touch "$HOME/.bashrc" &&
 tee -a "$HOME/.bashrc" << EOS > /dev/null &&

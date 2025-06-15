@@ -1,12 +1,12 @@
 # 開発環境
 ## システムグローバル
 ### Debian系
-```sh
+```bash
 sudo apt-get install -y git
 ```
 
 ### RHEL系
-```sh
+```bash
 sudo dnf install -y git
 ```
 

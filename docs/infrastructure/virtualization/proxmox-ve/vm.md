@@ -21,25 +21,25 @@ Proxmox VEのストレージ（local）画面でイメージをダウンロー�
 
 ### 関数によってコマンドラインからダウンロード
 #### Ubuntu 24.04
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 image_downloader https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img
 ```
 
 #### Debian 12
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 image_downloader https://cloud.debian.org/images/cloud/bookworm-backports/latest/debian-12-backports-genericcloud-amd64.qcow2
 ```
 
 #### AlmaLinux OS 9
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 image_downloader https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
 ```
 
 #### AlmaLinux OS Kitten 10
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 image_downloader https://kitten.repo.almalinux.org/10-kitten/cloud/x86_64_v2/images/AlmaLinux-Kitten-GenericCloud-10-latest.x86_64_v2.qcow2
 ```
@@ -52,7 +52,7 @@ image_downloader https://kitten.repo.almalinux.org/10-kitten/cloud/x86_64_v2/ima
 - 複数選択の「内容」に「スニペット」が含まれるようにする
 
 ### スニペットの配置
-```sh
+```bash
 tee "/var/lib/vz/snippets/qemu-guest-agent.yaml" << EOS > /dev/null
 #cloud-config
 timezone: $(timedatectl show --property=Timezone | cut -d= -f2)
@@ -70,12 +70,12 @@ EOS
 - vm_start
   - GRUBをシリアルコンソールに出力
   - シリアルコンソール向けに`apt`コマンドのプログレスバーを無効化
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
 ```
 
 ### 固有値を決定
-```sh
+```bash
 echo "VMID=\"$((RANDOM % 9900 + 100))\"" &&
 for i in {0..9} ; do
   RANDOM_HEX=$(printf '%06X\n' $((RANDOM * 256 + RANDOM % 256))) &&
@@ -88,7 +88,7 @@ done
 
 ### 実行
 固有値をはじめ、ストレージ容量やメモリー容量などを適宜変更して使用する。
-```sh
+```bash
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")" &&
 VMID="2079" &&
 NAME="ubuntu-2079" &&
@@ -119,7 +119,7 @@ qm terminal "${VMID}"
 
 ### 実行前にSSHを設定
 `START`の前に次のように実行すると、Cloud-initによってSSHの`authorized_keys`を設定できる。起動中に実行した場合は再起動が必要。
-```sh
+```bash
 KEY_URL="https://github.com/<name>.keys" &&
 KEY_FILE="$(mktemp)" &&
 IMAGE_DIR="/var/lib/vz/template/iso" &&
@@ -129,38 +129,38 @@ rm "$KEY_FILE"
 ```
 
 ### 【デバッグ】すでに作成されているVMの設定を確認
-```sh
+```bash
 qm config "${VMID}"
 ```
 これを参考にして`qm create`コマンドのオプションを検討する。
 
 ### 【元に戻す】停止・削除
-```sh
+```bash
 qm stop "${VMID}" &&
 qm destroy "${VMID}"
 ```
 
 ## VMの使用
 ### ホストからコマンドを実行（QEMU guest agentが必要）
-```sh
+```bash
 qm guest exec "${VMID}" -- bash -c "uname -r && uname -n" | jq -r '."out-data", ."err-data"'
 ```
 
 ### シリアルコンソールに接続
-```sh
+```bash
 qm terminal "${VMID}"
 ```
 シリアルコンソールは同時に一つしか使用できないため、ディスプレーをSerial terminal 0 (serial0)に設定すると接続できなくなることに注意。
 
 ### シリアルコンソールで文字の装飾を解除
 シリアルコンソールで文字の装飾が続いてしまったときに解除する方法。
-```sh
+```bash
 echo -e "\e[0m"
 ```
 
 ## 【遺産】イメージのカスタマイズ
 イメージをカスタマイズすることもできるが、`qemu-guest-agent`さえ入っていれば通常の起動後に実行できる。
-```sh
+```bash
 IMAGE_DIR="/var/lib/vz/template/iso" &&
 BASE_FILE="ubuntu-24.04-minimal-cloudimg-amd64.img" &&
 CUSTOM_FILE="${BASE_FILE%.*}" && # 拡張子なし

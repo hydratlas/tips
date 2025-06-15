@@ -6,7 +6,7 @@ Dockerのイメージを自動的にアップデートする。公式Github：[c
 - 前提
   - DockerまたはPodmanのインストール
   - ソケットの有効化（Podmanの場合のみ）（Dockerはデフォルトで有効）
-```sh
+```bash
 sudo docker run \
   --detach \
   --name watchtower \
@@ -16,7 +16,7 @@ sudo docker run \
 ```
 
 ### 停止・自動再起動の無効化・削除
-```sh
+```bash
 sudo docker stop watchtower &&
 if ! type podman >/dev/null 2>&1; then
   sudo docker update --restart=no watchtower
@@ -28,7 +28,7 @@ sudo docker rm watchtower
 ### インストール・自動再起動の有効化・実行
 - 前提
   - Dockerのインストール（Podmanは非rootユーザーかつRootfulで実行できない）
-```sh
+```bash
 docker run \
   --detach \
   --name watchtower \
@@ -38,7 +38,7 @@ docker run \
 ```
 
 ### 停止・自動再起動の無効化・削除
-```sh
+```bash
 docker stop watchtower &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no watchtower
@@ -52,7 +52,7 @@ docker rm watchtower
   - DockerまたはPodmanのインストール
   - ソケットの有効化（ユーザーごとの設定）（Podmanの場合のみ）（Dockerはデフォルトで有効）
   - linger（居残り）の有効化（ユーザーごとの設定）
-```sh
+```bash
 docker run \
   --detach \
   --name watchtower \
@@ -62,7 +62,7 @@ docker run \
 ```
 
 ### 停止・削除
-```sh
+```bash
 docker stop watchtower &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no watchtower

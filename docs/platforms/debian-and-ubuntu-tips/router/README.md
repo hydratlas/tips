@@ -19,7 +19,7 @@
     - クライアントIDの取得方法: `sudo netplan ip leases eth0 | grep -oP '^CLIENTID=\K.*' | sed 's/\(..\)/\1:/g' | sed 's/:$//'`
 - `virtual_router_id`は`1`としているが、`0`から`255`までの範囲で同じネットワークの別のVRRPと重ならない値にする
 
-```sh
+```bash
 sudo apt-get install -y jq &&
 JSON='{
   "router_host": ["router1", "router2"],
@@ -81,19 +81,19 @@ echo "${JSON}" | jq -c "."
 - setup_keepalived
 - setup_nftables
 - setup_dnsmasq
-```sh
+```bash
 eval "$(wget --no-cache -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/router")"
 ```
 
 ## ネットワーク設定（Netplan）
-```sh
+```bash
 setup_netplan "${JSON}"
 ```
 やりなおすときは、そのままやりなおして構わない。
 
 ## VRRP（Virtual Router Redundancy Protocol）
 ### 設定
-```sh
+```bash
 setup_keepalived "${JSON}"
 ```
 やりなおすときは、そのままやりなおして構わない。
@@ -102,42 +102,42 @@ Dnsmasqで`bind-dynamic`を指定しない場合には、フェイルオーバ�
 
 ### テスト
 Dnsmasqが動いているかどうかでフェイルオーバーを行うため、Dnsmasqをインストールした後に行う。
-```sh
+```bash
 sudo systemctl stop dnsmasq.service
 sudo systemctl start dnsmasq.service
 ```
 
 ## IPマスカレードおよびファイアウォール設定（nftables）
 ### 設定
-```sh
+```bash
 setup_nftables "${JSON}"
 ```
 やりなおすときは、そのままやりなおして構わない。
 
 ### 現在の永続的な設定の確認
-```sh
+```bash
 cat /etc/nftables.conf
 ```
 
 ### IPマスカレードのログ確認
-```sh
+```bash
 journalctl --dmesg --no-pager -n 1000 | grep "nft masquerade:"
 ```
 
 ## DNSキャッシュサーバーおよびDHCPサーバー
 ### 設定
-```sh
+```bash
 setup_dnsmasq "${JSON}"
 ```
 やりなおすときは、そのままやりなおして構わない。
 
 ### DHCPクライアントからの要求の確認
-```sh
+```bash
 sudo journalctl -u dnsmasq | grep "DHCPDISCOVER"
 ```
 
 ### 確認（クライアント側）
-```sh
+```bash
 ip a
 ip r
 sudo netplan ip leases eth0

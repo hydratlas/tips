@@ -1,13 +1,13 @@
 # SSH
 ## SSHサーバーのインストール（管理者）
 ### インストール
-```sh
+```bash
 sudo apt-get install --no-install-recommends -y openssh-server
 ```
 
 ### sshd_config.dディレクトリーの作成・有効化
 以下のコマンドを実行することによって、`/etc/ssh/sshd_config.d`ディレクトリーを作成するとともに、`/etc/ssh/sshd_config`ファイルで`/etc/ssh/sshd_config.d/*.conf`ファイルを読み込む`Include`行がコメントアウトされていたらコメントアウトを解除し、コメントアウトがなかったら末尾に追記する。
-```sh
+```bash
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 PERL_SCRIPT="s@^#Include /etc/ssh/sshd_config\.d/\*\.conf\$@Include /etc/ssh/sshd_config.d/*.conf@g" &&
 sudo perl -pi -e "$PERL_SCRIPT" "/etc/ssh/sshd_config" &&
@@ -19,7 +19,7 @@ fi
 
 ### パスワードによるログインおよびrootユーザーでのログインの禁止
 `/etc/ssh/sshd_config.d`ディレクトリー下に設定ファイルを追加して、ssh.serviceを再起動する。
-```sh
+```bash
 sudo tee "/etc/ssh/sshd_config.d/90-local.conf" << EOS > /dev/null &&
 PasswordAuthentication no
 PermitRootLogin no
@@ -45,7 +45,7 @@ ListenStream=10022
 
 #### 設定の追加・反映・確認
 次に以下のコマンドで`/etc/ssh/sshd_config.d`ディレクトリー下に設定ファイルを追加する。
-```sh
+```bash
 sudo tee -a "/etc/ssh/sshd_config.d/92-port-change.conf" << EOS > /dev/null &&
 Port 22
 Port 10022
@@ -62,7 +62,7 @@ ss -nlt
 古いタイプの各種方式を禁止する設定。新しいUbuntuまたはDebianを使えばこのような設定は不要である。たとえばUbuntu 24.04では以下の設定をしてもしなくても同じ設定になる。
 
 `sudo sshd -T | grep -i -e Ciphers -e MACs -e PubkeyAcceptedKeyTypes -e PubkeyAcceptedAlgorithms -e KexAlgorithms`コマンドで現在の設定を確認できる。
-```sh
+```bash
 sudo tee "/etc/ssh/sshd_config.d/91-local.conf" << EOS > /dev/null &&
 Ciphers -*-cbc
 KexAlgorithms -*-sha1
@@ -76,7 +76,7 @@ PubkeyAcceptedKeyTypesはOpenSSH 8.5からPubkeyAcceptedAlgorithmsに名前が�
 ## ユーザーにauthorized_keysを追記（各ユーザー）
 ### ステップ1（変数にキーを格納）
 #### 文字列からの場合
-```sh
+```bash
 KEYS=$(cat << EOS
 ssh-ed25519 xxxxx
 ssh-ed25519 xxxxx
@@ -85,20 +85,20 @@ EOS
 ```
 
 #### GitHubからの場合
-```sh
+```bash
 KEYS="$(wget -qO - https://github.com/<username>.keys)"
 ```
 
 ### ステップ2（設定）
 #### 現在ログインしているユーザーの場合
-```sh
+```bash
 mkdir -p "$HOME/.ssh" &&
 tee -a "$HOME/.ssh/authorized_keys" <<< "$KEYS" > /dev/null &&
 chmod u=rw,go= "$HOME/.ssh/authorized_keys"
 ```
 
 #### 現在ログインしていないユーザーの場合
-```sh
+```bash
 USER_HOME="$(grep "$USER_NAME" /etc/passwd | cut -d: -f6)" &&
 sudo -u "$USER_NAME" mkdir -p "$USER_HOME/.ssh" &&
 sudo -u "$USER_NAME" tee -a "$USER_HOME/.ssh/authorized_keys" <<< "$KEYS" > /dev/null &&
@@ -106,7 +106,7 @@ sudo chmod u=rw,go= "$USER_HOME/.ssh/authorized_keys"
 ```
 
 ## SSHキーを生成（各ユーザー）
-```sh
+```bash
 mkdir -p "$HOME/.ssh" &&
 ssh-keygen -t rsa   -b 4096 -N '' -C '' -f "$HOME/.ssh/id_rsa" &&
 ssh-keygen -t ecdsa  -b 521 -N '' -C '' -f "$HOME/.ssh/id_ecdsa" &&

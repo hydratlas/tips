@@ -1,7 +1,7 @@
 # 補助コマンド
 ## ユーザーリストを出力
 `/etc/shadow`および`/etc/passwd`から読み取った、ユーザー名、ハッシュ化されたパスワード、UID、GID、ホームディレクトリー、およびログインシェルをコロン区切りテキストで出力します。
-```sh
+```bash
 sudo awk -F: '
 BEGIN {
     format = "%s:%s:%s:%s:%s:%s\n"
@@ -24,7 +24,7 @@ FNR==NR {
 ```
 
 ## ユーザーリストからユーザーを復元（未テスト）
-```sh
+```bash
 while IFS=':' read -r username passhash uid gid homedir shell; do
     echo "Processing user '$username' (UID: $uid, GID: $gid)"
     
@@ -65,7 +65,7 @@ done < "user_info.tsv"
 ```
 
 ## 各ユーザーのauthorized_keysリストを出力
-```sh
+```bash
 while IFS=: read -r user _ _ _ _ homedir _; do
     authorized_keys=$( sudo test -f "$homedir/.ssh/authorized_keys" && sudo cat "$homedir/.ssh/authorized_keys" || echo "" );
     if [[ -n "$authorized_keys" ]]; then
@@ -76,7 +76,7 @@ done < /etc/passwd | jq -s '.'
 ```
 
 ## 各ユーザーのauthorized_keysリストから復元（未テスト）
-```sh
+```bash
 jq -c '.[]' authorized_keys.json | while IFS= read -r record; do
     username=$(echo "$record" | jq -r '.username');
     keys=$(echo "$record" | jq -r '.authorized_keys');

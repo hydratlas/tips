@@ -4,7 +4,7 @@ aptのソースを日本で速いミラーサーバー群に切り替える。
 ## Ubuntu
 ### Deb822-style Format
 新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
-```sh
+```bash
 sudo tee "/etc/apt/sources.list.d/ubuntu.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/ubuntu-mirrors.txt
@@ -33,7 +33,7 @@ sudo apt-get update
 
 ### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
-```sh
+```bash
 sudo tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename) main restricted universe multiverse
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-updates main restricted universe multiverse
@@ -56,7 +56,7 @@ sudo apt-get update
 ## Debian
 ### Deb822-style Format
 新しいDeb822-style Formatに対応している場合（基本的にはこちらでよい）。
-```sh
+```bash
 sudo tee "/etc/apt/sources.list.d/debian.sources" <<- EOS > /dev/null &&
 Types: deb
 URIs: mirror+file:/etc/apt/debian-mirrors.txt
@@ -85,7 +85,7 @@ sudo apt-get update
 
 ### One-Line-Style Format
 新しいDeb822-style Formatに対応していない場合。
-```sh
+```bash
 sudo tee "/etc/apt/sources.list" <<- EOS > /dev/null &&
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename) main contrib non-free non-free-firmware
 deb mirror+file:/etc/apt/mirrors.txt $(lsb_release --short --codename)-updates main contrib non-free non-free-firmware

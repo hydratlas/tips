@@ -22,7 +22,7 @@ scrape_configs:
 参考：[Prometheusでinstance名をホスト名にしたい #prometheus - Qiita](https://qiita.com/fkshom/items/bafb2160e2c9ca8ded38)
 
 ## インストール
-```sh
+```bash
 host_conf_file="/etc/prometheus/prometheus.yml" &&
 container_conf_file="/etc/prometheus.yml" &&
 host_dir="/var/lib/victoria-metrics-data" &&
@@ -61,18 +61,18 @@ sudo systemctl start victoria-metrics.service
   - [VictoriaMetrics/package/victoria-metrics.service at master · VictoriaMetrics/VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/package/victoria-metrics.service)
 
 ## 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full victoria-metrics.service
 journalctl --no-pager --lines=20 --unit=victoria-metrics
 ```
 
 ## 【デバッグ用】再起動
-```sh
+```bash
 sudo systemctl restart victoria-metrics.service
 ```
 
 ## 【デバッグ用】停止・削除
-```sh
+```bash
 sudo systemctl stop victoria-metrics.service &&
 sudo rm /etc/containers/systemd/victoria-metrics.container &&
 sudo systemctl daemon-reload

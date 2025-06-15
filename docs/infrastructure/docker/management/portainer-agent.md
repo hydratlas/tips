@@ -6,7 +6,7 @@
   - ソケットの有効化
 
 以下のコマンドを実行。
-```sh
+```bash
 SOCKET='/run/podman/podman.sock' &&
 SECURITYLABELDISABLE=''
 ```
@@ -17,13 +17,13 @@ SECURITYLABELDISABLE=''
   - linger（居残り）の有効化（ユーザーごとの設定）
 
 以下のコマンドを実行。
-```sh
+```bash
 SOCKET="${XDG_RUNTIME_DIR}/podman/podman.sock" &&
 SECURITYLABELDISABLE='SecurityLabelDisable=true'
 ```
 
 ### 共通の準備
-```sh
+```bash
 CONTAINER_FILE=$(cat << EOS
 [Container]
 Image=docker.io/portainer/agent:latest
@@ -48,7 +48,7 @@ EOS
 
 ### インストール
 #### rootユーザーで実行する場合（sudo）
-```sh
+```bash
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer_agent.container <<< "${CONTAINER_FILE}" > /dev/null &&
 sudo systemctl daemon-reload &&
@@ -56,7 +56,7 @@ sudo systemctl start portainer_agent.service
 ```
 
 #### 非rootユーザーで実行する場合
-```sh
+```bash
 mkdir -p "$HOME/.config/containers/systemd" &&
 tee "$HOME/.config/containers/systemd/portainer_agent.container" <<< "${CONTAINER_FILE}" > /dev/null &&
 systemctl --user daemon-reload &&
@@ -65,25 +65,25 @@ systemctl --user start portainer_agent.service
 
 ### 確認
 #### rootユーザーで実行した場合（sudo）
-```sh
+```bash
 sudo systemctl status portainer_agent.service
 ```
 
 #### 非rootユーザーで実行した場合
-```sh
+```bash
 systemctl --user status portainer_agent.service
 ```
 
 ### 停止・削除
 #### rootユーザーで実行した場合（sudo）
-```sh
+```bash
 sudo systemctl stop portainer_agent.service &&
 sudo rm /etc/containers/systemd/portainer_agent.container &&
 sudo systemctl daemon-reload
 ```
 
 #### 非rootユーザーで実行した場合
-```sh
+```bash
 systemctl --user stop portainer_agent.service &&
 rm "$HOME/.config/containers/systemd/portainer_agent.container" &&
 systemctl --user daemon-reload
@@ -95,7 +95,7 @@ systemctl --user daemon-reload
 - 前提
   - DockerまたはPodmanのインストール
   - ソケットの有効化（Podmanの場合のみ）（Dockerはデフォルトで有効）
-```sh
+```bash
 sudo docker run \
   --detach \
   -p 9001:9001 \
@@ -108,7 +108,7 @@ sudo docker run \
 ```
 
 #### 停止・自動再起動の無効化・削除
-```sh
+```bash
 sudo docker stop portainer_agent &&
 if ! type podman >/dev/null 2>&1; then
   sudo docker update --restart=no portainer_agent
@@ -120,7 +120,7 @@ sudo docker rm portainer_agent
 #### インストール・自動再起動の有効化・実行
 - 前提
   - Dockerのインストール（Podmanは非rootユーザーかつRootfulで実行できない）
-```sh
+```bash
 docker run \
   --detach \
   -p 9001:9001 \
@@ -134,7 +134,7 @@ docker run \
 ```
 
 #### 停止・自動再起動の無効化・削除
-```sh
+```bash
 docker stop portainer_agent &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no portainer_agent
@@ -148,7 +148,7 @@ docker rm portainer_agent
   - DockerまたはPodmanのインストール
   - ソケットの有効化（ユーザーごとの設定）（Podmanの場合のみ）（Dockerはデフォルトで有効）
   - linger（居残り）の有効化（ユーザーごとの設定）
-```sh
+```bash
 docker run \
   --detach \
   -p 9001:9001 \
@@ -162,7 +162,7 @@ docker run \
 ```
 
 #### 停止・削除
-```sh
+```bash
 docker stop portainer_agent &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no portainer_agent

@@ -3,7 +3,7 @@
 Podmanをインストール、step-cli（クライアント）をインストールしてサーバー証明書を取得しておく必要がある。
 
 ## ユーザー・ディレクトリー・鍵の準備
-```sh
+```bash
 SERVER_DATA_DIR="/opt/kanidm" &&
 SERVER_USER="kanidm" &&
 if ! id "${SERVER_USER}" &>/dev/null; then
@@ -20,7 +20,7 @@ sudo bash /usr/local/bin/step-cli-renew
 ```
 
 ## インストール・テスト
-```sh
+```bash
 SERVER_FQDN="idm-01.int.home.arpa" &&
 sudo install -m 640 -o "root" -g "${SERVER_USER}" /dev/stdin "${SERVER_DATA_DIR}/server.toml" << EOS > /dev/null &&
 bindaddress = "[::]:8443"
@@ -39,7 +39,7 @@ sudo podman run --user "$(id -u "${SERVER_USER}"):$(id -g "${SERVER_USER}")" --r
 ```
 
 ## サービス化
-```sh
+```bash
 sudo tee "/etc/containers/systemd/kanidm-server.container" << EOS > /dev/null &&
 [Container]
 Image=docker.io/kanidm/server:latest
@@ -66,31 +66,31 @@ sudo systemctl status --no-pager --full kanidm-server.service
 - [Installing the Server - Kanidm Administration](https://kanidm.github.io/kanidm/stable/installing_the_server.html)
 
 ## 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full kanidm-server.service
 systemctl cat --no-pager --full kanidm-server.service
 sudo journalctl --no-pager --lines=30 -xeu kanidm-server.service
 ```
 
 ## サーバー証明書の確認
-```sh
+```bash
 openssl x509 -noout -text -in "${SERVER_DIR}/${SERVER_FILENAME}.crt"
 ```
 
 ## 管理者アカウントの初期化
-```sh
+```bash
 sudo podman exec -i -t kanidm-server kanidmd recover-account admin
 sudo podman exec -i -t kanidm-server kanidmd recover-account idm_admin
 ```
 ランダムなパスワードが生成されるので控えておく。
 
 ## 【デバッグ用】再起動
-```sh
+```bash
 sudo systemctl restart kanidm-server.service
 ```
 
 ## 【デバッグ用】停止・削除
-```sh
+```bash
 sudo systemctl stop kanidm-server.service &&
 sudo rm /etc/containers/systemd/kanidm-server.container &&
 sudo systemctl daemon-reload &&

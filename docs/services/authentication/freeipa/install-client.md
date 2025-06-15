@@ -6,7 +6,7 @@
 1. ダイアログボックスが開くので、任意のワンタイムパスワードを入力して、「Set OTP」ボタンでワンタイムパスワードを設定する
 
 ## インストール
-```sh
+```bash
 ipahost="idm-01.int.home.arpa" &&
 base_domain="home.arpa" &&
 onetime_password="" &&
@@ -30,13 +30,13 @@ sudo ipa-client-install \
 
 ## サーバーへの接続を確認
 adminアカウントのチケットを取得して、そのチケットを確認する。
-```sh
+```bash
 kinit admin
 klist
 ```
 
 ## アンインストール
-```sh
+```bash
 sudo ipa-client-install --uninstall &&
 if hash apt-get 2>/dev/null; then
     sudo apt-get purge -y freeipa-client

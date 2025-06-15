@@ -50,7 +50,7 @@ The image installed successfully; please reboot now.<br>
 
 ## 初期設定
 ### シリアルコンソールが太字になってしまうのを解除
-```sh
+```bash
 sudo tee "/config/scripts/setup_unbold_the_console.sh" << EOS > /dev/null &&
 #!/bin/bash
 cp /config/scripts/unbold_the_console.sh /etc/profile.d/unbold_the_console.sh
@@ -66,7 +66,7 @@ sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" \
 ```
 
 ### 設定
-```sh
+```bash
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
 configure
@@ -78,7 +78,7 @@ EOS
 
 ## 基本的な設定
 ### eth0にIPv4のDHCPを設定
-```sh
+```bash
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
 configure
@@ -90,7 +90,7 @@ EOS
 ```
 
 ### eth0にIPv6のRAを設定
-```sh
+```bash
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
 configure
@@ -100,12 +100,12 @@ EOS
 ```
 
 ### 通信を確認
-```sh
+```bash
 ping google.com
 ```
 
 ### インターフェースのオフ、オン
-```sh
+```bash
 IF_NAME=eth0 &&
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
@@ -119,32 +119,32 @@ EOS
 ```
 
 ### 現在の設定を確認
-```sh
+```bash
 show configuration | cat
 
 show configuration commands | cat
 ```
 
 ### ログを表示
-```sh
+```bash
 monitor log
 show log tail
 ```
 
 ### DHCPサーバーに関して、リース情報を表示
-```sh
+```bash
 show dhcp server leases | cat
 ```
 
 ### DHCPサーバーに関して、リース情報を削除
-```sh
+```bash
 show dhcp server leases | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | while read -r ip; do
     clear dhcp-server lease "$ip"
 done
 ```
 
 ### DHCPサーバーに関して、特定のホストのリース情報を削除
-```sh
+```bash
 hostname="aaa" &&
 show dhcp server leases | awk '$10 == '"\"${hostname}\""' {print $1}' | while read -r ip; do
     clear dhcp-server lease "$ip"
@@ -152,7 +152,7 @@ done
 ```
 
 ### 初期化
-```sh
+```bash
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
 configure
@@ -163,7 +163,7 @@ EOS
 
 ## 応用的な設定
 ### Lokiにログを送信
-```sh
+```bash
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
 configure
@@ -177,7 +177,7 @@ EOS
 Telegrafに渡っている設定は`/run/telegraf/telegraf.conf`から確認できる。
 
 ### Node Exporter
-```sh
+```bash
 add container image quay.io/prometheus/node-exporter:latest &&
 /bin/vbash << EOS
 source /opt/vyatta/etc/functions/script-template
@@ -198,7 +198,7 @@ EOS
 
 ### 自動アップデートの設定
 #### REST API用のキーのセットアップ
-```sh
+```bash
 REST_KEY="$(uuidgen)" &&
 KEY_NAME="main" &&
 /bin/vbash << EOS &&
@@ -216,7 +216,7 @@ curl -k --location --request POST 'https://localhost/retrieve' \
 ```
 
 #### アップデーター一式の設定
-```sh
+```bash
 SCRIPT_FILENAME="vyos-updater.sh" &&
 SETUP_SCRIPT_FILENAME="setup-vyos-updater.sh" &&
 ENV_FILENAME="vyos-updater.env" &&
@@ -285,23 +285,23 @@ sudo tee -a "/config/scripts/vyos-postconfig-bootup.script" <<< "/config/scripts
 ```
 
 #### 再起動して設定を完了させる
-```sh
+```bash
 reboot now
 ```
 
 #### 確認
-```sh
+```bash
 systemctl status --no-pager --full vyos-updater.timer
 systemctl status --no-pager --full vyos-updater.service
 show system image
 ```
 
 #### すぐに実行
-```sh
+```bash
 sudo systemctl start vyos-updater.service
 ```
 
 #### ログの確認
-```sh
+```bash
 journalctl --no-pager --full -u vyos-updater.service
 ```

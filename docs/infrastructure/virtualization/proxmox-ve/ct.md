@@ -6,7 +6,7 @@ Proxmox VEのストレージ（local）画面で、CTテンプレートの「テ
 Debianの場合、IPv6は「静的」を選ばないとコンソール画面が表示されない（静的を選べば、IPアドレス、ゲートウェイは空でよい）。
 
 ## 初期設定（Ubuntu）
-```sh
+```bash
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&
@@ -40,7 +40,7 @@ apt-get install --no-install-recommends -y avahi-daemon libnss-mdns
 ```
 
 ## 初期設定（Debian 12）
-```sh
+```bash
 timedatectl set-timezone Asia/Tokyo &&
 dpkg-reconfigure --frontend noninteractive tzdata &&
 systemctl disable --now systemd-timesyncd.service &&

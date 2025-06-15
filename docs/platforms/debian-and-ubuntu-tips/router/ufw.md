@@ -5,7 +5,7 @@ nftablesを直接使うほうが簡単。
 nftablesと同じことをしており、併用不可。また、ufwはnftablesに依存しているため、nftablesは簡単にはアンインストールできない。
 ### 設定
 `ufw allow`のサービス名のリストは`/etc/services`のものが使われる。
-```sh
+```bash
 sudo apt-get install -y ufw &&
 sudo tee /etc/sysctl.d/20-ip-forward.conf << EOS > /dev/null &&
 net/ipv4/ip_forward=1
@@ -65,19 +65,19 @@ sudo ufw enable
 ```
 
 ### 確認
-```sh
+```bash
 sudo ufw status verbose
 
 sudo systemctl status ufw.service
 ```
 
 ### 【やりなおすとき】無効化・削除
-```sh
+```bash
 sudo ufw disable &&
 sudo apt-get purge -y ufw
 ```
 
 ### ログの確認
-```sh
+```bash
 journalctl | grep "\[UFW "
 ```

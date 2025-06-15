@@ -1,5 +1,5 @@
 # OpenTofu
-```sh
+```bash
 mise use aqua:opentofu/opentofu
 tofu version
 tofu init

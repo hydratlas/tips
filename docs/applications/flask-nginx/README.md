@@ -5,7 +5,7 @@ Ubuntu 24.04を前提とする。頻出する`my_project`は仮の値。
   - [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 22.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-22-04#step-6-configuring-nginx-to-proxy-requests)
 
 ## Miniforgeのインストール
-```sh
+```bash
 sudo apt-get install -y --no-install-recommends wget ca-certificates &&
 wget --quiet -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" &&
 bash Miniforge3.sh -b -p "${HOME}/conda" &&
@@ -17,7 +17,7 @@ conda -V
 - [conda-forge/miniforge: A conda-forge distribution.](https://github.com/conda-forge/miniforge)
 
 ## 仮想環境の作成とFlaskおよびuWSGIのインストール
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 conda create -n "$PROJECT_NAME" -y &&
 conda activate "$PROJECT_NAME" &&
@@ -26,7 +26,7 @@ conda deactivate
 ```
 
 ## Flaskのデータの作成・動作テスト
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 mkdir "$HOME/$PROJECT_NAME" &&
 tee "$HOME/$PROJECT_NAME/app_route.py" <<- 'EOS' > /dev/null &&
@@ -48,7 +48,7 @@ python "$HOME/$PROJECT_NAME/app_route.py"
 http://your_server_ip:5000/にアクセスする。アクセスできたらCtrl + Cで終了する。
 
 ## uWSGIのデータの作成・動作テスト
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 tee "$HOME/$PROJECT_NAME/wsgi.py" <<- EOS > /dev/null &&
 from app_route import app
@@ -63,14 +63,14 @@ uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 http://your_server_ip:5000/にアクセスする。アクセスできたらCtrl + Cで終了する。
 
 ## 【元に戻す】仮想環境の削除
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 conda deactivate &&
 conda remove -n $PROJECT_NAME --all -y
 ```
 
 ## uWSGIのサービス化
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 tee "$HOME/$PROJECT_NAME/uwsgi.ini" <<- EOS > /dev/null &&
 [uwsgi]
@@ -111,7 +111,7 @@ sudo chgrp www-data "$HOME/$PROJECT_NAME/$PROJECT_NAME.sock"
 
 ## nginxのインストール・構成
 ### 直接インストールする場合
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 sudo apt-get install -y --no-install-recommends nginx &&
 sudo systemctl enable --now nginx.service &&
@@ -137,12 +137,12 @@ Podmanをインストールしておく。Rootless Dockerでもおそらく動�
 
 #### 【オプション】デフォルトの設定ファイルの取得
 次の設定ファイルを見直す際に、デフォルトがほしい場合は実行。
-```sh
+```bash
 docker run --rm --entrypoint=cat nginx:1.26 /etc/nginx/nginx.conf > ./nginx.conf
 ```
 
 #### 設定ファイルの作成
-```sh
+```bash
 PROJECT_NAME="my_project" &&
 cd "$HOME/$PROJECT_NAME" &&
 tee "$HOME/$PROJECT_NAME/nginx.conf" << EOS > /dev/null &&
@@ -198,7 +198,7 @@ sudo chgrp www-data "$HOME/$PROJECT_NAME/nginx-error.log"
   - [Unix Domain SocketによるuWSGIとNginxの通信 #Python - Qiita](https://qiita.com/wf-yamaday/items/735be1da1022e096d6c6)
 
 #### Dockerの起動
-```sh
+```bash
 docker run \
   --name "$PROJECT_NAME-nginx" \
   -p 8080:80 \
@@ -210,12 +210,12 @@ docker run \
 ```
 
 #### 【デバッグ】コンテナに入る
-```sh
+```bash
 docker container exec -it "$PROJECT_NAME-nginx" bash
 ```
 
 #### 【元に戻す】Dockerの停止・削除
-```sh
+```bash
 docker stop "$PROJECT_NAME-nginx" &&
 docker rm "$PROJECT_NAME-nginx"
 ```

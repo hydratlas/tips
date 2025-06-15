@@ -55,19 +55,19 @@
 スクリプトによってインストール先のストレージ2台をフォーマットする。
 
 まず、スクリプトをダウンロードして、そのディレクトリーに移動する。
-```sh
+```bash
 sudo apt install -y git
 git clone --depth=1 https://github.com/hydratlas/tips
 cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 ```
 
 lsblkコマンドでインストール先のストレージの名前（sdX）を確認する。
-```sh
+```bash
 lsblk -fe7
 ```
 
 インストール先のストレージを、スクリプトによってフォーマットする。
-```sh
+```bash
 sudo ./parted.sh sdX
 sudo ./parted.sh sdX
 ```
@@ -119,17 +119,17 @@ sudo ./parted.sh sdX
 ![](desktop/105-4_installation_complete.png)
 
 スクリプトのディレクトリーに移動する。
-```sh
+```bash
 cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 ```
 
 lsblkコマンドでインストール先のストレージの名前（sdX）を確認する。
-```sh
+```bash
 lsblk -fe7
 ```
 
 インストール先のストレージを、スクリプトによってBtrfsをRAID 1にするとともに、Snapperに対応したサブボリュームのレイアウトにし、さらにfstabとブートローダーをそれに合わせた構成に更新する。ただし、1台だけ指定した場合には、RAID 1ではなくシングル構成にする。第一引数のストレージから第二引数のストレージにコピーしてRAID 1構成にするため、引数の順番には注意すること。
-```sh
+```bash
 sudo ./install.sh sdX sdX
 ```
 

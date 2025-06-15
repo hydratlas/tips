@@ -1,7 +1,7 @@
 # mise & ( Node.js & pnpm ) & Node.js
 ## ユーザーグローバルでの設定
 ### インストール
-```sh
+```bash
 mise use -g -y node pnpm &&
 echo "Node.js: $("$(mise which node)" --version)" &&
 echo "pnpm: $("$(mise which pnpm)" --version)"
@@ -9,7 +9,7 @@ echo "pnpm: $("$(mise which pnpm)" --version)"
 pnpmはNode.jsがないと動かないためNode.jsも入れている。
 
 ### シェル補完のインストール（bashの場合）
-```sh
+```bash
 mkdir -p ~/.local/share/bash-completion/completions &&
 tee ~/.local/share/bash-completion/completions/pnpm << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which pnpm 2>/dev/null; then
@@ -20,14 +20,14 @@ EOS
 ```
 
 ### シェル補完のアンインストール（bashの場合）
-```sh
+```bash
 if [ -e ~/.local/share/bash-completion/completions/pnpm ]; then
   rm ~/.local/share/bash-completion/completions/pnpm
 fi
 ```
 
 ### アンインストール
-```sh
+```bash
 mise uninstall node pnpm &&
 perl -pi -e "s/^node = \".+\"\\n//mg;s/^pnpm = \".+\"\\n//mg" ~/.config/mise/config.toml
 ```
@@ -35,7 +35,7 @@ perl -pi -e "s/^node = \".+\"\\n//mg;s/^pnpm = \".+\"\\n//mg" ~/.config/mise/con
 
 ## プロジェクトでの使用
 ### プロジェクトの作成
-```sh
+```bash
 mkdir ~/pnpm_test_project &&
 cd ~/pnpm_test_project &&
 pnpm init
@@ -43,7 +43,7 @@ pnpm init
 
 ### 指定したバージョンのNode.jsのインストール、およびその使用の強制
 jqが必要。`sudo apt-get install -y jq`または`mise use -g jq`などのコマンドでインストールしておく。
-```sh
+```bash
 mv package.json package.json.bak &&
 cat package.json.bak | jq '.pnpm.executionEnv.nodeVersion|="22.11.0"' > package.json &&
 rm package.json.bak &&
@@ -56,7 +56,7 @@ pnpm node --version
 - [Settings (.npmrc) | pnpm](https://pnpm.io/ja/npmrc#use-node-version)
 
 ### pnpmのバージョンの固定、およびその使用の強制
-```sh
+```bash
 tee -a .npmrc << EOS > /dev/null &&
 package-manager-strict=true
 package-manager-strict-version=true
@@ -72,13 +72,13 @@ pnpm --version
 - [Settings (.npmrc) | pnpm](https://pnpm.io/ja/npmrc#manage-package-manager-versions)
 
 ### Node.jsライブラリーのインストール
-```sh
+```bash
 pnpm add cowsay &&
 pnpm list
 ```
 
 ### 環境の再構築
 設定ファイルから環境を再構築する場合。
-```sh
+```bash
 pnpm install
 ```

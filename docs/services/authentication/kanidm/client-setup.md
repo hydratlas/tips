@@ -3,7 +3,7 @@
 step-cli（クライアント）をインストールしてプライベート認証局のルート証明書を取得しておく必要がある。
 
 ## リポジトリーの設定（Debian系）
-```sh
+```bash
 wget -q -O - "https://kanidm.github.io/kanidm_ppa/kanidm_ppa.asc" | \
   sudo tee /etc/apt/keyrings/kanidm_ppa.asc > /dev/null &&
 sudo tee "/etc/apt/sources.list.d/kanidm_ppa.sources" > /dev/null << EOF
@@ -17,7 +17,7 @@ EOF
 ```
 
 ## パッケージをインストール・設定（Debian系）
-```sh
+```bash
 sudo apt-get install -U -y kanidm &&
 sudo mkdir -p "/etc/kanidm" &&
 sudo tee "/etc/kanidm/config" > /dev/null << EOF
@@ -29,11 +29,11 @@ EOF
 ```
 
 ## HTTPS接続の確認
-```sh
+```bash
 wget --debug -O - https://idm-01.int.home.arpa:8443
 ```
 
 ## テスト実行
-```sh
+```bash
 kanidm logout --name admin
 ```

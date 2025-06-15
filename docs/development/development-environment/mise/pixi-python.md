@@ -2,14 +2,14 @@
 ## ユーザーグローバルでの設定
 ### インストール
 gitが必要。`sudo apt-get install -y git`などのコマンドでインストールしておく。
-```sh
+```bash
 mise plugins install pixi https://github.com/pavelzw/asdf-pixi.git &&
 mise use -g -y pixi &&
 "$(mise which pixi)" --version
 ```
 
 ### シェル補完のインストール（bashの場合）
-```sh
+```bash
 mkdir -p ~/.local/share/bash-completion/completions &&
 tee ~/.local/share/bash-completion/completions/mise-pixi << EOS > /dev/null &&
 if hash mise 2>/dev/null && mise which pixi 2>/dev/null; then
@@ -20,14 +20,14 @@ EOS
 ```
 
 ### シェル補完のアンインストール（bashの場合）
-```sh
+```bash
 if [ -e ~/.local/share/bash-completion/completions/mise-pixi ]; then
   rm ~/.local/share/bash-completion/completions/mise-pixi
 fi
 ```
 
 ### アンインストール
-```sh
+```bash
 mise uninstall pixi &&
 mise plugins uninstall pixi &&
 perl -pi -e "s/^pixi = \".+\"\\n//mg" ~/.config/mise/config.toml
@@ -36,7 +36,7 @@ perl -pi -e "s/^pixi = \".+\"\\n//mg" ~/.config/mise/config.toml
 
 ## プロジェクトでの使用
 ### プロジェクトの作成
-```sh
+```bash
 mkdir ~/pixi_test_project &&
 cd ~/pixi_test_project &&
 pixi init
@@ -44,7 +44,7 @@ pixi init
 Condaからエクスポートした依存関係は`pixi init --import environment.yml`でインポートできる。また、Conda形式で依存関係をエクスポートすることが`pixi project export conda-environment environment.yml`でできる。
 
 ### Pythonのインストール
-```sh
+```bash
 pixi add python=3.13.0 &&
 pixi run python3 --version
 ```
@@ -52,12 +52,12 @@ pixi run python3 --version
 
 ### チャンネルの追加
 `conda-forge`以外のチャンネルを追加する。以下では`bioconda`を追加している。
-```sh
+```bash
 pixi project channel add bioconda
 ```
 
 ### Pythonライブラリーのインストール
-```sh
+```bash
 pixi add cowpy &&
 pixi list &&
 pixi run cowpy "Hello, world!"
@@ -65,7 +65,7 @@ pixi run cowpy "Hello, world!"
 
 ### 環境の再構築
 設定ファイルから環境を再構築する場合。
-```sh
+```bash
 cd ~/pixi_test_project &&
 pixi install
 ```

@@ -3,7 +3,7 @@
 Kanidm Clientのセットアップを行う（参照：[Kanidm Clientのセットアップ](client-setup.md)）。
 
 ## Kanidm Unix統合クライアントのセットアップ
-```sh
+```bash
 sudo apt-get install -y kanidm-unixd &&
 sudo tee "/etc/kanidm/unixd" > /dev/null << EOF &&
 version = '2'
@@ -19,12 +19,12 @@ kanidm_unixd_tasks
 ```
 
 ## テスト
-```sh
+```bash
 kanidm_ssh_authorizedkeys --debug kishida230
 ```
 
 ## nsswitch.confのセットアップ
-```sh
+```bash
 PERL_SCRIPT=$(cat << EOS
 s/^(passwd:.+)$/\1 kanidm/g;
 s/^(group:.+)$/\1 kanidm/g;
@@ -35,12 +35,12 @@ sudo perl -pi -e "${PERL_SCRIPT}" "/etc/nsswitch.conf"
 ```
 
 ## テスト
-```sh
+```bash
 getent passwd kishida230
 ```
 
 ## SSHサーバーのセットアップ
-```sh
+```bash
 sudo apt-get install --no-install-recommends -y openssh-server &&
 sudo mkdir -p "/etc/ssh/sshd_config.d" &&
 PERL_SCRIPT="s@^#Include /etc/ssh/sshd_config\.d/\*\.conf\$@Include /etc/ssh/sshd_config.d/*.conf@g" &&
@@ -72,7 +72,7 @@ sudo systemctl restart ssh.service
 ```
 
 ## SSHサーバーのログの確認
-```sh
+```bash
 sudo journalctl --no-pager --lines=30 -xeu ssh.service
 ```
 必要に応じて`sudo nano /etc/ssh/sshd_config`コマンドからログレベルを変更する。

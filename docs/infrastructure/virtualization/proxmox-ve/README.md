@@ -16,7 +16,7 @@
 1. DNS server addressは任意の値
 
 ## リポジトリを無料のものにする
-```sh
+```bash
 mv /etc/apt/sources.list.d/pve-enterprise.list /etc/apt/sources.list.d/pve-enterprise.list.bak &&
 mv /etc/apt/sources.list.d/ceph.list /etc/apt/sources.list.d/ceph.list.bak &&
 VERSION_CODENAME="$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" &&
@@ -35,19 +35,19 @@ EOS
 ```
 
 ## サブスクリプションの広告を削除
-```sh
+```bash
 sed -Ezi.bak "s/(Ext.Msg.show\(\{\s+title: gettext\('No valid sub)/void\(\{ \/\/\1/g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service
 ```
 
 ## 自動アップデート
 ### パッケージをインストール
-```sh
+```bash
 apt-get update -y &&
 apt-get install -y unattended-upgrades apt-listchanges
 ```
 
 ### 設定ファイルを編集
-```sh
+```bash
 nano /etc/apt/apt.conf.d/50unattended-upgrades
 ```
 
@@ -62,12 +62,12 @@ Unattended-Upgrade::Origins-Pattern {
 ```
 
 ### 自動アップデートを有効化
-```sh
+```bash
 dpkg-reconfigure -plow unattended-upgrades
 ```
 
 ## VM/CTの名前を後から変更
-```sh
+```bash
 qm set <vmid> --name <name>
 ```
 
@@ -76,7 +76,7 @@ Proxmox VE Administration Guide
 https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_remove_a_cluster_node
 
 加えてcorosync.confから、削除したノードの情報を削除する。
-```sh
+```bash
 nano /etc/pve/corosync.conf
 ```
 
@@ -107,22 +107,22 @@ nano /etc/pve/corosync.conf
 
 ### Python環境の構築
 `uv`を使っている場合
-```sh
+```bash
 uv add ansible proxmoxer requests
 ```
 
 ### Ansible Galaxyにおけるコレクションのインストール（不要？）
-```sh
+```bash
 uv run ansible-galaxy collection install community.general
 ```
 
 ### Ansible Vaultの使用（インストール不要）
-```sh
+```bash
 uvx --from ansible-core ansible-vault encrypt_string '<token_secret>' --name 'pve_token_secret'
 ```
 
 ### Ansible Playbookの実行
-```sh
+```bash
 uv run ansible-playbook -vvvv playbooks/aaa.yml
 ```
 
@@ -130,7 +130,7 @@ uv run ansible-playbook -vvvv playbooks/aaa.yml
 追加のユーザーはRealm「Proxmox VE authentication server」で作る。Proxmox VEの基盤となるLinuxマシンに対してログインすることはできないが、Proxmox VEのウェブUIにはログインすることができ、それはProxmox VEのクラスター全体に波及する。
 
 noVNCが開かないとき
-```sh
+```bash
 /usr/bin/ssh -e none -o 'HostKeyAlias=<hostname>' root@<IP address> /bin/true
 ```
 

@@ -2,7 +2,7 @@
 うまく動かない。
 
 ## 事前設定
-```sh
+```bash
 ds_password="$(cat /dev/urandom | tr -dc 'A-Za-z0-9!"#$%&'"'"'()*+,-./:;<=>?@[]\^_`{|}~' | head -c 12)" &&
 admin_password="$(cat /dev/urandom | tr -dc 'A-Za-z0-9!"#$%&'"'"'()*+,-./:;<=>?@[]\^_`{|}~' | head -c 12)" &&
 base_domain="home.arpa" &&
@@ -32,7 +32,7 @@ fi
 コンテナは`--detach`オプションによりバックグラウンドで起動させており、そのログを別途`podman logs`コマンドで表示させている。初期設定が完了したら「FreeIPA server configured.」と表示される。それを確認したら「Ctrl + C」キーでログの表示を終了させる。
 
 ### マスター（Aパターン／動作実績あり）
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run \
   --detach \
@@ -59,7 +59,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Bパターン／動作実績あり）
 Aパターン＋--rm＋--read-only＋--log-driver
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
   --name freeipa-server \
@@ -87,7 +87,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Cパターン／動かない）
 Bパターンー--read-only＋--setup-dns＋--forwarder
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
   --name freeipa-server \
@@ -115,7 +115,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Z-Aパターン／動作実績あり）
 外から持ってきたもの
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run -d --name freeipa-server --log-driver journald \
     -h ${domain} \
@@ -135,7 +135,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Z-Bパターン／動作実績あり）
 Z-Aパターンと内容同等でオプション名を変えたもの
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach \
     --name freeipa-server \
@@ -158,7 +158,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Z-Cパターン／動作実績あり）
 Z-Bパターンー-p 123:123＋--rm
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
     --name freeipa-server \
@@ -187,7 +187,7 @@ Z-Cパターン＋--domain
 
 Unable to resolve "idm-01.int.home.arpa". Is --dns=127.0.0.1 set for the container?
 →`--dns=127.0.0.1`を`--dns=${nameserver}`に差し替えても`mode of '/tmp/var' changed from 1755 (rwxr-xr-t) to 0755 (rwxr-xr-x)`で止まる
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
     --name freeipa-server \
@@ -214,7 +214,7 @@ sudo podman logs --follow freeipa-server
 
 ### マスター（Dパターン）
 Cパターンー--forwarder＋--dns＋--no-forwarders
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
   --name freeipa-server \
@@ -237,7 +237,7 @@ sudo podman logs --follow freeipa-server
 ```
 
 ### マスター（目標）
-```sh
+```bash
 sudo install -o "root" -g "${user_name}" -m 775 -d "/var/local/lib/ipa-data" &&
 sudo podman run --detach --rm \
   --name=freeipa-server \
@@ -260,18 +260,18 @@ sudo podman logs --follow freeipa-server
 ```
 
 ## コンテナをいったん停止・削除
-```sh
+```bash
 sudo podman stop freeipa-server;
 sudo podman rm freeipa-server
 ```
 
 ## 【元に戻す】ディレクトリーを削除
-```sh
+```bash
 sudo rm -drf /var/local/lib/ipa-data
 ```
 
 ## サービス化（A／動作実績あり）
-```sh
+```bash
 sudo tee "/etc/containers/systemd/freeipa-server.container" << EOS > /dev/null &&
 [Unit]
 Description=FreeIPA Server Container
@@ -307,7 +307,7 @@ sudo systemctl status --no-pager --full freeipa-server.service
 
 ## サービス化（B）
 Aから53番ポートの開放を追加
-```sh
+```bash
 sudo tee "/etc/containers/systemd/freeipa-server.container" << EOS > /dev/null &&
 [Unit]
 Description=FreeIPA Server Container
@@ -345,7 +345,7 @@ sudo systemctl status --no-pager --full freeipa-server.service
 
 ## サービス化（--read-only＋--log-driver＋AutoUpdate／動作実績あり）
 `ReadOnly=true`はだめで、`[22058.891494] podman1: port 1(veth0) entered blocking state`や`[22058.891727] podman1: port 1(veth0) entered disabled state`を繰り返す。
-```sh
+```bash
 sudo tee "/etc/containers/systemd/freeipa-server.container" << EOS > /dev/null &&
 [Unit]
 Description=FreeIPA Server Container
@@ -383,7 +383,7 @@ sudo systemctl status --no-pager --full freeipa-server.service
 ```
 
 ## サービス化（目標）
-```sh
+```bash
 sudo tee "/etc/containers/systemd/freeipa-server.container" << EOS > /dev/null &&
 [Unit]
 Description=FreeIPA Server Container
@@ -423,24 +423,24 @@ sudo podman exec -it freeipa-server cat /etc/resolv.conf
 ```
 
 ## 【デバッグ】podmanコマンドの確認
-```sh
+```bash
 systemctl cat --no-pager --full freeipa-server.service | grep ExecStart=
 ```
 
 ## 【デバッグ】ログの表示
-```sh
+```bash
 journalctl --no-pager --lines=20 --unit=freeipa-server.service
 ```
 
 ## 【元に戻す】サービスの停止・削除
-```sh
+```bash
 sudo systemctl stop freeipa-server.service;
 sudo rm /etc/containers/systemd/freeipa-server.container;
 sudo systemctl daemon-reload
 ```
 
 ### レプリカ
-```sh
+```bash
 sudo podman run \
   --detach \
   --name=freeipa-server \
@@ -465,7 +465,7 @@ sudo podman logs --follow freeipa-server
 ```
 
 ## ネットワークの作成
-```sh
+```bash
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/freeipa.network << EOS > /dev/null
 [Unit]

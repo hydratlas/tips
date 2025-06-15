@@ -3,7 +3,7 @@
 - 参考：[Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 
 ### Linux (Bash)
-```sh
+```bash
 wget -q -O - https://mise.run | sh &&
 ~/.local/bin/mise --version &&
 ~/.local/bin/mise reshim &&
@@ -42,24 +42,24 @@ $newPath = $currentPath + ";" + $shimPath
 ```
 
 #### Git Bash
-```sh
+```bash
 winget install -e --id jdx.mise &&
 mise reshim &&
 mise --version
 ```
 
 ## 状態確認
-```sh
+```bash
 mise doctor
 ```
 
 ## 基本的なツールのインストール
-```sh
+```bash
 mise use -g jq
 ```
 
 ## シェル補完のインストール（LinuxのBashの場合）
-```sh
+```bash
 mise use -g usage &&
 mkdir -p ~/.local/share/bash-completion/completions &&
 tee ~/.local/share/bash-completion/completions/mise << EOS > /dev/null &&
@@ -73,7 +73,7 @@ EOS
 
 ## シェル補完のインストール（WindowsのGit Bashの場合）
 usageが入らないため、動かない。
-```sh
+```bash
 tee "$HOME/.bash_completion.d/mise" << EOS > /dev/null &&
 if hash mise 2>/dev/null; then
   eval "\$(mise completion bash --include-bash-completion-lib)"
@@ -105,7 +105,7 @@ miseでユーザーグローバルにツールをインストールして、そ�
       - Node.js & pnpm
 
 ## アップデート
-```sh
+```bash
 mise self-update --no-plugins &&
 mise plugins update &&
 mise upgrade
@@ -113,12 +113,12 @@ mise upgrade
 それぞれmise本体、プラグインおよびツールをアップデートする。
 
 ## キャッシュの削除
-```sh
+```bash
 mise cache clear
 ```
 
 ## シェル補完のアンインストール（LinuxのBashの場合）
-```sh
+```bash
 if [ -f ~/.local/share/bash-completion/completions/mise ]; then
   rm ~/.local/share/bash-completion/completions/mise
 fi
@@ -126,7 +126,7 @@ fi
 
 ## アンインストール
 ### Linux (Bash)
-```sh
+```bash
 mise implode -y
 ```
 アンインストール後にシェルに`-bash: /home/<username>/.local/bin/mise: No such file or directory`とエラーメッセージが表示されるようになるが、シェルを開き直せば解消される。
@@ -138,6 +138,6 @@ winget uninstall -e --id jdx.mise
 
 ## ユーザーグローバルにインストールしたツールやシステムの再インストール
 設定ファイル(~/.config/mise/config.toml)からユーザーグローバルにインストールしたツールやシステムを再インストールする。プラグインは手動でのインストールが必要になる場合がある。
-```sh
+```bash
 mise install -y
 ```

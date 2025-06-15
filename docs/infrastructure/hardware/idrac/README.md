@@ -1,7 +1,7 @@
 # iDRAC
 ## リバースプロキシを設定する
 ポート5900を使用する仮想コンソールがうまく動かないという問題がある。
-```sh
+```bash
 ip_address="0.0.0.0" &&
 container_user="nginx" &&
 if hash apt-get 2>/dev/null; then
@@ -101,7 +101,7 @@ sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_u
 - 参考：[anyone reverse proxy idrac? : r/homelab](https://www.reddit.com/r/homelab/comments/a0963b/anyone_reverse_proxy_idrac/)
 
 ## 自動更新の有効化
-```sh
+```bash
 container_user="nginx" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user enable --now podman-auto-update.timer
@@ -110,20 +110,20 @@ sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_u
 ```
 
 ## 【デバッグ】ログの確認
-```sh
+```bash
 container_user="nginx" &&
 sudo -u "${container_user}" journalctl --user --no-pager --lines=100 --unit=nginx.service
 ```
 
 ## 【デバッグ】再起動
-```sh
+```bash
 container_user="nginx" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user restart nginx.service
 ```
 
 ## 【元に戻す】停止・削除
-```sh
+```bash
 container_user="nginx" &&
 sudo -u "${container_user}" env XDG_RUNTIME_DIR=/run/user/$(id -u "${container_user}") \
   systemctl --user stop nginx.service &&

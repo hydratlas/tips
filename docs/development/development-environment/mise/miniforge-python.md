@@ -2,7 +2,7 @@
 # mise & Miniforge (Python)
 ## ユーザーグローバルでの設定
 ### Miniforgeのインストール（bashの場合）
-```sh
+```bash
 mise use -g -y python@miniforge3-latest &&
 "$(mise which conda)" --version &&
 "$(mise which conda)" init bash &&
@@ -13,13 +13,13 @@ mise use -g -y python@miniforge3-latest &&
 
 ### パッケージチャンネルの追加
 `conda-forge`以外のチャンネルを追加する。以下では`bioconda`を追加している。
-```sh
+```bash
 conda config --append channels bioconda &&
 conda config --set channel_priority strict
 ```
 
 ### Miniforgeのアンインストール
-```sh
+```bash
 conda init --reverse &&
 mise uninstall python@miniforge3-latest &&
 perl -pi -e "s/^python = \"miniforge.+\"\\n//mg" ~/.config/mise/config.toml &&
@@ -35,7 +35,7 @@ fi &&
 
 ## プロジェクトでの使用
 ### 仮想環境の作成
-```sh
+```bash
 mkdir ~/conda_test_project &&
 cd ~/conda_test_project &&
 conda create --name "$(basename "$(pwd)")" -y
@@ -43,27 +43,27 @@ conda create --name "$(basename "$(pwd)")" -y
 
 ### アクティブ化
 Miniforge(conda)はディレクトリー移動とともに自動的に仮想環境を切り替えてくれないため、手動でアクティブ化およびデアクティブ化を行う必要がある。
-```sh
+```bash
 conda activate "$(basename "$(pwd)")"
 ```
 
 ### Pythonのインストール
 `conda search python`でインストール可能なバージョンを確認した上で、任意のバージョンを指定して、インストールする。
-```sh
+```bash
 conda install -y python=3.13.0
 conda run python3 --version
 ```
 アクティブ化されていなくても、`conda install`コマンドは`--name`オプションで仮想環境名を与えることができる。
 
 ### Pythonライブラリーのインストール
-```sh
+```bash
 conda install -y cowpy &&
 cowpy "Hello, world!"
 ```
 
 ### 仮想環境のエクスポート
 Miniforge(conda)はインストールコマンドの実行時に、ファイルへ仮想環境の状態を記録してくれないため、手動でエクスポートする必要がある。
-```sh
+```bash
 conda env export | head -n -1 > environment.yml
 ```
 アクティブ化されていなくても、`conda env`コマンドは`--name`オプションで仮想環境名を与えることができる。
@@ -71,18 +71,18 @@ conda env export | head -n -1 > environment.yml
 prefixは意味がないため出力ファイルから削除している（参考：[Conda export environment contains local path in the prefix \`field\` · Issue #11114 · conda/conda](https://github.com/conda/conda/issues/11114)）。
 
 ### デアクティブ化
-```sh
+```bash
 conda deactivate
 ```
 
 ### 仮想環境の削除
-```sh
+```bash
 conda remove --name "$(basename "$(pwd)")" --all -y
 ```
 
 ### 環境の再構築
 設定ファイルから環境を再構築する場合。事前にmiseのインストールが必要。
-```sh
+```bash
 cd ~/conda_test_project
 conda env create --name "$(basename "$(pwd)")" --file environment.yml -y
 ```

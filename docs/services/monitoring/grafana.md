@@ -1,6 +1,6 @@
 # Grafana
 ## インストール
-```sh
+```bash
 host_dir="/var/lib/grafana" &&
 container_dir="/var/lib/grafana" &&
 host_datasources_dir="/etc/grafana/provisioning/datasources" &&
@@ -74,7 +74,7 @@ sudo cat "${env_file}"
   - [Run Grafana Docker image | Grafana documentation](https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/)
 
 ## 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full grafana.service
 journalctl --no-pager --lines=20 --unit=grafana
 ```
@@ -90,12 +90,12 @@ journalctl --no-pager --lines=20 --unit=grafana
     - [Loki stack monitoring (Promtail, Loki) | Grafana Labs](https://grafana.com/grafana/dashboards/14055-loki-stack-monitoring-promtail-loki/)
 
 ## 【デバッグ用】再起動
-```sh
+```bash
 sudo systemctl restart grafana.service
 ```
 
 ## 【デバッグ用】停止・削除
-```sh
+```bash
 sudo systemctl stop grafana.service &&
 sudo rm /etc/containers/systemd/grafana.container &&
 sudo systemctl daemon-reload &&

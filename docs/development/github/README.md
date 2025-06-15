@@ -13,7 +13,7 @@
 ### パッケージのインストール
 #### Linux（Debian系）
 GitやGPGが未インストールの場合は以下のコマンドで導入してください。
-```sh
+```bash
 sudo apt-get install -y git gpg
 ```
 
@@ -24,7 +24,7 @@ Git Bashがインストールされていれば、GitとGPGは準備できてい
 インストールしたパッケージを削除する場合は、以下のコマンドを実行します。
 
 #### Linux
-```sh
+```bash
 sudo apt-get purge -y git gpg
 ```
 
@@ -37,7 +37,7 @@ sudo apt-get purge -y git gpg
 
 以下の例のように変数を設定します。
 
-```sh
+```bash
 github_short_username="abc" &&
 github_mail="123456789+username@users.noreply.github.com" &&
 github_username="${github_mail#*+}" &&
@@ -48,7 +48,7 @@ github_userid="${github_username} <${github_mail}>"
 ### SSHキーペアとSSH設定ファイルの作成
 ホスト名ごとに異なるSSHキーを使用できるよう、SSHの設定ファイル(~/.ssh/config)に接続設定を追加します。
 
-```sh
+```bash
 keyfile="$HOME/.ssh/id_ed25519_${github_username}"
 ssh-keygen -t ed25519 -N "" -C "" -f "${keyfile}" &&
 tee -a "$HOME/.ssh/config" << EOS > /dev/null &&
@@ -69,28 +69,28 @@ cat "${keyfile}.pub"
 ### 【デバッグ】SSHキーペアの確認
 SSHキーが正しく生成されているかを確認するときは、以下のコマンドでファイルリストを確認します。
 
-```sh
+```bash
 ls -la "$HOME/.ssh"
 ```
 
 ### 【デバッグ】.ssh/configの確認
 SSHの設定ファイルが正しい内容になっているか確認します。
 
-```sh
+```bash
 cat "$HOME/.ssh/config"
 ```
 
 ### 【デバッグ】.ssh/configの編集
 SSHの設定ファイルを編集します。
 
-```sh
+```bash
 nano "$HOME/.ssh/config"
 ```
 
 ### 【元に戻す】生成したSSHキーペアの削除
 不要になったSSHキーや誤って作成してしまったキーは以下のコマンドで削除できます。合わせて~/.ssh/configの該当行もファイルの編集によって削除してください。
 
-```sh
+```bash
 rm "${keyfile}.pub" &&
 rm "${keyfile}"
 ```
@@ -100,7 +100,7 @@ rm "${keyfile}"
 
 コミット署名やタグ署名を行うことを強く推奨します。署名付きのコミットやタグは、改ざんやなりすましを防ぎ、コードの信頼性を確保するために非常に重要です。
 
-```sh
+```bash
 gpg --pinentry-mode loopback --passphrase "" \
   --quick-gen-key "${github_userid}" future-default - 0 &&
 gpg --armor --export "${github_userid}"
@@ -115,14 +115,14 @@ gpg --armor --export "${github_userid}"
 ### 【デバッグ】GPGキー（秘密鍵）のリストの確認
 生成したGPGキーが正しく登録されているかを確認するときは、秘密鍵のリストを確認します（公開鍵のみのリスト表示はできません）。
 
-```sh
+```bash
 gpg --list-secret-keys
 ```
 
 ### 【元に戻す】生成したGPGキーペアの削除
 GPGキーが不要になった場合や再作成したい場合は、以下のコマンドを使用します。
 
-```sh
+```bash
 gpg --delete-secret-keys "${github_userid}" &&
 gpg --delete-keys "${github_userid}"
 ```
@@ -137,7 +137,7 @@ gpg --delete-keys "${github_userid}"
 ### 変数の準備
 さきほどと同様に、以下の変数を設定しておくと便利です。
 
-```sh
+```bash
 github_short_username="abc" &&
 github_mail="123456789+username@users.noreply.github.com" &&
 github_username="${github_mail#*+}" &&
@@ -148,14 +148,14 @@ github_userid="${github_username} <${github_mail}>"
 ### 中身があるGitHubリポジトリーの場合
 既存リポジトリーをクローンする例です。先頭3文字を使い、SSH設定ファイルで登録したホスト名を指定します。
 
-```sh
+```bash
 git clone "git@github-${github_short_username}:<repository owner>/<repository name>".git .
 ```
 
 ### 空であるGitHubリポジトリーの場合
 GitHub上に空のリポジトリーを作成してから、以下のコマンドで初期化とリモート登録を行います。
 
-```sh
+```bash
 git init --initial-branch=main &&
 git remote add origin "git@github-${github_short_username}:<repository owner>/<repository name>.git"
 ```
@@ -163,7 +163,7 @@ git remote add origin "git@github-${github_short_username}:<repository owner>/<r
 ### メールアドレスなどの設定
 コミットで正しいユーザー名・メールアドレス・署名キーを使用するために、以下の設定を行います。プロジェクト単位で設定することで、他のプロジェクトに影響を与えずに済みます。
 
-```sh
+```bash
 git config user.name "${github_username}" &&
 git config user.email "${github_mail}" &&
 git config commit.gpgsign true &&
@@ -173,7 +173,7 @@ cat .git/config
 ```
 
 ### 【デバッグ】メールアドレスなどの設定の確認
-```sh
+```bash
 cat .git/config
 ```
 

@@ -1,13 +1,13 @@
 # Rust & Cargo
 ## ユーザーグローバルでの設定
 ### インストール
-```sh
+```bash
 mise use -g -y rust &&
 "$(mise which rustc)" --version
 ```
 
 ### シェル補完のインストール（bashの場合）
-```sh
+```bash
 mkdir -p "$HOME/.local/share/bash-completion/completions" &&
 tee "$HOME/.local/share/bash-completion/completions/mise-rustup" <<- EOS > /dev/null &&
 if hash rustup 2>/dev/null; then
@@ -28,7 +28,7 @@ CREATE_COMPLETION "mise-rustfmt"
 ```
 
 ### シェル補完のアンインストール（bashの場合）
-```sh
+```bash
 DELETE_COMPLETION () {
   if [ -e "$HOME/.local/share/bash-completion/completions/$1" ]; then
     rm "$HOME/.local/share/bash-completion/completions/$1"
@@ -41,7 +41,7 @@ DELETE_COMPLETION "mise-rustfmt"
 ```
 
 ### アンインストール
-```sh
+```bash
 mise uninstall rust &&
 perl -pi -e "s/^rust = \".+\"\\n//mg" ~/.config/mise/config.toml
 ```

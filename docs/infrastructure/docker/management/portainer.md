@@ -6,7 +6,7 @@
   - ソケットの有効化
 
 以下のコマンドを実行。
-```sh
+```bash
 SOCKET='/run/podman/podman.sock' &&
 SECURITYLABELDISABLE=''
 ```
@@ -17,13 +17,13 @@ SECURITYLABELDISABLE=''
   - linger（居残り）の有効化（ユーザーごとの設定）
 
 以下のコマンドを実行。
-```sh
+```bash
 SOCKET="${XDG_RUNTIME_DIR}/podman/podman.sock" &&
 SECURITYLABELDISABLE='SecurityLabelDisable=true'
 ```
 
 ### 共通の準備
-```sh
+```bash
 CONTAINER_FILE=$(cat << EOS
 [Container]
 Image=docker.io/portainer/portainer-ce:latest
@@ -47,7 +47,7 @@ EOS
 
 ### インストール
 #### rootユーザーで実行する場合（sudo）
-```sh
+```bash
 sudo mkdir -p /etc/containers/systemd &&
 sudo tee /etc/containers/systemd/portainer.container <<< "${CONTAINER_FILE}" > /dev/null &&
 sudo systemctl daemon-reload &&
@@ -56,7 +56,7 @@ sudo systemctl start portainer.service
 一般的には`systemctl enable`で常時起動設定を有効化し（`systemctl disable`で無効化）、`systemctl start`で起動させる（`systemctl stop`で停止）。しかし、Quadletでは`systemctl enable`は使えない（[podman-systemd.unit — Podman documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)）。`.container`ファイルを作って`systemctl daemon-reload`を実行すると常時起動設定が有効になり、`.container`ファイルを削除して`systemctl daemon-reload`を実行すると常時起動設定が無効になる。
 
 #### 非rootユーザーで実行する場合
-```sh
+```bash
 mkdir -p "$HOME/.config/containers/systemd" &&
 tee "$HOME/.config/containers/systemd/portainer.container" <<< "${CONTAINER_FILE}" > /dev/null &&
 systemctl --user daemon-reload &&
@@ -65,25 +65,25 @@ systemctl --user start portainer.service
 
 ### 確認
 #### rootユーザーで実行した場合（sudo）
-```sh
+```bash
 sudo systemctl status portainer.service
 ```
 
 #### 非rootユーザーで実行した場合
-```sh
+```bash
 systemctl --user status portainer.service
 ```
 
 ### 停止・削除
 #### rootユーザーで実行した場合（sudo）
-```sh
+```bash
 sudo systemctl stop portainer.service &&
 sudo rm /etc/containers/systemd/portainer.container &&
 sudo systemctl daemon-reload
 ```
 
 #### 非rootユーザーで実行した場合
-```sh
+```bash
 systemctl --user stop portainer.service &&
 rm "$HOME/.config/containers/systemd/portainer.container" &&
 systemctl --user daemon-reload
@@ -95,7 +95,7 @@ systemctl --user daemon-reload
 - 前提
   - DockerまたはPodmanのインストール
   - ソケットの有効化（Podmanの場合のみ）（Dockerはデフォルトで有効）
-```sh
+```bash
 sudo docker run \
   --detach \
   -p 9443:9443 \
@@ -108,7 +108,7 @@ sudo docker run \
 ```
 
 #### 停止・自動再起動の無効化・削除
-```sh
+```bash
 sudo docker stop portainer &&
 if ! type podman >/dev/null 2>&1; then
   sudo docker update --restart=no portainer
@@ -120,7 +120,7 @@ sudo docker rm portainer
 #### インストール・自動再起動の有効化・実行
 - 前提
   - Dockerのインストール（Podmanは非rootユーザーかつRootfulで実行できない）
-```sh
+```bash
 docker run \
   --detach \
   -p 9443:9443 \
@@ -133,7 +133,7 @@ docker run \
 ```
 
 #### 停止・自動再起動の無効化・削除
-```sh
+```bash
 docker stop portainer &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no portainer
@@ -147,7 +147,7 @@ docker rm portainer
   - DockerまたはPodmanのインストール
   - ソケットの有効化（ユーザーごとの設定）（Podmanの場合のみ）（Dockerはデフォルトで有効）
   - linger（居残り）の有効化（ユーザーごとの設定）
-```sh
+```bash
 docker run \
   --detach \
   -p 9443:9443 \
@@ -160,7 +160,7 @@ docker run \
 ```
 
 #### 停止・削除
-```sh
+```bash
 docker stop portainer &&
 if ! type podman >/dev/null 2>&1; then
   docker update --restart=no portainer

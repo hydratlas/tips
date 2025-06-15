@@ -1,6 +1,6 @@
 # mise & Node.js
 ## プロジェクトディレクトリーの作成
-```sh
+```bash
 mkdir ~/nodejs_test_project &&
 cd ~/nodejs_test_project
 ```
@@ -9,7 +9,7 @@ cd ~/nodejs_test_project
 プロジェクトローカルにNode.jsランタイムおよびパッケージ管理ツールをインストールする。Node.jsはパッケージ管理ツールを、Node.js付属のnpm、Yarnおよびpnpmから選択できる。選択に応じてYarnまたはpnpmをインストールする。インストールした内容は設定ファイル(.mise.toml)に記録される。
 
 ### Node.js
-```sh
+```bash
 mise use -y node@24 &&
 echo "node: $(node --version)" &&
 echo "npm: $(node --version)"
@@ -17,14 +17,14 @@ echo "npm: $(node --version)"
 `mise ls-remote node`コマンドでインストール可能なバージョンがリストアップされる。
 
 ### Yarn
-```sh
+```bash
 mise use -y yarn@4 &&
 yarn --version &&
 ```
 `mise ls-remote yarn`コマンドでインストール可能なバージョンがリストアップされる。
 
 ### pnpm
-```sh
+```bash
 mise use -y pnpm@10 &&
 pnpm --version
 ```
@@ -32,27 +32,27 @@ pnpm --version
 
 ## ランタイムおよびツールの再インストール
 設定ファイル(.mise.toml)からランタイムおよびツールを再インストールする場合。
-```sh
+```bash
 mise install -y
 ```
 
 ## プロジェクトの初期化およびパッケージのインストール
 ### npm（Node.js付属）
-```sh
+```bash
 npm init -y &&
 npm install cowsay &&
 npm ls
 ```
 
 ### Yarn
-```sh
+```bash
 yarn init -y &&
 yarn add cowsay &&
 yarn list
 ```
 
 ### pnpm
-```sh
+```bash
 pnpm init &&
 pnpm add cowsay &&
 pnpm list
@@ -60,7 +60,7 @@ pnpm list
 
 ## パッケージデータの削除
 インストールされたパッケージのデータのデータの削除する。どのパッケージがインストールされていたのかを記録した設定ファイル（package.jsonなど）は残るため、削除しても再インストールすることができる。
-```sh
+```bash
 rm -rf node_modules
 ```
 
@@ -68,17 +68,17 @@ rm -rf node_modules
 設定ファイル（package.jsonなど）からインストールされたパッケージのデータを再インストールする。
 
 ### npm（Node.js付属）
-```sh
+```bash
 npm install
 ```
 
 ### Yarn
-```sh
+```bash
 yarn install
 ```
 
 ### pnpm
-```sh
+```bash
 pnpm install
 ```
 
@@ -86,19 +86,19 @@ pnpm install
 `.mise.toml`を参照しているため、プロジェクトディレクトリーのルートで実行する必要がある。
 
 ### Node.js
-```sh
+```bash
 mise uninstall node &&
 perl -pi -e "s/^node = \".+\"\\n//mg" .mise.toml
 ```
 
 ### Yarn
-```sh
+```bash
 mise uninstall yarn &&
 perl -pi -e "s/^yarn = \".+\"\\n//mg" .mise.toml
 ```
 
 ### pnpm
-```sh
+```bash
 mise uninstall pnpm &&
 mise plugins uninstall -y pnpm &&
 perl -pi -e "s/^pnpm = \".+\"\\n//mg" .mise.toml

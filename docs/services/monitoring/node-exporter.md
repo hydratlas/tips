@@ -3,7 +3,7 @@
 公式サイトは[node-exporter-textfile-collector-scripts/ipmitool at master · prometheus-community/node-exporter-textfile-collector-scripts](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)。
 
 ### 必要なパッケージのインストール
-```sh
+```bash
 # Debian系の場合
 sudo apt-get install -y moreutils python3-apt python3-prometheus-client ipmitool jq nvme-cli smartmontools rsync
 
@@ -12,7 +12,7 @@ sudo yum install -y epel-release moreutils
 ```
 
 ### 本体のインストールおよびサービスの設定
-```sh
+```bash
 cd "$HOME" &&
 mkdir -p prometheus-node-exporter-collectors &&
 wget -O - https://github.com/prometheus-community/node-exporter-textfile-collector-scripts/archive/refs/heads/master.tar.gz | tar xvfz - -C prometheus-node-exporter-collectors --strip-components 1 &&
@@ -57,7 +57,7 @@ sudo systemctl start prometheus-node-exporter-collectors.service
 ```
 
 ### 確認
-```sh
+```bash
 sudo systemctl status prometheus-node-exporter-collectors.service
 ```
 
@@ -65,12 +65,12 @@ sudo systemctl status prometheus-node-exporter-collectors.service
 公式サイトは[prometheus/node_exporter: Exporter for machine metrics](https://github.com/prometheus/node_exporter)。
 
 ### 必要なパッケージのインストール
-```sh
+```bash
 sudo apt-get install -y jq
 ```
 
 ### インストール
-```sh
+```bash
 OS="$(uname -s)" &&
 OS="${OS,,}" &&
 ARCH="$(dpkg --print-architecture)" &&
@@ -92,7 +92,7 @@ rm -dr "${HOME}/node_exporter"
 アップデートの際はこれと同様のことを行った上で、`sudo systemctl restart node_exporter.service`を実行する。
 
 ### 設定・起動・常時起動化
-```sh
+```bash
 sudo tee "/etc/systemd/system/node_exporter.service" <<'EOF' >/dev/null &&
 [Unit]
 Description=Prometheus Node Exporter
@@ -121,7 +121,7 @@ sudo systemctl enable --now node_exporter.service
 `DynamicUser=true`を指定することによって、明示的にroot以外のユーザーを作成せずにすんでいる。
 
 ### 確認
-```sh
+```bash
 sudo systemctl status --no-pager --full node_exporter.service
 
 node_exporter --version
@@ -130,7 +130,7 @@ wget -q -O - http://localhost:9100/metrics
 ```
 
 ### 自動アップデートスクリプト
-```sh
+```bash
 #!/bin/bash
 BINARY_NAME="node_exporter"
 INSTALL_DIR="/usr/local/bin"

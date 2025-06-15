@@ -5,7 +5,7 @@
 [install-docker.md](install-docker.md)に従って、通常のDockerをインストールする。
 
 ## 必要なパッケージをインストール
-```sh
+```bash
 if ! type slirp4netns >/dev/null 2>&1; then
   sudo apt-get install -y slirp4netns
 fi &&
@@ -16,37 +16,37 @@ sudo apt-get install -y uidmap iptables docker-ce-rootless-extras
 Rootless Dockerと通常のDockerは併用できるが、一方で通常のDockerを無効にすることもできる。
 
 ### 無効化
-```sh
+```bash
 sudo systemctl disable --now docker.service docker.socket
 sudo rm /var/run/docker.sock
 ```
 
 ### 確認
-```sh
+```bash
 sudo systemctl status docker.service
 ```
 
 ### 【元に戻す】有効化
-```sh
+```bash
 sudo systemctl enable --now docker.service docker.socket
 ```
 `/var/run/docker.sock`は自動的に生成される。
 
 ## Rootless Dockerをインストール（各ユーザー）
 ### インストール
-```sh
+```bash
 dockerd-rootless-setuptool.sh install
 ```
 
 ### 【元に戻す】アンインストール
-```sh
+```bash
 dockerd-rootless-setuptool.sh uninstall
 ```
 
 `DOCKER_HOST`環境変数や、linger（居残り）は別途、解除する。
 
 データも削除する場合は次のコマンドを実行する。
-```sh
+```bash
 rootlesskit rm -rf "$HOME/.local/share/docker"
 ```
 
@@ -54,7 +54,7 @@ rootlesskit rm -rf "$HOME/.local/share/docker"
 一部のアプリケーションに必要。これを設定すると、コンテキストの切り替えができなくなることに注意。
 
 ### 設定
-```sh
+```bash
 TARGET_FILE="$HOME/.bashrc" &&
 START_MARKER="# BEGIN Rootless Docker BLOCK" &&
 END_MARKER="# END Rootless Docker BLOCK" &&
@@ -71,7 +71,7 @@ fi &&
 ```
 
 ### 【元に戻す】設定を解除
-```sh
+```bash
 TARGET_FILE="$HOME/.bashrc" &&
 START_MARKER="# BEGIN Rootless Docker BLOCK" &&
 END_MARKER="# END Rootless Docker BLOCK" &&
@@ -90,14 +90,14 @@ export DOCKER_HOST=""
 システムに`docker-compose-plugin`がインストールされておらず、なおかつシステム管理者にインストールしてもらえない場合にのみ必要。
 
 ### インストール
-```sh
+```bash
 mkdir -p "$HOME/.docker/cli-plugins" &&
 wget -O "$HOME/.docker/cli-plugins/docker-compose" "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" &&
 chmod a+x "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
 ### 【元に戻す】アンインストール
-```sh
+```bash
 rm "$HOME/.docker/cli-plugins/docker-compose"
 ```
 
@@ -107,17 +107,17 @@ DockerのエンドポイントはRootfulでは`unix:///var/run/docker.sock`、Ro
 `DOCKER_HOST`環境変数が設定されていると、それが優先されて切り替えられないことに注意。また、ユーザーがdockerグループに所属していることによって、Rootful Dockerが使えるにようになっていないと、切り替えても実際には実行できない。
 
 ### 切り替え
-```sh
+```bash
 docker context use default
 ```
 
 ### 確認
-```sh
+```bash
 docker context ls
 ```
 default（DOCKER ENDPOINTは`unix:///var/run/docker.sock`）に*マークが付いていればRootful Dockerに切り替わっている。
 
 ### 【元に戻す】Rootless Dockerに切り替える
-```sh
+```bash
 docker context use rootless
 ```
