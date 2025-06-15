@@ -94,7 +94,7 @@ miseでユーザーグローバルにツールをインストールして、そ�
   - [pixi](pixi-python.md) (Conda): mambaを作っているprefix.devが作っている、Rust言語に基づく高速なパッケージ管理システム（おすすめ）
       - 各プロジェクト
           - Python
-  - Python ([Miniforge](mise/miniforge-python.md) (Conda)): conda-forgeリポジトリで作っているパッケージ管理システム
+  - Python ([Miniforge](miniforge-python.md) (Conda)): conda-forgeリポジトリで作っているパッケージ管理システム
       - 各プロジェクト
           - Python
   - [Rust & Cargo](rust.md)

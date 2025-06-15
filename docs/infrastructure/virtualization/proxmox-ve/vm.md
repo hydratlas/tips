@@ -73,8 +73,6 @@ EOS
 ```sh
 eval "$(wget -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/proxmox-ve")"
 ```
-中身は[proxmox-ve](/scripts/proxmox-ve)を参照。
-
 
 ### 固有値を決定
 ```sh

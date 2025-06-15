@@ -12,8 +12,6 @@ Node Exporter + VictoriaMetrics (Single version) + Grafanaという構成で、�
 
 ## クライアント
 監視対象のそれぞれのマシンにインストールする。
-- [Node Exporter](node-exporter.md)
-- [Promtail](promtail.md)
 
 ## サーバー
 1台のマシンにインストールする。Podman Quadletを使用しているため、Podman 4.6以上のインストールが必要で、Podman 4.6以上であることを満たすためにUbuntu LTSであれば24.04以上が必要である。
@@ -30,6 +28,3 @@ Label=app=monitoring
 EOS
 ```
 
-- [VictoriaMetrics (Single version)](victoriametrics.md)
-- [Loki](loki.md)
-- [Grafana](grafana.md)

@@ -84,7 +84,6 @@ echo "${JSON}" | jq -c "."
 ```sh
 eval "$(wget --no-cache -q -O - "https://raw.githubusercontent.com/hydratlas/tips/refs/heads/main/scripts/router")"
 ```
-中身は[router](/scripts/router)を参照。
 
 ## ネットワーク設定（Netplan）
 ```sh
