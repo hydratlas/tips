@@ -46,24 +46,20 @@ apt-get update -y &&
 apt-get install -y unattended-upgrades apt-listchanges
 ```
 
-### 設定ファイルを編集
+### 設定ファイルを作成
 ```bash
-nano /etc/apt/apt.conf.d/50unattended-upgrades
-```
-
-次のブロックの内側に、
-```
+tee /etc/apt/apt.conf.d/50unattended-upgrades << 'EOF' > /dev/null
 Unattended-Upgrade::Origins-Pattern {
-```
+        "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+};
 
-次の行を入れる。
-```
-        "origin=Proxmox,codename=${distro_codename},label=Proxmox VE";
+Unattended-Upgrade::Automatic-Reboot "false";
+EOF
 ```
 
 ### 自動アップデートを有効化
 ```bash
-dpkg-reconfigure -plow unattended-upgrades
+echo 'unattended-upgrades unattended-upgrades/enable_auto_updates boolean true' | debconf-set-selections
 ```
 
 ## VM/CTの名前を後から変更
