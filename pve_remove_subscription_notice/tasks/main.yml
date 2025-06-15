@@ -1,22 +1,8 @@
 ---
-- name: Check if datacenter.cfg exists
-  ansible.builtin.stat:
-    path: /etc/pve/datacenter.cfg
-  register: datacenter_cfg
-
-- name: Create datacenter.cfg if it doesn't exist
-  ansible.builtin.file:
-    path: /etc/pve/datacenter.cfg
-    state: touch
-    owner: root
-    group: www-data
-    mode: '0640'
-  when: not datacenter_cfg.stat.exists
-
-- name: Disable subscription check in datacenter.cfg
-  ansible.builtin.lineinfile:
-    path: /etc/pve/datacenter.cfg
-    line: 'disable-subscription-check: 1'
-    state: present
+- name: Remove subscription notice by modifying proxmoxlib.js
+  ansible.builtin.replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: '(Ext\.Msg\.show\(\{\s+title: gettext\(''No valid sub)'
+    replace: 'void({ //\1'
     backup: yes
   notify: restart pveproxy
