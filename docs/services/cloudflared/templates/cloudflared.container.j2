@@ -1,0 +1,22 @@
+[Unit]
+Description=Cloudflare Tunnel (Rootless)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image={{ cloudflared_image }}
+ContainerName=cloudflared
+AutoUpdate=registry
+LogDriver=journald
+EnvironmentFile={{ cloudflared_config_dir }}/cloudflared.env
+Exec=tunnel run
+NoNewPrivileges=true
+ReadOnly=true
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

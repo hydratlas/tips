@@ -1,0 +1,7 @@
+---
+# User configuration
+quadlet_user: ""
+quadlet_user_comment: "Rootless container user"
+
+# Directory configuration
+quadlet_app_name: ""  # Used for app-specific config directory (e.g., cloudflared, traefik, etc.)
