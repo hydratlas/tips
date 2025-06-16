@@ -5,6 +5,11 @@ on:
   push:
     branches:
       - main
+  # merge-docs-update.ymlの完了時に実行
+  workflow_run:
+    workflows: ["Merge docs-update branch"]
+    types: [completed]
+    branches: [main]
   # 手動実行も可能
   workflow_dispatch:
 
@@ -23,6 +28,8 @@ jobs:
   # ビルドジョブ
   build:
     runs-on: ubuntu-latest
+    # workflow_runで実行される場合は成功時のみ実行
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       # リポジトリのチェックアウト
       - name: Checkout repository
