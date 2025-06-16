@@ -1,4 +1,7 @@
 ---
 cloudflared_user: "cloudflared"
+cloudflared_user_comment: "Cloudflare Tunnel rootless user"
+cloudflared_app_name: "cloudflared"
+cloudflared_service_description: "Cloudflare Tunnel Service"
 cloudflared_image: docker.io/cloudflare/cloudflared:latest
 cloudflared_token: ""

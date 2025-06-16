@@ -3,8 +3,8 @@
   ansible.builtin.include_tasks: ../../../infrastructure/container/podman_rootless_quadlet_base/tasks/main.yml
   vars:
     quadlet_user: "{{ cloudflared_user }}"
-    quadlet_user_comment: "Cloudflare Tunnel rootless user"
-    quadlet_app_name: "cloudflared"
+    quadlet_user_comment: "{{ cloudflared_user_comment }}"
+    quadlet_app_name: "{{ cloudflared_app_name }}"
 
 - name: Configure sysctl for unprivileged ping
   ansible.builtin.copy:
