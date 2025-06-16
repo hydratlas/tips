@@ -1,35 +1,5 @@
-# Podman周りのインストール
-## Podmanのインストール
-### パッケージをインストール・確認
-#### 最小限
-```bash
-sudo apt-get install -y podman &&
-podman version
-```
-
-#### 【オプション】Dockerとの互換性を高める
-```bash
-sudo apt-get install --no-install-recommends -y podman-docker &&
-sudo perl -pi -e 's/^#? ?unqualified-search-registries = .+$/unqualified-search-registries = ["docker.io"]/g' /etc/containers/registries.conf &&
-sudo touch /etc/containers/nodocker &&
-docker version
-```
-
-#### 【オプション】非rootユーザーのコンテナがping実行可能にする
-```bash
-sudo tee /etc/sysctl.d/99-ping-group-range.conf << EOS > /dev/null &&
-net.ipv4.ping_group_range=0 2147483647
-EOS
-sudo sysctl --system &&
-sysctl net.ipv4.ping_group_range
-```
-
-### テスト実行
-```bash
-podman run docker.io/hello-world:latest
-```
-
-### ZFSおよびLXC上の場合の追加設定
+# Podman tips
+## ZFSおよびLXC上の場合の追加設定
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。`~/.config/containers/storage.conf`に個別設定がなければ、自動的に`/etc/containers/storage.conf`が使用される。
 ```bash
 tee /usr/local/bin/overlayzfsmount << EOS > /dev/null &&
@@ -60,7 +30,7 @@ reboot
 - [Podman on LXC with ZFS backed volume and Overlay | Proxmox Support Forum](https://forum.proxmox.com/threads/podman-on-lxc-with-zfs-backed-volume-and-overlay.138722/)
 - [[FIX] podman lxc is working on zfs with this fix · tteck/Proxmox · Discussion #3531](https://github.com/tteck/Proxmox/discussions/3531)
 
-## 【オプション】Docker Composeのインストール
+## Docker Composeのインストール
 Docker Composeを使わない場合には必要ない。
 
 ### バイナリーをインストール・確認
@@ -71,12 +41,12 @@ docker-compose --version
 ```
 実際に使う前に、ソケットを有効化しておく必要がある。
 
-### 【元に戻す】アンインストール
+### アンインストール
 ```bash
 sudo rm /usr/local/bin/docker-compose
 ```
 
-## 【オプション】Podmanのソケットを有効化（各ユーザー）
+## Podmanのソケットを有効化（各ユーザー）
 ソケットが必要なアプリケーションを使う場合に実行する。ソケットはユーザーごとに別個であるため、使うユーザー用のソケットをおのおの有効化する。
 
 ### rootユーザー用
@@ -88,7 +58,7 @@ if [ ! -e /var/run/docker.sock ]; then
 fi
 ```
 
-#### 【元に戻す】無効化
+#### 無効化
 ```bash
 sudo systemctl disable --now podman.socket &&
 sudo rm /run/podman/podman.sock &&
@@ -114,7 +84,7 @@ fi &&
 . "$TARGET_FILE"
 ```
 
-#### 【元に戻す】無効化
+#### 無効化
 ```bash
 systemctl --user disable --now podman.socket &&
 rm "$XDG_RUNTIME_DIR/podman/podman.sock" &&
@@ -126,9 +96,6 @@ if grep -q "$START_MARKER" "$TARGET_FILE"; then
 fi &&
 export DOCKER_HOST=""
 ```
-
-## 【オプション】linger（居残り）を有効化（各ユーザー）
-非rootユーザーの場合、デフォルトではログインしているときしかサービスを起動させておけない。コンテナを常時起動させられるようにするには、systemdのサービスのlinger（居残り）を有効化する。
 
 ## Podman Quadlet周り
 ### オプションのドキュメント

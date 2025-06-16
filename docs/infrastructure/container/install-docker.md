@@ -70,6 +70,27 @@ sudo gpasswd -d "<username>" docker
 ```
 再度ログインした後に反映される。
 
+## 実行
+### Dockerコンテナをテスト実行
+```bash
+docker run docker.io/hello-world:latest
+```
+
+### Docker Composeをテスト実行
+```bash
+cd "$HOME" &&
+tee docker-compose.yml << 'EOF' >/dev/null &&
+services:
+  hello:
+    image: docker.io/hello-world:latest
+EOF
+if type docker-compose >/dev/null 2>&1; then
+  docker-compose up
+else
+  docker compose up
+fi
+```
+
 ## 実行中のコンテナを表示
 ### rootユーザーで実行中
 ```bash

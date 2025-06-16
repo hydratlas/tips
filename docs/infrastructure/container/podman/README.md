@@ -42,9 +42,6 @@ sudo apt-get update
 
 # Podmanをインストール
 sudo apt-get install -y podman
-
-# インストールを確認
-podman version
 ```
 
 ### RHEL/CentOS/Fedora系でのインストール
@@ -52,9 +49,6 @@ podman version
 ```bash
 # Podmanをインストール
 sudo dnf install -y podman
-
-# インストールを確認
-podman version
 ```
 
 ### インストール後の確認
