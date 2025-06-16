@@ -36,4 +36,4 @@ BSD
 
 ## 作成者情報
 
-このロールはansible-homeプロジェクトのために作成されました。
+このロールはinfra-orchestrationプロジェクトのために作成されました。
