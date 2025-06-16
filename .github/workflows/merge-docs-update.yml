@@ -5,6 +5,7 @@ on:
     types: [merge-docs-update]
   push:
     branches: [docs-update]
+  workflow_dispatch: # 手動実行を可能にする
 
 permissions:
   contents: write
