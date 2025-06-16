@@ -26,7 +26,7 @@ HP EliteDesk 800 G4 DMで確認したもの。
 
 wsmanによる方法を以下に示す。
 ```bash
-sudo apt install -y wsmancli &&
+sudo apt-get install -y wsmancli &&
 tee kvm.sh << 'EOS' > /dev/null &&
 #!/bin/bash
 AMT_IP='192.168.1.<xxx>'

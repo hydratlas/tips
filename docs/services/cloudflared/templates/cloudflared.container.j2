@@ -1,5 +1,5 @@
 [Unit]
-Description=Cloudflare Tunnel (Rootless)
+Description=Cloudflare Tunnel Service
 After=network-online.target
 Wants=network-online.target
 
@@ -16,7 +16,6 @@ ReadOnly=true
 [Service]
 Restart=always
 RestartSec=5
-TimeoutStartSec=0
 
 [Install]
 WantedBy=default.target

@@ -12,6 +12,6 @@ sudo systemctl restart systemd-logind.service
 
 ## NVMeの情報を表示
 ```bash
-sudo apt install -yq nvme-cli &&
+sudo apt-get install -y nvme-cli &&
 sudo nvme smart-log /dev/nvme0
 ```

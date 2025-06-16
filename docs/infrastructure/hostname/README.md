@@ -29,3 +29,16 @@
 ## 設定内容
 
 - システムのホスト名を指定された値に設定
+
+## 手動での設定手順
+
+```bash
+# ホスト名を設定
+sudo hostnamectl set-hostname webserver01
+
+# 現在のホスト名を確認
+hostnamectl status
+
+# /etc/hostsファイルも更新（必要に応じて）
+sudo sed -i "s/127.0.1.1.*/127.0.1.1\twebserver01/" /etc/hosts
+```

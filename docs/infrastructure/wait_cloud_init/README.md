@@ -46,3 +46,45 @@ cloud-init完了待機ロール
 - 初期化完了まで待機
 - cloud-initが存在しない場合は正常にスキップ
 - VMのプロビジョニング後の設定競合を防止
+
+## 手動での確認手順
+
+### cloud-initのステータス確認
+
+```bash
+# cloud-initの現在のステータスを確認
+sudo cloud-init status
+
+# より詳細な情報を表示
+sudo cloud-init status --long
+```
+
+### cloud-initの完了待機
+
+```bash
+# cloud-initの完了を待機（スクリプト内で使用）
+sudo cloud-init status --wait
+
+# cloud-initが存在するか確認してから待機
+if command -v cloud-init >/dev/null 2>&1; then
+    sudo cloud-init status --wait || [ $? -eq 2 ]
+else
+    echo "No cloud-init found, skipping wait"
+fi
+```
+
+### cloud-initのログ確認
+
+```bash
+# cloud-initのメインログ
+sudo cat /var/log/cloud-init.log
+
+# cloud-init出力ログ
+sudo cat /var/log/cloud-init-output.log
+
+# cloud-initのステージ別実行時間
+sudo cloud-init analyze show
+
+# cloud-initのエラーや警告を確認
+sudo cloud-init analyze blame
+```

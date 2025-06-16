@@ -16,7 +16,7 @@ UEFIブートの必要があります。
 ## 使い方
 ### インストール前
 ```bash
-sudo apt install -y git
+sudo apt-get install -y git
 git clone --depth=1 https://github.com/hydratlas/tips
 cd tips/debian-and-ubuntu-tips/install-ubuntu-with-btrfs
 

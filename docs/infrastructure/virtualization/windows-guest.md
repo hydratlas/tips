@@ -1,5 +1,5 @@
-# Windowsゲストにドライバーなどをインストール
-## 準仮想化ゲストドライバー
+# Windowsゲストにドライバなどをインストール
+## 準仮想化ゲストドライバ
 ゲストで準仮想化デバイスを使えるようになり、ホストで実デバイスをエミュレーションしなくてよくなる。実デバイスをエミュレーションするより準仮想化デバイスを使ったほうがパフォーマンスが高い。
 
 [virtio-win-pkg-scripts/README.md](https://github.com/virtio-win/virtio-win-pkg-scripts/blob/master/README.md)から[virtio-win-gt-x64.msi](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win-gt-x64.msi)をダウンロードしてインストール

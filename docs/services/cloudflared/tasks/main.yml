@@ -1,6 +1,6 @@
 ---
 - name: Include common Rootless Podman Quadlet setup
-  ansible.builtin.include_tasks: ../../podman_rootless_quadlet_base/tasks/main.yml
+  ansible.builtin.include_tasks: ../../../infrastructure/container/podman_rootless_quadlet_base/tasks/main.yml
   vars:
     quadlet_user: "{{ cloudflared_user }}"
     quadlet_user_comment: "Cloudflare Tunnel rootless user"

@@ -58,7 +58,7 @@ sudo useradd -u <uid> -U -G adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,root \
 
 ## ユーザー・グループを削除（管理者）
 ```bash
-sudo userdel -r <username> # rオプションでホームディレクトリーも削除
+sudo userdel -r <username> # rオプションでホームディレクトリも削除
 
 sudo groupdel <username>
 ```

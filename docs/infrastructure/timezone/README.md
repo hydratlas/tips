@@ -30,3 +30,21 @@
 
 - システムタイムゾーンを指定された値に設定
 - 変更は即座に反映される
+
+## 手動での設定手順
+
+### 設定
+
+```bash
+# タイムゾーンを設定（例: Asia/Tokyo）
+sudo timedatectl set-timezone Asia/Tokyo
+
+# 現在のタイムゾーンを確認
+timedatectl status
+```
+
+### 利用可能なタイムゾーンの一覧を表示
+
+```bash
+timedatectl list-timezones
+```

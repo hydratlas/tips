@@ -8,7 +8,7 @@
 sudo apt-get install -y moreutils python3-apt python3-prometheus-client ipmitool jq nvme-cli smartmontools rsync
 
 # RHEL系の場合
-sudo yum install -y epel-release moreutils
+sudo dnf install -y epel-release moreutils
 ```
 
 ### 本体のインストールおよびサービスの設定

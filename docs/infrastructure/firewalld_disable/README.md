@@ -44,15 +44,58 @@ which ufw && ufw status | grep -qv inactive && ufw disable
 systemctl status firewalld.service && systemctl disable --now firewalld.service
 ```
 
+## 手動での設定手順
+
+### ufw（Debian/Ubuntu系）の無効化
+
+```bash
+# ufwの状態を確認
+sudo ufw status
+
+# ufwを無効化
+sudo ufw disable
+
+# ufwの自動起動を無効化
+sudo systemctl disable ufw
+```
+
+### firewalld（RHEL/CentOS系）の無効化
+
+```bash
+# firewalldの状態を確認
+sudo systemctl status firewalld
+
+# firewalldを停止
+sudo systemctl stop firewalld
+
+# firewalldの自動起動を無効化
+sudo systemctl disable firewalld
+
+# 設定を確認
+sudo systemctl is-enabled firewalld
+```
+
+### iptables（従来のファイアウォール）の無効化
+
+```bash
+# 現在のiptablesルールを確認
+sudo iptables -L -n -v
+
+# すべてのルールをクリア
+sudo iptables -F
+sudo iptables -X
+sudo iptables -t nat -F
+sudo iptables -t nat -X
+sudo iptables -t mangle -F
+sudo iptables -t mangle -X
+
+# デフォルトポリシーをACCEPTに設定
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+```
+
 ## 注意事項
 
 - このロールはファイアウォールを無効化するため、セキュリティを考慮した環境では適切なファイアウォール設定を別途行う必要があります
 - k3sなどのコンテナオーケストレーションツールを使用する際に、ファイアウォールによる通信制限を回避するために使用されることを想定しています
-
-## ライセンス
-
-BSD
-
-## 作成者情報
-
-ホームインフラストラクチャ自動化のために作成されました

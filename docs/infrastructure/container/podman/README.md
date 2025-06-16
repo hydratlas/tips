@@ -31,3 +31,51 @@ Podmanコンテナランタイムインストールロール
 - 適切なパッケージマネージャーを使用してPodmanをインストール
   - RedHat系: dnfを使用
   - Debian系: aptを使用
+
+## 手動での設定手順
+
+### Debian/Ubuntu系でのインストール
+
+```bash
+# パッケージリストを更新
+sudo apt-get update
+
+# Podmanをインストール
+sudo apt-get install -y podman
+
+# インストールを確認
+podman version
+```
+
+### RHEL/CentOS/Fedora系でのインストール
+
+```bash
+# Podmanをインストール
+sudo dnf install -y podman
+
+# インストールを確認
+podman version
+```
+
+### インストール後の確認
+
+```bash
+# Podmanのバージョンを確認
+podman version
+
+# システム情報を表示
+podman info
+
+# テストコンテナを実行
+podman run docker.io/hello-world:latest
+```
+
+### 追加の確認
+
+```bash
+# レジストリの設定を確認
+cat /etc/containers/registries.conf
+
+# ストレージ設定を確認
+cat /etc/containers/storage.conf
+```

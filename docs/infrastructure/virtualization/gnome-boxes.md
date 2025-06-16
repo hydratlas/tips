@@ -1,7 +1,7 @@
 # Ubuntu 24.04にGNOME Boxesを介してWindows 11を入れる（要管理者権限）
 ## 準備
 ### Btrfs使用時にディスクイメージ保存先を分離する
-GNOME Boxesはユーザーのホームディレクトリー配下の`~/.local/share/gnome-boxes/images`にディスクイメージを保存する。ユーザーのホームディレクトリーにBtrfsを使用しているときは、このディレクトリーをサブボリュームに分離する。そうすることで、ホームディレクトリーのスナップショットを保存した際に、ディスクイメージがそのスナップショットの対象外になる。ディスクイメージは容量が大きいため、スナップショットに含めないほうが使い勝手がよい。
+GNOME Boxesはユーザーのホームディレクトリ配下の`~/.local/share/gnome-boxes/images`にディスクイメージを保存する。ユーザーのホームディレクトリにBtrfsを使用しているときは、このディレクトリーをサブボリュームに分離する。そうすることで、ホームディレクトリのスナップショットを保存した際に、ディスクイメージがそのスナップショットの対象外になる。ディスクイメージは容量が大きいため、スナップショットに含めないほうが使い勝手がよい。
 
 ```bash
 BTRFS_OPTIONS="noatime,compress=zstd:1,degraded" &&
@@ -23,7 +23,7 @@ sudo mount "${HOME}/.local/share/gnome-boxes/images"
 
 ### パッケージをインストール
 ```bash
-sudo apt install -y gnome-boxes swtpm-tools
+sudo apt-get install -y gnome-boxes swtpm-tools
 ```
 
 ## 仮想マシンをセットアップ
@@ -38,7 +38,7 @@ sudo apt install -y gnome-boxes swtpm-tools
 ```
 
 ## 仮想マシン起動後の後処理
-### Windowsゲストにドライバーなどをインストール
+### Windowsゲストにドライバなどをインストール
 [windows-guest.md](./windows-guest.md)を参照。
 
 ### Trimを有効化

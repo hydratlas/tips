@@ -10,7 +10,7 @@ sudo update-grub
 
 ## 各種アプリをインストール（管理者）
 ```bash
-sudo apt install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk git gpg libreoffice libreoffice-l10n-ja &&
+sudo apt-get install -y meld inkscape dconf-editor grsync nautilus-image-converter keepassxc transmission-gtk git gpg libreoffice libreoffice-l10n-ja &&
 sudo snap install chromium gimp discord slack &&
 sudo snap install codium --classic
 ```
@@ -58,7 +58,7 @@ ln -s /opt/zotero/zotero.desktop "$HOME/.local/share/applications/zotero.desktop
 ### AppImageLauncherのインストール（管理者）
 まず必要なパッケージをインストールする。
 ```bash
-sudo apt install -y libfuse2t64
+sudo apt-get install -y libfuse2t64
 ```
 
 その上で[Releases · TheAssassin/AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher/releases)からdebをダウンロードする（Ubuntu 24.04ではPPAが動かない）。そしてアプリセンターで開いてインストールする。
@@ -161,7 +161,7 @@ wget -q -O - https://zed.dev/install.sh | sh
 
 ## Geanyのインストール（管理者）
 ```bash
-sudo apt install -yq geany
+sudo apt-get install -y geany
 ```
 
 ## Geanyの設定（各ユーザー）

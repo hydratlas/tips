@@ -201,84 +201,226 @@ systemctl stop keepalived  # MASTERで実行
 
 ## 手動での設定手順
 
-### スクリプトによる手動設定
-以下は、JSON設定を使用してKeepalived設定を自動生成するスクリプトの例です：
+### 1. チェックスクリプト用ユーザーの作成
 
 ```bash
-setup_keepalived () {
-    set -eux
-    local JSON="${1}"
-    sudo apt-get install -y keepalived
-    sudo systemctl stop keepalived.service
-    sudo tee "/etc/keepalived/keepalived.conf" << EOS > /dev/null
-include /etc/keepalived/conf.d/*.conf
-EOS
-    sudo mkdir -p /etc/keepalived/conf.d
-    local host_index=""
-    while read -r index element; do
-        if [ "${element}" = "${HOSTNAME}" ]; then
-            host_index=${index}
-        fi
-    done <<< "$(echo "${JSON}" | jq -c -r ".host[]" | nl -v 0)"
-    if [ -z "${host_index}" ]; then
-        echo "There is no corresponding host name in the JSON."
-        exit 1
-    fi
-    local vrrp_state="$(echo "${JSON}" | jq -c -r ".vrrp.state[${host_index}]")"
-    local vrrp_priority="$(echo "${JSON}" | jq -c -r ".vrrp.priority[${host_index}]")"
-    local vrrp_advert_int="$(echo "${JSON}" | jq -c -r ".vrrp.advert_int")"
-    while read -r index element; do
-        local interface="$(echo "${element}" | jq -c -r ".interface[${host_index}]")"
-        local virtual_router_id="$(echo "${element}" | jq -c -r ".virtual_router_id")"
-        local virtual_ip_address="$(echo "${element}" | jq -c -r ".virtual_ip_address")"
-        local cidr="$(echo "${element}" | jq -c -r ".cidr")"
-        sudo tee "/etc/keepalived/conf.d/${interface}.conf" << EOS > /dev/null
-vrrp_instance VI_${interface} {
-  state ${vrrp_state}
-  interface ${interface}
-  virtual_router_id ${virtual_router_id}
-  priority ${vrrp_priority}
-  advert_int ${vrrp_advert_int}
-  virtual_ipaddress {
-    ${virtual_ip_address}/${cidr}
-  }
-}
-EOS
-    done <<< "$(echo "${JSON}" | jq -c -r ".interfaces[]" | nl -v 0)"
-    sudo systemctl enable --now keepalived.service
-    set +eux
-}
+# keepalived_script ユーザーの作成（システムユーザー）
+sudo useradd -r -s /usr/sbin/nologin -d /nonexistent -M -c "Keepalived health check script user" keepalived_script
 ```
 
-### 使用例
+### 2. Keepalivedのインストール
+
+#### Debian/Ubuntu
 ```bash
-sudo apt-get install -y jq &&
-JSON='{
-  "host": ["app-01", "app-02"],
-  "vrrp": {
-    "state": ["MASTER", "BACKUP"],
-    "priority": ["100", "90"],
-    "advert_int": "1"
-  },
-  "interfaces": [
-    {
-      "interface": ["eth1", "eth1"],
-      "virtual_ip_address": "192.168.2.1",
-      "cidr": "24",
-      "virtual_router_id": "1"
-    },
-    {
-      "interface": ["eth2", "eth2"],
-      "virtual_ip_address": "192.168.3.1",
-      "cidr": "24",
-      "virtual_router_id": "1"
+# パッケージリストの更新
+sudo apt-get update
+
+# keepalivedのインストール
+sudo apt-get install -y keepalived
+```
+
+#### RHEL/CentOS/Fedora
+```bash
+# keepalivedのインストール
+sudo dnf install -y keepalived
+```
+
+### 3. ディレクトリ構造の作成
+
+```bash
+# 設定ディレクトリの作成
+sudo mkdir -p /etc/keepalived/conf.d
+sudo chmod 755 /etc/keepalived
+sudo chmod 755 /etc/keepalived/conf.d
+
+# スクリプトディレクトリの作成
+sudo mkdir -p /etc/keepalived/scripts
+sudo chmod 755 /etc/keepalived/scripts
+```
+
+### 4. チェックスクリプトの作成
+
+```bash
+# systemdサービス監視スクリプトの作成（例：SSH監視）
+sudo tee /etc/keepalived/scripts/check_ssh.sh << 'EOF' > /dev/null
+#!/bin/bash
+# Check if systemd service is active
+if systemctl is-active --quiet ssh.service; then
+    exit 0
+else
+    exit 1
+fi
+EOF
+
+# スクリプトに実行権限を付与
+sudo chmod 755 /etc/keepalived/scripts/check_ssh.sh
+sudo chown root:root /etc/keepalived/scripts/check_ssh.sh
+```
+
+### 5. メイン設定ファイルの作成
+
+```bash
+# メイン設定ファイル（conf.dディレクトリをインクルード）
+sudo tee /etc/keepalived/keepalived.conf << 'EOF' > /dev/null
+# Main configuration file for keepalived
+# Include all configuration files from conf.d directory
+include /etc/keepalived/conf.d/*.conf
+EOF
+
+sudo chmod 644 /etc/keepalived/keepalived.conf
+sudo chown root:root /etc/keepalived/keepalived.conf
+```
+
+### 6. グローバル設定の作成
+
+```bash
+# グローバル定義
+sudo tee /etc/keepalived/conf.d/00-global_defs.conf << 'EOF' > /dev/null
+global_defs {
+    # 通知メール無効化（メール設定なし）
+    enable_script_security
+    script_user keepalived_script
+}
+EOF
+
+sudo chmod 644 /etc/keepalived/conf.d/00-global_defs.conf
+sudo chown root:root /etc/keepalived/conf.d/00-global_defs.conf
+```
+
+### 7. VRRPスクリプトの定義
+
+```bash
+# チェックスクリプトの定義
+sudo tee /etc/keepalived/conf.d/10-vrrp_scripts.conf << 'EOF' > /dev/null
+vrrp_script check_ssh {
+    script "/etc/keepalived/scripts/check_ssh.sh"
+    interval 2      # チェック間隔（秒）
+    weight -10      # 失敗時の優先度減少値
+    fall 2          # 失敗判定回数
+    rise 2          # 復旧判定回数
+    user keepalived_script
+}
+EOF
+
+sudo chmod 644 /etc/keepalived/conf.d/10-vrrp_scripts.conf
+sudo chown root:root /etc/keepalived/conf.d/10-vrrp_scripts.conf
+```
+
+### 8. VRRPインスタンスの設定
+
+#### MASTERノードの場合
+```bash
+# VRRPインスタンス設定（MASTER）
+sudo tee /etc/keepalived/conf.d/20-vrrp_instances.conf << 'EOF' > /dev/null
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    
+    # 認証設定（オプション）
+    authentication {
+        auth_type PASS
+        auth_pass 1234
     }
-  ]
-}' &&
-echo "${JSON}" | jq -c "." &&
-setup_keepalived "${JSON}"
+    
+    # 仮想IPアドレス
+    virtual_ipaddress {
+        10.120.20.51/24
+    }
+    
+    # トラッキングスクリプト
+    track_script {
+        check_ssh
+    }
+}
+EOF
+
+sudo chmod 600 /etc/keepalived/conf.d/20-vrrp_instances.conf
+sudo chown root:root /etc/keepalived/conf.d/20-vrrp_instances.conf
+```
+
+#### BACKUPノードの場合
+```bash
+# VRRPインスタンス設定（BACKUP）
+sudo tee /etc/keepalived/conf.d/20-vrrp_instances.conf << 'EOF' > /dev/null
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 90
+    advert_int 1
+    
+    # 認証設定（オプション）
+    authentication {
+        auth_type PASS
+        auth_pass 1234
+    }
+    
+    # 仮想IPアドレス
+    virtual_ipaddress {
+        10.120.20.51/24
+    }
+    
+    # トラッキングスクリプト
+    track_script {
+        check_ssh
+    }
+}
+EOF
+
+sudo chmod 600 /etc/keepalived/conf.d/20-vrrp_instances.conf
+sudo chown root:root /etc/keepalived/conf.d/20-vrrp_instances.conf
+```
+
+### 9. サービスの有効化と起動
+
+```bash
+# systemdデーモンのリロード
+sudo systemctl daemon-reload
+
+# keepalivedサービスの有効化
+sudo systemctl enable keepalived
+
+# keepalivedサービスの起動
+sudo systemctl start keepalived
+```
+
+### 10. 動作確認
+
+```bash
+# サービスステータスの確認
+sudo systemctl status keepalived
+
+# 設定の検証
+sudo keepalived -t
+
+# ログの確認
+sudo journalctl -u keepalived -f
+
+# 仮想IPアドレスの確認（MASTERで実行）
+ip addr show dev eth0 | grep -E "inet .* secondary"
+
+# VRRPステータスの確認
+sudo journalctl -u keepalived | grep -E "(Entering|Leaving) (MASTER|BACKUP) STATE"
+```
+
+### 11. フェイルオーバーテスト
+
+```bash
+# MASTERノードでサービスを停止
+sudo systemctl stop keepalived
+
+# BACKUPノードで仮想IPを確認
+ip addr show dev eth0 | grep -E "inet .* secondary"
+
+# MASTERノードでサービスを再開
+sudo systemctl start keepalived
 ```
 
 ### 注意事項
-- `virtual_router_id`は1から255までの範囲で設定する必要があります
-- 確認は`sudo systemctl status keepalived.service`コマンドで行います
+- `virtual_router_id`は同一ネットワーク内で一意である必要があります（1-255）
+- 優先度（priority）は0-255の範囲で、値が大きいほど優先されます
+- 認証パスワードは8文字以内である必要があります
+- ファイアウォールでVRRPプロトコル（112）を許可する必要があります

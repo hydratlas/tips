@@ -1,6 +1,7 @@
-# 補助コマンド
-## ユーザーリストを出力
-`/etc/shadow`および`/etc/passwd`から読み取った、ユーザー名、ハッシュ化されたパスワード、UID、GID、ホームディレクトリー、およびログインシェルをコロン区切りテキストで出力します。
+# 認証
+## 関連した補助コマンド
+### ユーザーリストを出力
+`/etc/shadow`および`/etc/passwd`から読み取った、ユーザー名、ハッシュ化されたパスワード、UID、GID、ホームディレクトリ、およびログインシェルをコロン区切りテキストで出力します。
 ```bash
 sudo awk -F: '
 BEGIN {
@@ -23,7 +24,7 @@ FNR==NR {
 }' /etc/shadow /etc/passwd
 ```
 
-## ユーザーリストからユーザーを復元（未テスト）
+### ユーザーリストからユーザーを復元（未テスト）
 ```bash
 while IFS=':' read -r username passhash uid gid homedir shell; do
     echo "Processing user '$username' (UID: $uid, GID: $gid)"
@@ -46,7 +47,7 @@ while IFS=':' read -r username passhash uid gid homedir shell; do
         sudo groupadd -g "$gid" "$username"
     fi
 
-    # ホームディレクトリーがすでに存在する場合は、所有権を変更する
+    # ホームディレクトリがすでに存在する場合は、所有権を変更する
     if sudo test -d "$homedir"; then
         sudo chown "$uid:$gid" "$homedir"
     fi
@@ -64,7 +65,7 @@ while IFS=':' read -r username passhash uid gid homedir shell; do
 done < "user_info.tsv"
 ```
 
-## 各ユーザーのauthorized_keysリストを出力
+### 各ユーザーのauthorized_keysリストを出力
 ```bash
 while IFS=: read -r user _ _ _ _ homedir _; do
     authorized_keys=$( sudo test -f "$homedir/.ssh/authorized_keys" && sudo cat "$homedir/.ssh/authorized_keys" || echo "" );
@@ -75,7 +76,7 @@ while IFS=: read -r user _ _ _ _ homedir _; do
 done < /etc/passwd | jq -s '.'
 ```
 
-## 各ユーザーのauthorized_keysリストから復元（未テスト）
+### 各ユーザーのauthorized_keysリストから復元（未テスト）
 ```bash
 jq -c '.[]' authorized_keys.json | while IFS= read -r record; do
     username=$(echo "$record" | jq -r '.username');
