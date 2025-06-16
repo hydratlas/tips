@@ -1,4 +1,7 @@
 # Podman tips
+
+Podmanの運用で役立つTipsとトラブルシューティング方法をまとめたドキュメントです。よくある問題の解決方法や、効率的な使い方のヒントを記載しています。
+
 ## ZFSおよびLXC上の場合の追加設定
 ファイルシステムがZFSであり、なおかつコンテナーのLXC上でPodmanを動かす場合、不具合があるため、対応が必要。`~/.config/containers/storage.conf`に個別設定がなければ、自動的に`/etc/containers/storage.conf`が使用される。
 ```bash

@@ -1,4 +1,7 @@
 # Dockgeのインストール・実行
+
+Dockgeは、Docker Composeファイルを管理するためのWebベースのGUIツールです。複数のComposeプロジェクトを視覚的に管理でき、YAMLファイルの編集から実行まで、ブラウザ上で完結できます。
+
 ## インストール
 ```bash
 sudo mkdir -p /opt/stacks /opt/dockge &&

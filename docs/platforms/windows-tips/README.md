@@ -1,4 +1,7 @@
 # Windows
+
+Windows環境での運用に役立つ設定やカスタマイズ方法をまとめたドキュメントです。PowerShellスクリプトやシステム最適化の手順を記載しています。
+
 ## VSCodiumのインストール
 ```powershell
 winget install -e --id VSCodium.VSCodium

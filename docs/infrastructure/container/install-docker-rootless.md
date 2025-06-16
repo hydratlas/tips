@@ -1,4 +1,7 @@
 # Rootless Dockerのインストール
+
+Docker Rootlessモードのインストール手順です。root権限なしでDockerを実行できるため、セキュリティを向上させながらコンテナを運用できます。
+
 参照：[Rootless mode | Docker Docs](https://docs.docker.com/engine/security/rootless/)
 
 ## 通常のDockerをインストール

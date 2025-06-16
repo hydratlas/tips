@@ -1,4 +1,7 @@
 # Watchtower
+
+Watchtowerは、実行中のDockerコンテナのベースイメージを自動的に監視し、新しいバージョンが利用可能になった際に自動的にアップデートするツールです。これにより、セキュリティパッチや機能更新を手動で適用する手間を削減できます。
+
 Dockerのイメージを自動的にアップデートする。公式Github：[containrrr/watchtower: A process for automating Docker container base image updates.](https://github.com/containrrr/watchtower)
 
 ## rootユーザーで実行する場合（sudoを含む）

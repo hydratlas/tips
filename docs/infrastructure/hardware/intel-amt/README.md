@@ -1,4 +1,7 @@
 # Intel AMT (Active Management Technology)
+
+Intel AMT（Active Management Technology）の設定と管理方法です。インテルベースのシステムをリモートから管理し、電源制御やBIOS設定の変更を可能にします。
+
 ## 初期設定
 HP EliteDesk 800 G4 DMで確認したもの。
 - 「Startup Menu」画面から「ME Setup (F6)」を選択

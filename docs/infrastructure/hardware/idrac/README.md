@@ -1,4 +1,7 @@
 # iDRAC
+
+Dell iDRAC（Integrated Dell Remote Access Controller）の設定と管理方法です。リモートからのサーバー管理、監視、トラブルシューティングを可能にします。
+
 ## リバースプロキシを設定する
 ポート5900を使用する仮想コンソールがうまく動かないという問題がある。
 ```bash

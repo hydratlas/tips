@@ -1,4 +1,7 @@
 # Slurm
+
+SLURMは、クラスタ環境でのジョブスケジューリングと資源管理を行うためのオープンソースツールです。高性能計算（HPC）環境での計算リソースの効率的な利用を実現します。
+
 ## 【オプション】直接ビルドする場合
 基本的には[Slurm Workload Manager - Quick Start Administrator Guide](https://slurm.schedmd.com/quickstart_admin.html)に従って、ビルドする。
 

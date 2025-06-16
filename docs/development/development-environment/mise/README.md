@@ -1,4 +1,7 @@
 # mise（プログラミング言語のバージョン管理）
+
+miseは、複数のプログラミング言語やツールのバージョンを統一的に管理するためのツールです。Node.js、Python、Rustなど様々な言語のバージョンをプロジェクトごとに切り替えて使用でき、開発環境の構築を効率化します。
+
 ## インストール
 - 参考：[Getting Started | mise-en-place](https://mise.jdx.dev/getting-started.html)
 

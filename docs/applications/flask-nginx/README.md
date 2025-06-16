@@ -1,4 +1,7 @@
 # Flask & uWSGI & nginxのセットアップ
+
+FlaskアプリケーションをuWSGIとNginxを使用して本番環境で実行するための構成手順です。この構成により、Pythonで作成されたWebアプリケーションを安定的かつ高性能に運用できます。
+
 Ubuntu 24.04を前提とする。頻出する`my_project`は仮の値。
 - 参考：
   - [UbuntuにAnaconda+Flask環境を作成する #Python - Qiita](https://qiita.com/katsujitakeda/items/b8e0cdc04611e3645f76#nginx%E3%81%AE%E8%A8%AD%E5%AE%9A)

@@ -1,4 +1,7 @@
 # Dockerのインストール
+
+Docker CEの標準的なインストール手順です。Ubuntu/Debian系およびRHEL系ディストリビューションでの公式リポジトリを使用したインストール方法を説明します。
+
 ## リポジトリーの設定
 ```bash
 DISTRIBUTION_ID="$(grep -oP '(?<=^ID=).+(?=$)' /etc/os-release)" &&
