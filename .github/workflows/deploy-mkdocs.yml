@@ -43,14 +43,16 @@ jobs:
         with:
           python-version: '3.13'
 
-      # Pythonキャッシュの設定
-      - name: Cache Python dependencies
+      # uvキャッシュの設定
+      - name: Cache uv dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          path: |
+            ~/.cache/uv
+            .venv
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-uv-
 
       # uvのインストール
       - name: Install uv
@@ -61,11 +63,11 @@ jobs:
       # MkDocsと依存関係のインストール
       - name: Install MkDocs and dependencies
         run: |
-          uv pip install --system -e .
+          uv sync --no-dev
 
       # MkDocsでサイトをビルド
       - name: Build MkDocs site
-        run: mkdocs build --clean --strict
+        run: uv run mkdocs build --clean --strict
 
       # GitHub Pages用のアーティファクトをアップロード
       - name: Upload GitHub Pages artifact
