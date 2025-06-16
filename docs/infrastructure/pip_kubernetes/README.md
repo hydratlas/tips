@@ -1,6 +1,6 @@
 # pip_kubernetes
 
-pipxを使用してkubernetes Pythonパッケージをインストールします。
+kubernetes Pythonパッケージをインストールします。
 
 ## 説明
 
@@ -75,9 +75,6 @@ pip3 install --upgrade pip
 ```bash
 # pipでインストールした場合
 pip3 install --upgrade kubernetes
-
-# pipxでインストールした場合
-pipx upgrade kubernetes
 ```
 
 ### アンインストール
@@ -85,9 +82,6 @@ pipx upgrade kubernetes
 ```bash
 # pipでインストールした場合
 pip3 uninstall kubernetes
-
-# pipxでインストールした場合
-pipx uninstall kubernetes
 
 # システムパッケージの場合（Debian/Ubuntu）
 sudo apt-get remove python3-kubernetes
