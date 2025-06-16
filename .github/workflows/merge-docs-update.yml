@@ -1,0 +1,32 @@
+name: Merge docs-update branch
+
+on:
+  repository_dispatch:
+    types: [merge-docs-update]
+  push:
+    branches: [docs-update]
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/docs-update' || github.event_name == 'repository_dispatch'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+    - name: Merge docs-update to main
+      run: |
+        git checkout main
+        git merge origin/docs-update --allow-unrelated-histories --strategy-option theirs -m "chore: sync docs from private repository"
+        git push origin main
+        
+    - name: Delete docs-update branch
+      run: |
+        git push origin --delete docs-update || true
