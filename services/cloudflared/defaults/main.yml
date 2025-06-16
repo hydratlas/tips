@@ -1,4 +1,0 @@
----
-cloudflared_user: "cloudflared"
-cloudflared_image: docker.io/cloudflare/cloudflared:latest
-cloudflared_token: ""
