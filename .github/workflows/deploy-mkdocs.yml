@@ -36,6 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1  # 最小限のチェックアウト
+          ref: main  # 常に最新のmainブランチをチェックアウト
 
       # Pythonのセットアップ
       - name: Setup Python
