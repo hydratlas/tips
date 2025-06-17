@@ -49,7 +49,7 @@ Match User ansible
 
 Match all
     PermitTTY no
-    ForceCommand /usr/sbin/nologin
+    ForceCommand /usr/usr/sbin/nologin
 EOF
 
 # 設定ファイルの権限設定

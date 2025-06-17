@@ -5,7 +5,7 @@
   ansible.builtin.user:
     name: "{{ item.user | default('keepalived_script') }}"
     system: true
-    shell: /usr/sbin/nologin
+    shell: /usr/usr/sbin/nologin
     home: /nonexistent
     create_home: false
     comment: "Keepalived health check script user"

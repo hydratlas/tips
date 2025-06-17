@@ -14,7 +14,7 @@ elif hash dnf 2>/dev/null; then
 fi &&
 if ! id "${container_user}" &>/dev/null; then
     sudo useradd --system --user-group --add-subids-for-system \
-      --shell /sbin/nologin --create-home "${container_user}"
+      --shell /usr/sbin/nologin --create-home "${container_user}"
 fi &&
 sudo usermod -aG systemd-journal "${container_user}" &&
 user_home="$(grep "^${container_user}:" /etc/passwd | cut -d: -f6)" &&

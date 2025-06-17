@@ -47,7 +47,7 @@ sudo dnf remove -y ipa-server
 sudo dnf install -y podman &&
 if ! id "www-data" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group \
-    --shell /usr/sbin/nologin "www-data"
+    --shell /usr/usr/sbin/nologin "www-data"
 fi &&
 sudo mkdir -p "/var/cache/nginx" &&
 sudo install -m 775 -o "root" -g "www-data" -d \

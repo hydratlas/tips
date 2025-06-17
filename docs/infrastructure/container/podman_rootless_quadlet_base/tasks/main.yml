@@ -15,7 +15,7 @@
 
 - name: Create user with subuid/subgid
   ansible.builtin.command:
-    cmd: useradd --system --user-group --add-subids-for-system --shell /sbin/nologin --comment "{{ quadlet_user_comment }}" {{ quadlet_user }}
+    cmd: useradd --system --user-group --add-subids-for-system --shell {{ quadlet_user_shell }} --comment "{{ quadlet_user_comment }}" {{ quadlet_user }}
   when: quadlet_user_check.ansible_facts.getent_passwd[quadlet_user] is not defined
 
 - name: Get user info

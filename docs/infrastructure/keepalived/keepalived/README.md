@@ -205,7 +205,7 @@ systemctl stop keepalived  # MASTERで実行
 
 ```bash
 # keepalived_script ユーザーの作成（システムユーザー）
-sudo useradd -r -s /usr/sbin/nologin -d /nonexistent -M -c "Keepalived health check script user" keepalived_script
+sudo useradd -r -s /usr/usr/sbin/nologin -d /nonexistent -M -c "Keepalived health check script user" keepalived_script
 ```
 
 ### 2. Keepalivedのインストール

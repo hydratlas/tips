@@ -5,3 +5,5 @@ cloudflared_app_name: "cloudflared"
 cloudflared_service_description: "Cloudflare Tunnel Service"
 cloudflared_image: docker.io/cloudflare/cloudflared:latest
 cloudflared_token: ""
+cloudflared_restart: "always"
+cloudflared_restart_sec: 5

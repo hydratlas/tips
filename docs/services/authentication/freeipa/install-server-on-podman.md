@@ -24,7 +24,7 @@ chosen_nameserver &&
 chosen_ip_address &&
 if ! id "${user_name}" &>/dev/null; then
   sudo useradd --system --no-create-home --user-group \
-    --shell /usr/sbin/nologin "${user_name}"
+    --shell /usr/usr/sbin/nologin "${user_name}"
 fi
 ```
 

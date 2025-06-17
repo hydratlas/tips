@@ -16,7 +16,7 @@ EOS
 ```bash
 source "/opt/root-ca/root-ca.env" &&
 if ! id "${root_ca_user_name}" &>/dev/null; then
-  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${root_ca_user_name}"
+  sudo useradd --system --no-create-home --user-group --shell /usr/usr/sbin/nologin "${root_ca_user_name}"
 fi &&
 sudo install -o "root" -g "${root_ca_user_name}" -m 775 -d "${root_ca_dir}/root" "${root_ca_dir}/federated-roots" "${root_ca_dir}/ssh"
 ```
@@ -132,7 +132,7 @@ EOS
 source "/opt/root-ca/root-ca.env" &&
 source "/opt/step-ca/step-ca.env" &&
 if ! id "${step_ca_user_name}" &>/dev/null; then
-  sudo useradd --system --no-create-home --user-group --shell /usr/sbin/nologin "${step_ca_user_name}" &&
+  sudo useradd --system --no-create-home --user-group --shell /usr/usr/sbin/nologin "${step_ca_user_name}" &&
   sudo usermod -aG "${root_ca_user_name}" "${step_ca_user_name}"
 fi &&
 sudo install -o "root" -g "${step_ca_user_name}" -m 775 -d "${step_ca_dir}" &&

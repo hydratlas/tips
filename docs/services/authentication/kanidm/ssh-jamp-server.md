@@ -63,7 +63,7 @@ KerberosAuthentication no
 
 PermitTTY no
 X11Forwarding no
-ForceCommand /sbin/nologin
+ForceCommand /usr/sbin/nologin
 
 PermitTunnel yes
 AllowTcpForwarding yes

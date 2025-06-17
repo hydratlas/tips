@@ -12,10 +12,11 @@ EnvironmentFile=%h/.config/{{ cloudflared_app_name }}/cloudflared.env
 Exec=tunnel run
 NoNewPrivileges=true
 ReadOnly=true
+Volume=/etc/localtime:/etc/localtime:ro,z
 
 [Service]
-Restart=always
-RestartSec=5
+Restart={{ cloudflared_restart }}
+RestartSec={{ cloudflared_restart_sec }}
 
 [Install]
 WantedBy=default.target

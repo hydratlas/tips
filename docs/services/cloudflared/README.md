@@ -25,6 +25,8 @@ Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナ�
 | `cloudflared_user` | `cloudflared` | 実行ユーザー名 |
 | `cloudflared_image` | `docker.io/cloudflare/cloudflared:latest` | 使用するコンテナイメージ |
 | `cloudflared_token` | `""` | Cloudflare Tunnelトークン（必須） |
+| `cloudflared_restart` | `always` | コンテナの再起動ポリシー |
+| `cloudflared_restart_sec` | `5` | 再起動間隔（秒） |
 
 注: `cloudflared_config_dir`と`cloudflared_systemd_dir`は、ユーザーのホームディレクトリから自動的に生成されます。
 
@@ -80,8 +82,8 @@ sudo rm "/home/cloudflared/.config/cloudflared/cloudflared.env"
 ### 1. 準備
 ```bash
 # アプリケーション名とユーザー名を設定
-APP_NAME="cloudflared"
-QUADLET_USER="cloudflared"
+APP_NAME="cloudflared" &&
+QUADLET_USER="cloudflared" &&
 USER_COMMENT="Cloudflare Tunnel rootless user"
 ```
 この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
@@ -133,6 +135,7 @@ EnvironmentFile=%h/.config/cloudflared/cloudflared.env
 Exec=tunnel run
 NoNewPrivileges=true
 ReadOnly=true
+Volume=/etc/localtime:/etc/localtime:ro,z
 
 [Service]
 Restart=always

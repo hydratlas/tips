@@ -15,6 +15,7 @@ Rootless Podman Quadletの共通セットアップを提供する基本ロール
 | `quadlet_user` | ✓ | コンテナを実行するユーザー名 |
 | `quadlet_app_name` | ✓ | アプリケーション名（設定ディレクトリ名に使用） |
 | `quadlet_user_comment` | × | ユーザーコメント（デフォルト: "Rootless container user"） |
+| `quadlet_user_shell` | × | ユーザーのシェル（デフォルト: "/usr/sbin/nologin"） |
 
 ## 設定される変数
 
@@ -128,7 +129,8 @@ QUADLET_USER="myapp"
 USER_COMMENT="My Application rootless user"
 
 # ユーザーの作成（subuid/subgid付き）
-sudo useradd --system --user-group --add-subids-for-system --shell /sbin/nologin --comment "${USER_COMMENT}" ${QUADLET_USER}
+USER_SHELL="/usr/sbin/nologin"  # 必要に応じて変更可能
+sudo useradd --system --user-group --add-subids-for-system --shell ${USER_SHELL} --comment "${USER_COMMENT}" ${QUADLET_USER}
 
 # systemd-journalグループへの追加
 sudo usermod -aG systemd-journal ${QUADLET_USER}
@@ -152,11 +154,8 @@ Quadletとコンテナストレージ用のディレクトリを作成します�
 
 ```bash
 # 必要なディレクトリを作成
-sudo mkdir -p ${QUADLET_HOME}
-sudo mkdir -p ${QUADLET_HOME}/.config
-sudo mkdir -p ${QUADLET_HOME}/.config/${APP_NAME}
-sudo mkdir -p ${QUADLET_HOME}/.config/containers
-sudo mkdir -p ${QUADLET_HOME}/.config/containers/systemd
+sudo mkdir -p ${QUADLET_HOME}/.config/${APP_NAME} &&
+sudo mkdir -p ${QUADLET_HOME}/.config/containers/systemd &&
 sudo mkdir -p ${QUADLET_HOME}/.local/share/containers/storage
 
 # 所有権の設定

@@ -18,7 +18,7 @@ FNR==NR {
     homedir  = $6
     shell    = $7
     passhash = (username in shadow) ? shadow[username] : "!"
-    if (shell != "/sbin/nologin" && shell != "/usr/sbin/nologin" && shell != "/bin/false" && shell != "/bin/sync") {
+    if (shell != "/usr/sbin/nologin" && shell != "/usr/usr/sbin/nologin" && shell != "/bin/false" && shell != "/bin/sync") {
         printf(format, username, passhash, uid, gid, homedir, shell)
     }
 }' /etc/shadow /etc/passwd
