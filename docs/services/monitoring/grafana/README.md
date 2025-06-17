@@ -101,7 +101,7 @@ QUADLET_USER="monitoring" &&
 USER_COMMENT="Grafana rootless user"
 ```
 
-この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してユーザー作成とディレクトリ準備を行います。
+この先は、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してユーザー作成とディレクトリ準備を行います。
 
 #### ステップ2: インストール
 
@@ -218,37 +218,26 @@ sudo chmod 644 /home/monitoring/.config/containers/systemd/grafana.container
 
 #### ステップ4: 起動と有効化
 
-[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してサービスを起動します。
+[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してサービスを起動します。
 
 ## 運用管理
 
 ### 基本操作
 
+サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
+
 ```bash
-# サービスの状態確認
+# Grafana固有の操作例
 sudo -u monitoring systemctl --user status grafana.service
-
-# サービスの再起動
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart grafana.service
-
-# サービスの停止
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop grafana.service
-
-# サービスの開始
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user start grafana.service
 ```
 
 ### ログとモニタリング
 
+ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
+
 ```bash
-# ログの確認（最新の100行）
+# Grafana固有のログ確認
 sudo -u monitoring journalctl --user -u grafana.service --no-pager -n 100
-
-# ログの確認（リアルタイム表示）
-sudo -u monitoring journalctl --user -u grafana.service -f
-
-# コンテナの状態確認
-sudo -u monitoring podman ps --filter name=grafana
 
 # コンテナの詳細情報
 sudo -u monitoring podman inspect grafana

@@ -51,7 +51,7 @@
 | `loki_compactor_retention_enabled` | `true` | データ保持ポリシーの有効/無効 |
 
 #### 依存関係
-- [podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)ロールを内部的に使用
+- [podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)ロールを内部的に使用
 
 #### タグとハンドラー
 - ハンドラー:
@@ -89,7 +89,7 @@ QUADLET_USER="monitoring" &&
 USER_COMMENT="Grafana Loki rootless user"
 ```
 
-この先の基本セットアップは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
+この先の基本セットアップは、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
 
 #### ステップ2: ネットワーク設定
 
@@ -199,42 +199,25 @@ sudo chmod 644 /home/monitoring/.config/containers/systemd/loki.container
 
 #### ステップ5: サービスの起動と有効化
 
-サービスおよびタイマーの起動と有効化については、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
+サービスおよびタイマーの起動と有効化については、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
 
 ## 運用管理
 
 ### 基本操作
 
+サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
+
 ```bash
-# サービスの状態確認
+# Loki固有のサービス状態確認
 sudo -u monitoring systemctl --user status loki.service
-
-# サービスの開始
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user start loki.service
-
-# サービスの停止
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop loki.service
-
-# サービスの再起動
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart loki.service
-
-# 設定のリロード（再起動が必要）
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user daemon-reload
 ```
 
 ### ログとモニタリング
 
+ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
+
 ```bash
-# リアルタイムログの確認
-sudo -u monitoring journalctl --user -u loki.service -f
-
-# 過去のログ確認（直近100行）
-sudo -u monitoring journalctl --user -u loki.service -n 100
-
-# コンテナログの直接確認
-sudo -u monitoring podman logs loki
-
-# サービスの状態確認
+# Loki固有のサービス状態確認
 wget -O - http://localhost:3100/ready
 
 # プッシュエンドポイントの確認
