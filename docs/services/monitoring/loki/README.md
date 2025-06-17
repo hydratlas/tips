@@ -205,7 +205,7 @@ sudo chmod 644 /home/monitoring/.config/containers/systemd/loki.container
 
 ### 基本操作
 
-サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
+サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
 
 ```bash
 # Loki固有のサービス状態確認
@@ -214,7 +214,7 @@ sudo -u monitoring systemctl --user status loki.service
 
 ### ログとモニタリング
 
-ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
+ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
 
 ```bash
 # Loki固有のサービス状態確認
@@ -303,4 +303,4 @@ sudo rm -rf /home/monitoring/.config/loki
 
 - [Grafana Loki公式ドキュメント](https://grafana.com/docs/loki/latest/)
 - [Loki設定リファレンス](https://grafana.com/docs/loki/latest/configuration/)
-- [Podman Rootless Quadlet Base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)
+- [Podman Rootless Quadlet Base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md)

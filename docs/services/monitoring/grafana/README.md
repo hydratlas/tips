@@ -224,7 +224,7 @@ sudo chmod 644 /home/monitoring/.config/containers/systemd/grafana.container
 
 ### 基本操作
 
-サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
+サービスの起動・停止・再起動などの基本的なsystemdコマンドについては、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md#基本操作)を参照してください。
 
 ```bash
 # Grafana固有の操作例
@@ -233,7 +233,7 @@ sudo -u monitoring systemctl --user status grafana.service
 
 ### ログとモニタリング
 
-ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
+ログ確認やコンテナ状態確認の基本的なコマンドは、[podman_rootless_quadlet_base](../../../infrastructure/container/podman_rootless_quadlet_base/README.md#ログとモニタリング)を参照してください。
 
 ```bash
 # Grafana固有のログ確認
