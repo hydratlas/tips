@@ -1,46 +1,78 @@
 # keepalived
 
-VRRP高可用性設定ロール
+VRRP（Virtual Router Redundancy Protocol）による高可用性を実現
 
 ## 概要
 
-このロールは、Keepalivedを使用してVRRP（Virtual Router Redundancy Protocol）による高可用性を実現します。ジャンプホストなどの重要なサービスで仮想IPアドレスのフェイルオーバーを提供します。
+### このドキュメントの目的
+このロールは、Keepalivedを使用してVRRPによる高可用性を実現します。ジャンプホストなどの重要なサービスで仮想IPアドレスのフェイルオーバーを提供し、Ansible自動設定と手動設定の両方の方法に対応しています。
 
-## 要件
+### 実現される機能
+- 仮想IPアドレスによる自動フェイルオーバー
+- サービス監視によるヘルスチェック
+- 複数のVRRPインスタンスのサポート
+- カスタムチェックスクリプトによる柔軟な監視
+- 優先度ベースのマスター選出
 
+## 要件と前提条件
+
+### 共通要件
 - Debian/RedHat系ディストリビューション
-- rootまたはsudo権限
 - ネットワークインターフェース設定済み
+- VRRPプロトコル（112）の通信が許可されていること
+- rootまたはsudo権限
+
+### Ansible固有の要件
+- Ansible 2.9以上
 - プレイブックレベルで`become: true`の指定が必要
+- 制御ノードから対象ホストへのSSH接続
 
-## ロール変数
+### 手動設定の要件
+- rootまたはsudo権限
+- テキストエディタの基本操作
+- ネットワーク設定の基本知識
 
-### デフォルト変数
+## 設定方法
 
-- `keepalived_base_dir`: Keepalivedのベースディレクトリ（デフォルト: `/etc/keepalived`）
-- `keepalived_config_file`: メイン設定ファイル（デフォルト: `{{ keepalived_base_dir }}/keepalived.conf`）
-- `keepalived_config_dir`: 設定ディレクトリ（デフォルト: `{{ keepalived_base_dir }}/conf.d`）
-- `keepalived_check_scripts_dir`: チェックスクリプトディレクトリ（デフォルト: `{{ keepalived_base_dir }}/scripts`）
-- `keepalived_check_script_user`: チェックスクリプトのグローバルデフォルト実行ユーザー（デフォルト: `keepalived_script`）
-- `keepalived_global_defs`: グローバル設定
-- `keepalived_vrrp_instances`: VRRPインスタンス設定のリスト
-- `keepalived_check_scripts`: チェックスクリプト設定のリスト（デフォルト: `[]`）
+### 方法1: Ansible Roleを使用
 
-### VRRPインスタンスパラメータ
+#### ロール変数
 
+| 変数名 | デフォルト値 | 説明 |
+|--------|--------------|------|
+| `keepalived_base_dir` | `/etc/keepalived` | Keepalivedのベースディレクトリ |
+| `keepalived_config_file` | `{{ keepalived_base_dir }}/keepalived.conf` | メイン設定ファイル |
+| `keepalived_config_dir` | `{{ keepalived_base_dir }}/conf.d` | 設定ディレクトリ |
+| `keepalived_check_scripts_dir` | `{{ keepalived_base_dir }}/scripts` | チェックスクリプトディレクトリ |
+| `keepalived_check_script_user` | `keepalived_script` | チェックスクリプトのグローバルデフォルト実行ユーザー |
+| `keepalived_global_defs` | {} | グローバル設定 |
+| `keepalived_vrrp_instances` | [] | VRRPインスタンス設定のリスト |
+| `keepalived_check_scripts` | [] | チェックスクリプト設定のリスト |
+
+**VRRPインスタンスパラメータ:**
 - `name`: インスタンス名（必須）
 - `interface`: インターフェース名（必須）
 - `state`: MASTER/BACKUP（デフォルト: MASTER）
-- `virtual_router_id`: 仮想ルーターID（必須）
-- `priority`: 優先度（必須）
+- `virtual_router_id`: 仮想ルーターID（必須、1-255）
+- `priority`: 優先度（必須、0-255）
 - `virtual_ipaddresses`: 仮想IPアドレスリスト（必須）
 - `auth_type`/`auth_pass`: 認証設定（オプション）
 - `track_scripts`: トラッキングするスクリプト名のリスト（オプション）
 
-## 使用例
+#### 依存関係
+なし
 
-### 基本設定
+#### タグとハンドラー
 
+**ハンドラー:**
+- `restart keepalived`: Keepalivedサービスを再起動
+
+**タグ:**
+このroleでは特定のタグは使用していません。
+
+#### 使用例
+
+基本設定：
 ```yaml
 - hosts: jamp_hosts
   become: true
@@ -48,8 +80,7 @@ VRRP高可用性設定ロール
     - keepalived
 ```
 
-### ホスト個別設定（host_vars）
-
+ホスト個別設定（host_vars）：
 ```yaml
 # host-01（MASTER）
 keepalived_vrrp_instances:
@@ -76,141 +107,29 @@ keepalived_vrrp_instances:
       - "check_ssh"
 ```
 
-## 設定ファイル構造
-
-- `/etc/keepalived/keepalived.conf` - メイン設定
-- `/etc/keepalived/conf.d/00-global_defs.conf` - グローバル定義
-- `/etc/keepalived/conf.d/10-vrrp_scripts.conf` - チェックスクリプト定義（チェックスクリプト使用時）
-- `/etc/keepalived/conf.d/20-vrrp_instances.conf` - 全VRRPインスタンス設定
-
-## チェックスクリプト
-
-このロールでは、サービス監視用のチェックスクリプトを柔軟に管理できます。
-
-### チェックスクリプトの設定
-
-チェックスクリプトは`keepalived_check_scripts`変数で定義します：
-
-```yaml
-keepalived_check_scripts:
-  - name: "check_ssh.sh"                 # スクリプトファイル名
-    template: "check_ssh.sh.j2"          # テンプレートファイル名
-    vrrp_name: "check_ssh"               # VRRP設定で使用する名前
-    interval: 2                          # チェック間隔（秒）
-    weight: -10                          # 失敗時の優先度変更値
-    fall: 2                              # 失敗判定回数
-    rise: 2                              # 復旧判定回数
-    user: "keepalived_script"            # 実行ユーザー（デフォルト: "keepalived_script"）
-    create_script_user: true             # ユーザーを自動作成するか（デフォルト: true）
-```
-
-### デフォルトで提供されるスクリプト
-
-#### check_systemd_service.sh.j2
-systemdサービス監視用のシンプルなスクリプトです。指定されたsystemdサービスの稼働状態を監視します。
-
-使用方法：
+チェックスクリプトを含む設定：
 ```yaml
 keepalived_check_scripts:
   - name: "check_ssh.sh"
     template: "check_systemd_service.sh.j2"
     vrrp_name: "check_ssh"
-    service_name: "ssh.service"  # 監視するサービス名を指定
+    service_name: "ssh.service"
+    interval: 2
+    weight: -10
 ```
 
-パラメータ：
-- `service_name`: 監視するサービス名（必須。例: "ssh.service", "nginx.service", "cloudflared.service"）
+### 方法2: 手動での設定手順
 
-### チェックスクリプトユーザーの管理
-
-チェックスクリプトの実行ユーザーは以下のように制御できます：
-
-1. **チェックスクリプトを使用しない場合**
-   ```yaml
-   keepalived_check_scripts: []
-   ```
-   この場合、ユーザーは作成されません。
-
-2. **デフォルトユーザーを使用する場合**
-   ```yaml
-   keepalived_check_scripts:
-     - name: "check_ssh.sh"
-       template: "check_ssh.sh.j2"
-       vrrp_name: "check_ssh"
-       # userを省略すると"keepalived_script"が使用されます
-   ```
-   デフォルトで`keepalived_script`ユーザーが作成・使用されます。
-
-3. **既存のユーザーを使用する場合**
-   ```yaml
-   keepalived_check_scripts:
-     - name: "check_ssh.sh"
-       template: "check_ssh.sh.j2"
-       vrrp_name: "check_ssh"
-       user: "nagios"
-       create_script_user: false
-   ```
-   既存の`nagios`ユーザーを使用し、新規作成はしません。
-
-4. **グローバルデフォルトユーザーを変更する場合**
-   ```yaml
-   # 全てのスクリプトのデフォルト実行ユーザーを変更
-   keepalived_check_script_user: "monitoring"
-   ```
-   この設定により、個別に`user`を指定しないスクリプトは`monitoring`ユーザーで実行されます。
-
-### Cloudflaredとの統合例
-
-Cloudflaredロールと組み合わせて使用する場合：
-
-```yaml
-# group_vars/cloudflared_hosts.yml
-keepalived_check_scripts:
-  - name: "check_cloudflared.sh"
-    template: "check_systemd_service.sh.j2"
-    vrrp_name: "check_cloudflared"
-    service_name: "cloudflared.service"  # 正確なサービス名を指定
-    interval: 5
-    weight: -20
-    user: "cloudflared"  # cloudflaredユーザーで実行
-    create_script_user: false  # cloudflaredロールでユーザーが作成済み
-
-keepalived_vrrp_instances:
-  - name: "VI_CLOUDFLARED"
-    interface: "eth0"
-    virtual_router_id: 60
-    priority: 100
-    virtual_ipaddresses:
-      - "10.0.0.100/24"
-    track_scripts:
-      - "check_cloudflared"
-```
-
-## 動作確認
+#### ステップ1: 環境準備
 
 ```bash
-# ステータス確認
-systemctl status keepalived
-
-# 仮想IP確認
-ip addr show dev eth0
-
-# フェイルオーバーテスト
-systemctl stop keepalived  # MASTERで実行
+# チェックスクリプト用ユーザーの作成（システムユーザー）
+sudo useradd -r -s /usr/sbin/nologin -d /nonexistent -M -c "Keepalived health check script user" keepalived_script
 ```
 
-## 手動での設定手順
+#### ステップ2: インストール
 
-### 1. チェックスクリプト用ユーザーの作成
-
-```bash
-# keepalived_script ユーザーの作成（システムユーザー）
-sudo useradd -r -s /usr/usr/sbin/nologin -d /nonexistent -M -c "Keepalived health check script user" keepalived_script
-```
-
-### 2. Keepalivedのインストール
-
-#### Debian/Ubuntu
+##### Debian/Ubuntu
 ```bash
 # パッケージリストの更新
 sudo apt-get update
@@ -219,13 +138,15 @@ sudo apt-get update
 sudo apt-get install -y keepalived
 ```
 
-#### RHEL/CentOS/Fedora
+##### RHEL/CentOS/Fedora
 ```bash
 # keepalivedのインストール
 sudo dnf install -y keepalived
 ```
 
-### 3. ディレクトリ構造の作成
+#### ステップ3: 設定
+
+##### ディレクトリ構造の作成
 
 ```bash
 # 設定ディレクトリの作成
@@ -238,7 +159,7 @@ sudo mkdir -p /etc/keepalived/scripts
 sudo chmod 755 /etc/keepalived/scripts
 ```
 
-### 4. チェックスクリプトの作成
+##### チェックスクリプトの作成
 
 ```bash
 # systemdサービス監視スクリプトの作成（例：SSH監視）
@@ -257,7 +178,7 @@ sudo chmod 755 /etc/keepalived/scripts/check_ssh.sh
 sudo chown root:root /etc/keepalived/scripts/check_ssh.sh
 ```
 
-### 5. メイン設定ファイルの作成
+##### メイン設定ファイルの作成
 
 ```bash
 # メイン設定ファイル（conf.dディレクトリをインクルード）
@@ -271,7 +192,7 @@ sudo chmod 644 /etc/keepalived/keepalived.conf
 sudo chown root:root /etc/keepalived/keepalived.conf
 ```
 
-### 6. グローバル設定の作成
+##### グローバル設定の作成
 
 ```bash
 # グローバル定義
@@ -287,7 +208,7 @@ sudo chmod 644 /etc/keepalived/conf.d/00-global_defs.conf
 sudo chown root:root /etc/keepalived/conf.d/00-global_defs.conf
 ```
 
-### 7. VRRPスクリプトの定義
+##### VRRPスクリプトの定義
 
 ```bash
 # チェックスクリプトの定義
@@ -306,9 +227,9 @@ sudo chmod 644 /etc/keepalived/conf.d/10-vrrp_scripts.conf
 sudo chown root:root /etc/keepalived/conf.d/10-vrrp_scripts.conf
 ```
 
-### 8. VRRPインスタンスの設定
+##### VRRPインスタンスの設定
 
-#### MASTERノードの場合
+**MASTERノードの場合:**
 ```bash
 # VRRPインスタンス設定（MASTER）
 sudo tee /etc/keepalived/conf.d/20-vrrp_instances.conf << 'EOF' > /dev/null
@@ -341,7 +262,7 @@ sudo chmod 600 /etc/keepalived/conf.d/20-vrrp_instances.conf
 sudo chown root:root /etc/keepalived/conf.d/20-vrrp_instances.conf
 ```
 
-#### BACKUPノードの場合
+**BACKUPノードの場合:**
 ```bash
 # VRRPインスタンス設定（BACKUP）
 sudo tee /etc/keepalived/conf.d/20-vrrp_instances.conf << 'EOF' > /dev/null
@@ -374,7 +295,7 @@ sudo chmod 600 /etc/keepalived/conf.d/20-vrrp_instances.conf
 sudo chown root:root /etc/keepalived/conf.d/20-vrrp_instances.conf
 ```
 
-### 9. サービスの有効化と起動
+#### ステップ4: 起動と有効化
 
 ```bash
 # systemdデーモンのリロード
@@ -387,16 +308,31 @@ sudo systemctl enable keepalived
 sudo systemctl start keepalived
 ```
 
-### 10. 動作確認
+## 運用管理
+
+### 基本操作
 
 ```bash
 # サービスステータスの確認
 sudo systemctl status keepalived
 
+# サービスの再起動
+sudo systemctl restart keepalived
+
+# サービスの停止
+sudo systemctl stop keepalived
+
+# サービスの開始
+sudo systemctl start keepalived
+
 # 設定の検証
 sudo keepalived -t
+```
 
-# ログの確認
+### ログとモニタリング
+
+```bash
+# ログの確認（リアルタイム）
 sudo journalctl -u keepalived -f
 
 # 仮想IPアドレスの確認（MASTERで実行）
@@ -404,9 +340,65 @@ ip addr show dev eth0 | grep -E "inet .* secondary"
 
 # VRRPステータスの確認
 sudo journalctl -u keepalived | grep -E "(Entering|Leaving) (MASTER|BACKUP) STATE"
+
+# 最近のログ（100行）
+sudo journalctl -u keepalived -n 100 --no-pager
 ```
 
-### 11. フェイルオーバーテスト
+### トラブルシューティング
+
+#### 診断フロー
+
+1. **サービスが起動しない**
+   ```bash
+   # 設定の検証
+   sudo keepalived -t
+   
+   # 詳細なエラーログ
+   sudo journalctl -u keepalived -n 200 --no-pager
+   ```
+
+2. **仮想IPが割り当てられない**
+   ```bash
+   # インターフェースの確認
+   ip link show
+   
+   # VRRPパケットの確認（tcpdump必要）
+   sudo tcpdump -i eth0 -n vrrp
+   ```
+
+3. **フェイルオーバーが機能しない**
+   ```bash
+   # チェックスクリプトの手動実行
+   sudo -u keepalived_script /etc/keepalived/scripts/check_ssh.sh
+   echo $?  # 0なら成功、それ以外は失敗
+   ```
+
+#### よくある問題と対処
+
+1. **認証エラー**
+   - パスワードは8文字以内である必要があります
+   - 全ノードで同じパスワードを使用
+
+2. **virtual_router_idの競合**
+   - 同一ネットワーク内で一意である必要があります（1-255）
+
+3. **ファイアウォール**
+   ```bash
+   # VRRPプロトコル（112）を許可
+   sudo iptables -I INPUT -p vrrp -j ACCEPT
+   ```
+
+### メンテナンス
+
+#### バックアップ
+
+```bash
+# 設定ファイルのバックアップ
+sudo tar -czf keepalived-backup-$(date +%Y%m%d).tar.gz /etc/keepalived
+```
+
+#### フェイルオーバーテスト
 
 ```bash
 # MASTERノードでサービスを停止
@@ -419,8 +411,43 @@ ip addr show dev eth0 | grep -E "inet .* secondary"
 sudo systemctl start keepalived
 ```
 
-### 注意事項
-- `virtual_router_id`は同一ネットワーク内で一意である必要があります（1-255）
-- 優先度（priority）は0-255の範囲で、値が大きいほど優先されます
-- 認証パスワードは8文字以内である必要があります
-- ファイアウォールでVRRPプロトコル（112）を許可する必要があります
+#### アップデート
+
+```bash
+# パッケージの更新（Debian/Ubuntu）
+sudo apt-get update
+sudo apt-get upgrade keepalived
+
+# パッケージの更新（RHEL/CentOS）
+sudo dnf update keepalived
+```
+
+## アンインストール（手動）
+
+以下の手順でKeepalived設定を完全に削除します。
+
+```bash
+# 1. サービスの停止と無効化
+sudo systemctl stop keepalived
+sudo systemctl disable keepalived
+
+# 2. パッケージの削除（Debian/Ubuntu）
+sudo apt-get remove --purge keepalived
+# または（RHEL/CentOS）
+sudo dnf remove keepalived
+
+# 3. 設定ファイルとスクリプトの削除
+sudo rm -rf /etc/keepalived
+
+# 4. チェックスクリプトユーザーの削除
+# 警告: このユーザーが他のサービスで使用されていないことを確認
+sudo userdel keepalived_script
+
+# 5. 残存する仮想IPアドレスの手動削除（必要な場合）
+# 例: sudo ip addr del 10.120.20.51/24 dev eth0
+```
+
+## 参考
+
+- [Keepalived Documentation](https://www.keepalived.org/doc/)
+- [VRRP Protocol RFC](https://tools.ietf.org/html/rfc5798)

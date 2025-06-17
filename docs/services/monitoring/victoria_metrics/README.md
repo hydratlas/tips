@@ -1,18 +1,40 @@
 # VictoriaMetrics
 
-VictoriaMetricsは、高性能で費用対効果の高い時系列データベースです。Prometheusと互換性があり、長期保存に最適化されています。このドキュメントでは、Ansible roleを使用した自動設定と手動での設定手順の両方を説明します。
+高性能で費用対効果の高い時系列データベース。Prometheusと互換性があり、長期保存に最適化されています。
 
-## Ansible Roleによる設定
+## 概要
 
-このAnsible roleは、VictoriaMetrics（シングルノード版）をrootlessコンテナとしてデプロイします。[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)ロールを使用して共通のセットアップを行います。
+### このドキュメントの目的
+このロールは、VictoriaMetrics（シングルノード版）をrootlessコンテナとしてデプロイする機能を提供します。Ansible roleによる自動設定と手動での設定手順の両方に対応しています。
 
-### 要件
+### 実現される機能
+- Prometheusと互換性のある時系列データベースの提供
+- メトリクスデータの長期保存
+- 高速なクエリ処理とデータ圧縮
+- Rootlessコンテナによる安全な運用
+- Podman Quadletによる自動起動と管理
 
-- Ansible 2.9以上
+## 要件と前提条件
+
+### 共通要件
+- OS: Ubuntu (focal, jammy), Debian (buster, bullseye), RHEL/CentOS (8, 9)
 - Podmanがインストールされていること
-- 対応OS: Ubuntu (focal, jammy), Debian (buster, bullseye), RHEL/CentOS (8, 9)
+- systemdによるユーザーサービス管理が可能であること
+- ポート8428が利用可能であること
 
-### ロール変数
+### Ansible固有の要件
+- Ansible 2.9以上
+- 制御ノードからターゲットホストへのSSH接続が可能であること
+
+### 手動設定の要件
+- sudo権限を持つユーザーアカウント
+- Podman 3.0以上がインストールされていること
+
+## 設定方法
+
+### 方法1: Ansible Roleを使用
+
+#### ロール変数
 
 | 変数名 | デフォルト値 | 説明 |
 |--------|--------------|------|
@@ -27,12 +49,24 @@ VictoriaMetricsは、高性能で費用対効果の高い時系列データベ�
 | `victoria_metrics_service_restart_sec` | `5` | 再起動間隔（秒） |
 | `victoria_metrics_scrape_configs` | デフォルト設定あり | Prometheusスクレイプ設定 |
 
-### 依存関係
+#### 依存関係
+- [podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)ロールを内部的に使用
 
-なし
+#### タグとハンドラー
+- ハンドラー:
+  - `reload systemd user daemon`: systemdユーザーデーモンをリロード
+  - `restart victoria_metrics`: VictoriaMetricsサービスを再起動
 
-### Playbookの例
+#### 使用例
 
+基本的な使用例:
+```yaml
+- hosts: monitoring_servers
+  roles:
+    - role: services.monitoring.victoria_metrics
+```
+
+カスタムスクレイプ設定を含む例:
 ```yaml
 - hosts: monitoring_servers
   roles:
@@ -56,34 +90,9 @@ VictoriaMetricsは、高性能で費用対効果の高い時系列データベ�
                 replacement: '${1}:${2}'
 ```
 
-### タグ
+### 方法2: 手動での設定手順
 
-このroleでは特定のタグは使用していません。
-
-### ハンドラー
-
-- `reload systemd user daemon`: systemdユーザーデーモンをリロード
-- `restart victoria_metrics`: VictoriaMetricsサービスを再起動
-
-## トラブルシューティング
-
-```bash
-# サービスの状態確認
-sudo -u monitoring systemctl --user status victoria-metrics.service
-
-# ログの確認
-sudo -u monitoring journalctl --user -u victoria-metrics.service -f
-
-# サービスの再起動
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart victoria-metrics.service
-
-# 設定ファイルの確認
-cat /home/monitoring/.config/prometheus/prometheus.yml
-```
-
-## 手動での設定手順
-
-### 1. 準備
+#### ステップ1: 環境準備
 
 ```bash
 # アプリケーション名とユーザー名を設定
@@ -92,13 +101,12 @@ QUADLET_USER="monitoring" &&
 USER_COMMENT="VictoriaMetrics rootless user"
 ```
 
-この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+この先の基本セットアップは、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
 
-### 2. Quadletファイルなどの配置
-
-#### ネットワークファイルの作成
+#### ステップ2: ネットワーク設定
 
 ```bash
+# ネットワークファイルの作成
 if [ ! -f "/home/monitoring/.config/containers/systemd/monitoring.network" ]; then
 sudo -u "monitoring" tee "/home/monitoring/.config/containers/systemd/monitoring.network" << EOF > /dev/null
 [Unit]
@@ -110,13 +118,13 @@ EOF
 fi
 ```
 
-#### Prometheus設定ファイルの作成
+#### ステップ3: 設定ファイルの作成
 
 ```bash
 # 設定ディレクトリの作成
 sudo -u monitoring mkdir -p /home/monitoring/.config/prometheus
 
-# 設定ファイルの作成
+# Prometheus互換設定ファイルの作成
 sudo -u monitoring tee /home/monitoring/.config/prometheus/prometheus.yml << 'EOF' > /dev/null
 scrape_configs:
   - job_name: node
@@ -136,7 +144,7 @@ scrape_configs:
 EOF
 ```
 
-#### Podman Quadletコンテナファイルの作成
+#### ステップ4: Quadletコンテナの設定
 
 ```bash
 # データディレクトリの作成
@@ -173,12 +181,124 @@ EOF
 sudo chmod 644 /home/monitoring/.config/containers/systemd/victoria-metrics.container
 ```
 
-### 3. サービスおよびタイマーの起動と有効化
+#### ステップ5: サービスの起動と有効化
 
-[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+サービスおよびタイマーの起動と有効化については、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
+
+## 運用管理
+
+### 基本操作
+
+```bash
+# サービスの状態確認
+sudo -u monitoring systemctl --user status victoria-metrics.service
+
+# サービスの開始
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user start victoria-metrics.service
+
+# サービスの停止
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop victoria-metrics.service
+
+# サービスの再起動
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart victoria-metrics.service
+
+# 設定のリロード（再起動が必要）
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user daemon-reload
+```
+
+### ログとモニタリング
+
+```bash
+# リアルタイムログの確認
+sudo -u monitoring journalctl --user -u victoria-metrics.service -f
+
+# 過去のログ確認（直近100行）
+sudo -u monitoring journalctl --user -u victoria-metrics.service -n 100
+
+# コンテナログの直接確認
+sudo -u monitoring podman logs victoria-metrics
+
+# メトリクスエンドポイントの確認
+curl http://localhost:8428/metrics
+```
+
+### トラブルシューティング
+
+診断フロー:
+1. サービスの状態確認
+2. ログメッセージの確認
+3. ネットワーク接続性の確認
+4. ディスク容量の確認
+
+よくある問題と対処:
+- **サービスが起動しない**: ポート競合の確認、設定ファイルの構文チェック
+- **データが保存されない**: ディスク容量とパーミッションの確認
+- **メトリクスが収集されない**: スクレイプ設定とターゲットの到達性確認
+
+```bash
+# ポート使用状況の確認
+ss -tlnp | grep 8428
+
+# 設定ファイルの構文確認
+sudo -u monitoring podman run --rm -v /home/monitoring/.config/prometheus/prometheus.yml:/etc/prometheus.yml:ro docker.io/victoriametrics/victoria-metrics:latest -promscrape.config=/etc/prometheus.yml -promscrape.config.dryRun
+
+# ディスク使用量の確認
+df -h /home/monitoring/.local/share/victoria-metrics-data
+```
+
+### メンテナンス
+
+```bash
+# データのバックアップ
+sudo -u monitoring tar czf victoria-metrics-backup-$(date +%Y%m%d).tar.gz -C /home/monitoring/.local/share victoria-metrics-data
+
+# コンテナイメージの更新
+sudo -u monitoring podman pull docker.io/victoriametrics/victoria-metrics:latest
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart victoria-metrics.service
+
+# 古いイメージのクリーンアップ
+sudo -u monitoring podman image prune -f
+
+# 設定変更後の反映
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user daemon-reload
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart victoria-metrics.service
+```
+
+## アンインストール（手動）
+
+```bash
+# 1. サービスの停止と無効化
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop victoria-metrics.service
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user disable victoria-metrics.service
+
+# 2. Quadlet設定ファイルの削除
+sudo rm -f /home/monitoring/.config/containers/systemd/victoria-metrics.container
+
+# 3. systemdデーモンのリロード
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user daemon-reload
+
+# 4. コンテナとイメージの削除
+sudo -u monitoring podman rm -f victoria-metrics || true
+sudo -u monitoring podman rmi docker.io/victoriametrics/victoria-metrics:latest || true
+
+# 5. ネットワークの削除（他のサービスで使用していない場合）
+sudo -u monitoring podman network rm monitoring || true
+sudo rm -f /home/monitoring/.config/containers/systemd/monitoring.network
+
+# 6. 設定ファイルの削除
+sudo rm -rf /home/monitoring/.config/prometheus
+
+# 7. データディレクトリの削除（オプション - データを保持する場合はスキップ）
+# 警告: この操作により全てのメトリクスデータが削除されます
+# sudo rm -rf /home/monitoring/.local/share/victoria-metrics-data
+
+# 8. ユーザーの削除（他のサービスで使用していない場合）
+# 警告: monitoringユーザーのホームディレクトリも削除されます
+# sudo userdel -r monitoring
+```
 
 ## 参考
 
-- [VictoriaMetrics](https://docs.victoriametrics.com/)
-- [VictoriaMetrics/package/victoria-metrics.service at master · VictoriaMetrics/VictoriaMetrics](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/package/victoria-metrics.service)
-- [Prometheusでinstance名をホスト名にしたい #prometheus - Qiita](https://qiita.com/fkshom/items/bafb2160e2c9ca8ded38)
+- [VictoriaMetrics公式ドキュメント](https://docs.victoriametrics.com/)
+- [VictoriaMetrics GitHubリポジトリ](https://github.com/VictoriaMetrics/VictoriaMetrics)
+- [Prometheusでinstance名をホスト名にしたい - Qiita](https://qiita.com/fkshom/items/bafb2160e2c9ca8ded38)

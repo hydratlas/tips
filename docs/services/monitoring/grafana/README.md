@@ -1,18 +1,41 @@
 # Grafana
 
-Grafanaは、メトリクスとログの可視化プラットフォームです。このドキュメントでは、Ansible roleを使用した自動設定と手動での設定手順の両方を説明します。
+メトリクスとログの可視化プラットフォーム
 
-## Ansible Roleによる設定
+## 概要
 
-このAnsible roleは、Grafanaをrootlessコンテナとしてデプロイし、PrometheusとLokiのデータソースを自動設定します。[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)ロールを使用して共通のセットアップを行います。
+### このドキュメントの目的
+このロールは、Grafanaをrootlessコンテナとしてデプロイし、PrometheusとLokiのデータソースを自動設定します。Ansible自動設定と手動設定の両方の方法に対応しています。
 
-### 要件
+### 実現される機能
+- Grafanaの可視化プラットフォームの構築
+- Rootless Podman Quadletによる安全なコンテナ実行
+- PrometheusとLokiデータソースの自動設定
+- 匿名アクセスでのViewer権限付与
+- コンテナイメージの自動更新
 
-- Ansible 2.9以上
-- Podmanがインストールされていること
+## 要件と前提条件
+
+### 共通要件
 - 対応OS: Ubuntu (focal, jammy), Debian (buster, bullseye), RHEL/CentOS (8, 9)
+- Podmanがインストールされていること
+- systemdがインストールされていること
+- ネットワーク接続（コンテナイメージの取得用）
 
-### ロール変数
+### Ansible固有の要件
+- Ansible 2.9以上
+- 制御ノードから対象ホストへのSSH接続
+- 対象ホストでのsudo権限
+
+### 手動設定の要件
+- rootまたはsudo権限
+- 基本的なLinuxコマンドの知識
+
+## 設定方法
+
+### 方法1: Ansible Roleを使用
+
+#### ロール変数
 
 | 変数名 | デフォルト値 | 説明 |
 |--------|--------------|------|
@@ -32,12 +55,21 @@ Grafanaは、メトリクスとログの可視化プラットフォームです�
 | `grafana_anonymous_enabled` | `true` | 匿名アクセスを有効にするか |
 | `grafana_anonymous_org_role` | `Viewer` | 匿名ユーザーのロール |
 
-### 依存関係
-
+#### 依存関係
 なし
 
-### Playbookの例
+#### タグとハンドラー
 
+**ハンドラー:**
+- `reload systemd user daemon`: systemdユーザーデーモンをリロード
+- `restart grafana`: Grafanaサービスを再起動
+
+**タグ:**
+このroleでは特定のタグは使用していません。
+
+#### 使用例
+
+基本的な使用例：
 ```yaml
 - hosts: monitoring_servers
   roles:
@@ -47,44 +79,20 @@ Grafanaは、メトリクスとログの可視化プラットフォームです�
         grafana_container_port: 3000
 ```
 
-### タグ
-
-このroleでは特定のタグは使用していません。
-
-### ハンドラー
-
-- `reload systemd user daemon`: systemdユーザーデーモンをリロード
-- `restart grafana`: Grafanaサービスを再起動
-
-## 初期設定
-
-1. `http://example.com:3000`にアクセス（`example.com`はインストールしたマシンのホスト名またはIPアドレス）
-2. Ansible実行時に表示される管理者ユーザー名とパスワードでログイン
-3. 左ペインの「Dashboards」画面で、右上の`New`ボタンから`Import`を選択
-   - IDとして`1860`を入力して、`Load`を押す。データソースはPrometheusを使用する
-     - [Node Exporter Full | Grafana Labs](https://grafana.com/ja/grafana/dashboards/1860-node-exporter-full/)
-   - IDとして`14055`を入力して、`Load`を押す。データソースはPrometheusおよびLokiを使用する
-     - [Loki stack monitoring (Promtail, Loki) | Grafana Labs](https://grafana.com/grafana/dashboards/14055-loki-stack-monitoring-promtail-loki/)
-
-## トラブルシューティング
-
-```bash
-# サービスの状態確認
-sudo -u monitoring systemctl --user status grafana.service
-
-# ログの確認
-sudo -u monitoring journalctl --user -u grafana.service -f
-
-# サービスの再起動
-sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart grafana.service
-
-# 環境変数ファイルの確認
-sudo cat /home/monitoring/.config/grafana/grafana.env
+カスタムポートとイメージを使用する例：
+```yaml
+- hosts: monitoring_servers
+  roles:
+    - role: services.monitoring.grafana
+      vars:
+        grafana_user: "monitoring"
+        grafana_container_port: 3001
+        grafana_container_image: "docker.io/grafana/grafana-oss:10.2.0"
 ```
 
-## 手動での設定手順
+### 方法2: 手動での設定手順
 
-### 1. 準備
+#### ステップ1: 環境準備
 
 ```bash
 # アプリケーション名とユーザー名を設定
@@ -93,11 +101,15 @@ QUADLET_USER="monitoring" &&
 USER_COMMENT="Grafana rootless user"
 ```
 
-この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してユーザー作成とディレクトリ準備を行います。
 
-### 2. Quadletファイルなどの配置
+#### ステップ2: インストール
 
-#### ネットワークファイルの作成
+Podmanのインストールは各ディストリビューションのパッケージマネージャーを使用してください。
+
+#### ステップ3: 設定
+
+##### ネットワークファイルの作成
 
 ```bash
 if [ ! -f "/home/monitoring/.config/containers/systemd/monitoring.network" ]; then
@@ -111,7 +123,7 @@ EOF
 fi
 ```
 
-#### 環境変数ファイルの作成
+##### 環境変数ファイルの作成
 
 ```bash
 # 管理者パスワードの生成
@@ -135,7 +147,7 @@ sudo chown monitoring:monitoring /home/monitoring/.config/grafana/grafana.env
 echo "Grafana admin password: ${password}"
 ```
 
-#### データソース設定ファイルの作成
+##### データソース設定ファイルの作成
 
 ```bash
 # データソースディレクトリの作成
@@ -163,7 +175,7 @@ datasources:
 EOF
 ```
 
-#### Podman Quadletコンテナファイルの作成
+##### Podman Quadletコンテナファイルの作成
 
 ```bash
 # データディレクトリの作成
@@ -204,10 +216,132 @@ EOF
 sudo chmod 644 /home/monitoring/.config/containers/systemd/grafana.container
 ```
 
-### 3. サービスおよびタイマーの起動と有効化
+#### ステップ4: 起動と有効化
 
-[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してサービスを起動します。
+
+## 運用管理
+
+### 基本操作
+
+```bash
+# サービスの状態確認
+sudo -u monitoring systemctl --user status grafana.service
+
+# サービスの再起動
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart grafana.service
+
+# サービスの停止
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop grafana.service
+
+# サービスの開始
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user start grafana.service
+```
+
+### ログとモニタリング
+
+```bash
+# ログの確認（最新の100行）
+sudo -u monitoring journalctl --user -u grafana.service --no-pager -n 100
+
+# ログの確認（リアルタイム表示）
+sudo -u monitoring journalctl --user -u grafana.service -f
+
+# コンテナの状態確認
+sudo -u monitoring podman ps --filter name=grafana
+
+# コンテナの詳細情報
+sudo -u monitoring podman inspect grafana
+```
+
+### トラブルシューティング
+
+#### サービスが起動しない場合
+
+1. 設定ファイルの確認
+```bash
+# 環境変数ファイルの確認
+sudo cat /home/monitoring/.config/grafana/grafana.env
+
+# Quadletファイルの確認
+sudo cat /home/monitoring/.config/containers/systemd/grafana.container
+```
+
+2. ポートの競合確認
+```bash
+sudo ss -tlnp | grep :3000
+```
+
+3. コンテナイメージの確認
+```bash
+sudo -u monitoring podman images | grep grafana
+```
+
+#### 初期設定
+
+1. `http://example.com:3000`にアクセス（`example.com`はインストールしたマシンのホスト名またはIPアドレス）
+2. Ansible実行時に表示される管理者ユーザー名とパスワードでログイン
+3. 左ペインの「Dashboards」画面で、右上の`New`ボタンから`Import`を選択
+   - IDとして`1860`を入力して、`Load`を押す。データソースはPrometheusを使用する
+     - [Node Exporter Full | Grafana Labs](https://grafana.com/ja/grafana/dashboards/1860-node-exporter-full/)
+   - IDとして`14055`を入力して、`Load`を押す。データソースはPrometheusおよびLokiを使用する
+     - [Loki stack monitoring (Promtail, Loki) | Grafana Labs](https://grafana.com/grafana/dashboards/14055-loki-stack-monitoring-promtail-loki/)
+
+### メンテナンス
+
+#### バックアップ
+
+```bash
+# データディレクトリのバックアップ
+sudo tar -czf grafana-backup-$(date +%Y%m%d).tar.gz \
+    /home/monitoring/.local/share/grafana \
+    /home/monitoring/.config/grafana
+```
+
+#### アップデート
+
+```bash
+# 手動でのイメージ更新
+sudo -u monitoring podman pull docker.io/grafana/grafana-oss:latest
+
+# サービスの再起動
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user restart grafana.service
+```
+
+自動更新は`podman-auto-update.timer`により定期的に実行されます。
+
+## アンインストール（手動）
+
+以下の手順でGrafanaを完全に削除します。
+
+```bash
+# 1. サービスの停止
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user stop grafana.service
+
+# 2. Quadletファイルの削除
+sudo rm -f /home/monitoring/.config/containers/systemd/grafana.container
+
+# 3. ネットワークファイルの削除（他のサービスが使用していない場合）
+sudo rm -f /home/monitoring/.config/containers/systemd/monitoring.network
+
+# 4. systemdデーモンのリロード
+sudo -u monitoring XDG_RUNTIME_DIR=/run/user/$(id -u monitoring) systemctl --user daemon-reload
+
+# 5. コンテナイメージの削除
+sudo -u monitoring podman rmi docker.io/grafana/grafana-oss:latest
+
+# 6. 設定ファイルとデータの削除
+# 警告: この操作により、すべてのダッシュボード、ユーザー、設定が削除されます
+sudo rm -rf /home/monitoring/.config/grafana
+sudo rm -rf /home/monitoring/.local/share/grafana
+
+# 7. ユーザーの削除（オプション）
+# 警告: このユーザーが他のサービスでも使用されている場合は削除しないでください
+# sudo loginctl disable-linger monitoring
+# sudo userdel -r monitoring
+```
 
 ## 参考
 
 - [Run Grafana Docker image | Grafana documentation](https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/)
+- [Podman Quadlet Documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)

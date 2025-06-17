@@ -1,24 +1,44 @@
 # cloudflared
 
-Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナとして実行するAnsibleロール。
+Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナとして実行
 
-## 前提条件
+## 概要
 
+### このドキュメントの目的
+このロールは、Cloudflare Tunnelをrootlessコンテナとして安全に実行するための設定を提供します。Ansible自動設定と手動設定の両方の方法に対応しており、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を活用した共通セットアップを行います。
+
+### 実現される機能
+- Cloudflare Tunnelによるセキュアなリモートアクセス
+- Rootless Podman Quadletによる非特権コンテナ実行
+- 専用ユーザーによる分離された実行環境
+- コンテナイメージの自動更新
+- 読み取り専用コンテナによるセキュリティ強化
+- 非特権ユーザーでのICMP Echo（ping）実行
+
+## 要件と前提条件
+
+### 共通要件
+- 対応OS: Ubuntu (focal, jammy), Debian (buster, bullseye), RHEL/CentOS (8, 9)
 - Podmanがインストールされていること
 - systemdがインストールされていること
 - loginctlコマンドが利用可能であること（systemd-loginパッケージ）
+- ネットワーク接続（コンテナイメージの取得およびCloudflareへの接続用）
+- 有効なCloudflare Tunnelトークン
 
-## 設定内容
-- 非特権ユーザーが ICMP Echo（ping）を実行可能にするカーネルパラメータを設定
-- Cloudflare Tunnelのトークンは環境変数ファイルに保存され、パーミッション600で保護
-- コンテナは`NoNewPrivileges=true`と`ReadOnly=true`で実行
-- [podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を呼び出して設定
-  - 専用のユーザーを作成
-  - Lingering有効化
-  - 必要なディレクトリ構造の作成
-  - コンテナイメージの自動更新を設定
+### Ansible固有の要件
+- Ansible 2.9以上
+- 制御ノードから対象ホストへのSSH接続
+- 対象ホストでのsudo権限
 
-## 変数
+### 手動設定の要件
+- rootまたはsudo権限
+- 基本的なLinuxコマンドの知識
+
+## 設定方法
+
+### 方法1: Ansible Roleを使用
+
+#### ロール変数
 
 | 変数名 | デフォルト値 | 説明 |
 |--------|--------------|------|
@@ -30,19 +50,21 @@ Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナ�
 
 注: `cloudflared_config_dir`と`cloudflared_systemd_dir`は、ユーザーのホームディレクトリから自動的に生成されます。
 
-## ディレクトリ構造
+#### 依存関係
+なし
 
-ロールは以下のディレクトリとファイルを作成します（デフォルトの場合）：
+#### タグとハンドラー
 
-- `/home/cloudflared/` - cloudflaredユーザーのホームディレクトリ
-- `/home/cloudflared/.config/cloudflared/` - 設定ディレクトリ
-  - `cloudflared.env` - 環境変数ファイル（トークンを含む）
-- `/home/cloudflared/.config/containers/systemd/` - Quadletディレクトリ
-  - `cloudflared.container` - Podman Quadletコンテナ定義
-- `/home/cloudflared/.local/share/containers/storage` - コンテナストレージ
+**ハンドラー:**
+- `reload systemd user daemon`: systemdユーザーデーモンをリロード
+- `restart cloudflared`: cloudflaredサービスを再起動
 
-## 使用例
+**タグ:**
+このroleでは特定のタグは使用していません。
 
+#### 使用例
+
+基本的な使用例：
 ```yaml
 - hosts: myhost
   roles:
@@ -52,7 +74,6 @@ Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナ�
 ```
 
 カスタムユーザー名を使用する場合：
-
 ```yaml
 - hosts: myhost
   roles:
@@ -62,34 +83,22 @@ Cloudflare TunnelをPodman Quadletで専用ユーザーのrootlessコンテナ�
         cloudflared_token: "your-tunnel-token-here"
 ```
 
-## トラブルシューティング
-以下のcloudflared固有のコマンド以外は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+### 方法2: 手動での設定手順
 
-```bash
-# コンテナ内のトンネルステータスの確認
-sudo -u cloudflared podman exec cloudflared cloudflared tunnel info
+#### ステップ1: 環境準備
 
-# コンテナイメージの手動更新
-sudo -u cloudflared podman pull docker.io/cloudflare/cloudflared:latest &&
-sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user restart cloudflared.service
-
-# 環境変数ファイルの削除
-sudo rm "/home/cloudflared/.config/cloudflared/cloudflared.env"
-```
-
-## 手動での設定手順
-
-### 1. 準備
 ```bash
 # アプリケーション名とユーザー名を設定
 APP_NAME="cloudflared" &&
 QUADLET_USER="cloudflared" &&
 USER_COMMENT="Cloudflare Tunnel rootless user"
 ```
-この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
 
-### 2. Quadletファイルなどの配置
-#### 非特権ユーザーが ICMP Echo（ping）を実行可能にするカーネルパラメータの設定
+この先は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してユーザー作成とディレクトリ準備を行います。
+
+#### ステップ2: インストール
+
+##### 非特権ユーザーが ICMP Echo（ping）を実行可能にするカーネルパラメータの設定
 
 ```bash
 # sysctlでping権限の設定
@@ -101,7 +110,12 @@ EOF
 sudo sysctl --system
 ```
 
-#### 環境変数ファイルの作成
+Podmanのインストールは各ディストリビューションのパッケージマネージャーを使用してください。
+
+#### ステップ3: 設定
+
+##### 環境変数ファイルの作成
+
 ```bash
 # Cloudflare Tunnelトークンを設定（実際のトークンに置き換える）
 TUNNEL_TOKEN="your-tunnel-token-here"
@@ -117,7 +131,8 @@ sudo chmod 600 /home/cloudflared/.config/cloudflared/cloudflared.env
 sudo chown cloudflared:cloudflared /home/cloudflared/.config/cloudflared/cloudflared.env
 ```
 
-#### Podman Quadletコンテナファイルの作成
+##### Podman Quadletコンテナファイルの作成
+
 ```bash
 # Quadletコンテナ定義ファイルの作成
 sudo -u cloudflared tee /home/cloudflared/.config/containers/systemd/cloudflared.container << 'EOF' > /dev/null
@@ -150,5 +165,129 @@ sudo chmod 644 /home/cloudflared/.config/containers/systemd/cloudflared.containe
 sudo chown cloudflared:cloudflared /home/cloudflared/.config/containers/systemd/cloudflared.container
 ```
 
-### 3. サービスおよびタイマーの起動と有効化
-[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照。
+#### ステップ4: 起動と有効化
+
+[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してサービスを起動します。
+
+## 運用管理
+
+### 基本操作
+
+```bash
+# サービスの状態確認
+sudo -u cloudflared systemctl --user status cloudflared.service
+
+# サービスの再起動
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user restart cloudflared.service
+
+# サービスの停止
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user stop cloudflared.service
+
+# サービスの開始
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user start cloudflared.service
+```
+
+### ログとモニタリング
+
+```bash
+# ログの確認（最新の100行）
+sudo -u cloudflared journalctl --user -u cloudflared.service --no-pager -n 100
+
+# ログの確認（リアルタイム表示）
+sudo -u cloudflared journalctl --user -u cloudflared.service -f
+
+# コンテナの状態確認
+sudo -u cloudflared podman ps --filter name=cloudflared
+
+# トンネルステータスの確認
+sudo -u cloudflared podman exec cloudflared cloudflared tunnel info
+```
+
+### トラブルシューティング
+
+#### サービスが起動しない場合
+
+1. トークンの確認
+```bash
+# 環境変数ファイルの確認（トークンが設定されているか）
+sudo cat /home/cloudflared/.config/cloudflared/cloudflared.env
+```
+
+2. ネットワーク接続の確認
+```bash
+# Cloudflareへの接続確認
+ping -c 4 cloudflare.com
+```
+
+3. コンテナイメージの確認
+```bash
+sudo -u cloudflared podman images | grep cloudflared
+```
+
+4. 詳細なログの確認
+```bash
+# 起動時のエラーメッセージを確認
+sudo -u cloudflared journalctl --user -u cloudflared.service --no-pager -n 200
+```
+
+その他のcloudflared固有のコマンド以外は、[podman_rootless_quadlet_base](../../infrastructure/container/podman_rootless_quadlet_base/README.md)を参照してください。
+
+### メンテナンス
+
+#### バックアップ
+
+```bash
+# 設定ファイルのバックアップ
+sudo tar -czf cloudflared-backup-$(date +%Y%m%d).tar.gz \
+    /home/cloudflared/.config/cloudflared
+```
+
+#### アップデート
+
+```bash
+# 手動でのイメージ更新
+sudo -u cloudflared podman pull docker.io/cloudflare/cloudflared:latest
+
+# サービスの再起動
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user restart cloudflared.service
+```
+
+自動更新は`podman-auto-update.timer`により定期的に実行されます。
+
+## アンインストール（手動）
+
+以下の手順でCloudflaredを完全に削除します。
+
+```bash
+# 1. サービスの停止
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user stop cloudflared.service
+
+# 2. Quadletファイルの削除
+sudo rm -f /home/cloudflared/.config/containers/systemd/cloudflared.container
+
+# 3. systemdデーモンのリロード
+sudo -u cloudflared XDG_RUNTIME_DIR=/run/user/$(id -u cloudflared) systemctl --user daemon-reload
+
+# 4. コンテナイメージの削除
+sudo -u cloudflared podman rmi docker.io/cloudflare/cloudflared:latest
+
+# 5. 環境変数ファイルの削除
+# 警告: この操作により、トンネルトークンが削除されます
+sudo rm -rf /home/cloudflared/.config/cloudflared
+
+# 6. ping権限設定の削除（他のサービスが使用していない場合）
+sudo rm -f /etc/sysctl.d/99-ping-group-range.conf
+sudo sysctl --system
+
+# 7. lingeringの無効化
+sudo loginctl disable-linger cloudflared
+
+# 8. ユーザーの削除
+# 警告: このユーザーのホームディレクトリとすべてのデータが削除されます
+sudo userdel -r cloudflared
+```
+
+## 参考
+
+- [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
+- [Podman Quadlet Documentation](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)
