@@ -1,33 +1,70 @@
-## このドキュメントサイト自体の説明
+# ops-knowledge
 
-このドキュメントサイトは[MkDocs](https://www.mkdocs.org/)と[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)を使用して構築されています。依存関係の管理には[uv](https://docs.astral.sh/uv/)を使用しています。
+インフラストラクチャとオペレーションに関するナレッジベースサイトです。
 
-### ローカル環境でのセットアップ
+詳細な仕様については[SPEC.md](SPEC.md)を参照してください。
 
-1. uvのインストール（まだインストールしていない場合）
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
+## クイックスタート
 
-2. 依存関係のインストール
-   ```bash
-   uv sync
-   ```
+### 必要なもの
+- [mise](https://mise.jdx.dev/)
 
-3. ローカルサーバーの起動（開発用）
-   ```bash
-   uv run mkdocs serve
-   ```
-   http://127.0.0.1:8000/ でプレビューできます。
+### ローカルでの実行
+```bash
+# mdBookのインストール（初回のみ）
+mise install
 
-4. サイトのビルド（本番用）
-   ```bash
-   uv run mkdocs build
-   ```
-   `site/`ディレクトリに静的HTMLが生成されます。
+# サイトをビルドして起動
+mise exec -- mdbook serve
 
-5. 依存関係のアップデート
-   ```bash
-   uv lock --upgrade &&
-   uv sync
-   ```
+# http://localhost:3000/ でアクセス可能
+```
+
+### ビルドのみ
+```bash
+mise exec -- mdbook build
+```
+
+## ディレクトリ構造
+```
+ops-knowledge/
+├── book.toml           # mdBook設定ファイル
+├── src/                # すべてのコンテンツ
+│   ├── SUMMARY.md      # 自動生成されるナビゲーション
+│   └── ...             # Markdownファイル
+├── _site/              # ビルド出力
+├── scripts/            # ユーティリティスクリプト
+└── custom.css          # カスタムスタイル
+```
+
+## 主な特徴
+
+### 自動ナビゲーション生成
+`mdbook-auto-gen-summary`により、`src/`ディレクトリ構造から自動的にSUMMARY.mdが生成されます。
+
+### 日本語対応
+日本語に最適化されたフォントとレイアウトで快適に閲覧できます。
+
+### GitHub Pages自動デプロイ
+mainブランチへのプッシュで自動的にサイトがデプロイされます。
+
+## コンテンツの追加・編集
+
+1. `src/`ディレクトリ内の適切な場所にMarkdownファイルを作成・編集
+2. 各ファイルの最初の`#`見出しがナビゲーションのタイトルになります
+3. `README.md`は各ディレクトリのインデックスページとして機能します
+
+## トラブルシューティング
+
+### SUMMARY.mdの再生成
+SUMMARY.mdは`mdbook build`時に自動的に再生成されます。
+
+### ビルドエラーの確認
+```bash
+mise exec -- mdbook build --verbose
+```
+
+### mdbook-auto-gen-summaryのインストール
+```bash
+mise exec -- cargo install mdbook-auto-gen-summary
+```
