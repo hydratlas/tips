@@ -49,6 +49,14 @@ jobs:
         run: |
           cargo install mdbook-auto-gen-summary
 
+      # SUMMARY.mdが存在しない場合は空ファイルを作成
+      - name: Create empty SUMMARY.md if not exists
+        run: |
+          if [ ! -f src/SUMMARY.md ]; then
+            touch src/SUMMARY.md
+            echo "# Summary" > src/SUMMARY.md
+          fi
+
       # mdBookサイトのビルド
       - name: Build mdBook site
         run: mdbook build
