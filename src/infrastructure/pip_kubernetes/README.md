@@ -259,39 +259,6 @@ pip3 list | grep kubernetes
 pip3 cache purge
 ```
 
-## 使用例とサンプルコード
-
-インストール後の基本的な使用例：
-
-```python
-#!/usr/bin/env python3
-# sample_k8s_client.py
-
-from kubernetes import client, config
-
-# Kubeconfig を読み込む
-config.load_kube_config()
-
-# APIクライアントのインスタンス化
-v1 = client.CoreV1Api()
-
-# 全ての Pod をリスト
-print("Listing pods with their IPs:")
-ret = v1.list_pod_for_all_namespaces(watch=False)
-for i in ret.items:
-    print(f"{i.status.pod_ip}\t{i.metadata.namespace}\t{i.metadata.name}")
-
-# Namespace の作成例
-namespace = client.V1Namespace(
-    metadata=client.V1ObjectMeta(name="test-namespace")
-)
-try:
-    v1.create_namespace(namespace)
-    print("Namespace created successfully")
-except client.ApiException as e:
-    print(f"Exception when creating namespace: {e}")
-```
-
 ## 注意事項
 
 - このロールはKubernetes Python クライアントライブラリのみをインストールします

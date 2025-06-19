@@ -233,25 +233,7 @@ podman images | grep <image_name>
 ```
 
 ### メンテナンス
-
 ```bash
-# 更新履歴の確認スクリプト
-cat > /tmp/check_auto_updates.sh << 'EOF'
-#!/bin/bash
-echo "=== Podman Auto-Update Status ==="
-echo "Timer Status:"
-systemctl status podman-auto-update.timer --no-pager | grep -E "Active:|Next:"
-echo ""
-echo "Last 5 Update Runs:"
-journalctl -u podman-auto-update.service -n 5 --no-pager | grep -E "Started|Finished"
-echo ""
-echo "Containers with AutoUpdate label:"
-podman ps --format "table {{.Names}}\t{{.Labels}}" | grep -i autoupdate || echo "None found"
-EOF
-
-chmod +x /tmp/check_auto_updates.sh
-/tmp/check_auto_updates.sh
-
 # 古いイメージのクリーンアップ
 podman image prune -f
 

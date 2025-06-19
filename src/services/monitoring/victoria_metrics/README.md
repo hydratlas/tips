@@ -163,6 +163,7 @@ AutoUpdate=registry
 LogDriver=journald
 UserNS=keep-id
 NoNewPrivileges=true
+ReadOnly=true
 PublishPort=8428:8428
 Volume=/home/monitoring/.config/prometheus/prometheus.yml:/etc/prometheus.yml:z
 Volume=/home/monitoring/.local/share/victoria-metrics-data:/victoria-metrics-data:Z

@@ -199,6 +199,7 @@ AutoUpdate=registry
 LogDriver=journald
 UserNS=keep-id
 NoNewPrivileges=true
+ReadOnly=true
 PublishPort=3000:3000
 Volume=/home/monitoring/.local/share/grafana:/var/lib/grafana:Z
 Volume=/home/monitoring/.config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:z

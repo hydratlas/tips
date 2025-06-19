@@ -9,6 +9,7 @@ AutoUpdate=registry
 LogDriver=journald
 UserNS=keep-id
 NoNewPrivileges=true
+ReadOnly=true
 PublishPort={{ victoria_metrics_container_port }}:{{ victoria_metrics_container_port }}
 Volume={{ victoria_metrics_config_file }}:/etc/prometheus.yml:z
 Volume={{ victoria_metrics_data_dir }}:/victoria-metrics-data:Z
