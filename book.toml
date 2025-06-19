@@ -10,6 +10,7 @@ src = "src"
 site-url = "/ops-knowledge/"
 git-repository-url = "https://github.com/hydratlas/ops-knowledge"
 no-section-label = true
+additional-css = ["theme/custom.css"]
 
 [output.html.search]
 enable = true
