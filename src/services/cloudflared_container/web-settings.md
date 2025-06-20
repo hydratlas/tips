@@ -10,9 +10,33 @@
 
 HTTPSの場合にはTLS設定として「No TLS Verify」が選べる。内部ではTLSの証明書を設定しない場合も多いが、その場合はオンにする。
 
-### SSH
+### SSH（クライアントサイド cloudflared）
+### 1. 既存のトンネルにSSHサービスを追加
+ダッシュボードの「Zero Trust」→「Networks」→「Tunnels」を開いて、トンネルの一覧画面を表示する。任意のトンネルの一番右にある縦三点アイコンをクリックして、「Configure」をクリックする。
+
+設定画面が開く。上部に「Overview」、「Public Hostname」および「Private Network」という3つのタブが表示されるため、「Private Network」を選択する。
+
+「Add a public hostname」ボタンをクリックして以下のように入力する。
+
+- Subdomain: ssh（任意の名前）
+- Domain: example.com（あなたが所有するドメイン）
+- Path: （空欄のまま）
+- Type: SSH
+- URL: 192.168.100.1（トンネリング先のIPアドレス）
+
+### 2. クライアント側から接続
+クライアント側にcloudflaredをインストールする（詳細は別のドキュメントに記載）。
+
+以下のように接続する。`ssh.example.com`は前項で入力したSubdomainとDomainの組み合わせである。
+```bash
+ssh -o ProxyCommand="cloudflared access ssh --hostname ssh.example.com" root@ssh.example.com
+```
+
+### SSH（WARP-to-Tunnel + Access for インフラストラクチャ）
 #### 1. サーバーをCloudflareに接続
-ダッシュボードの「Zero Trust」→「Networks」→「Tunnels」を開いて、トンネルの設定画面を表示する。上部に「Overview」、「Public Hostname」および「Private Network」という3つのタブが表示されるため、「Private Network」を選択する。
+ダッシュボードの「Zero Trust」→「Networks」→「Tunnels」を開いて、トンネルの一覧画面を表示する。任意のトンネルの一番右にある縦三点アイコンをクリックして、「Configure」を選択する。
+
+設定画面が開く。上部に「Overview」、「Public Hostname」および「Private Network」という3つのタブが表示されるため、「Private Network」を選択する。
 
 追加ボタンを押し「CIDR」にSSHサーバーのIPアドレスと「/32」を入力して（例：192.168.1.2/32）、保存する。
 
